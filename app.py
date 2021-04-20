@@ -83,7 +83,7 @@ def getFrame(sec):
 
 
 sec = 0
-frameRate = 0.035  # 30 frames per second?
+frameRate = 0.02  # 30 frames per second?
 count = 1
 success = getFrame(sec)
 while success:
@@ -91,7 +91,7 @@ while success:
     sec = sec + frameRate
     sec = round(sec, 2)
     success = getFrame(sec)
-maxTime = len(frames)-1
+maxFrames = len(frames)-1
 # End of Mark components
 
 # START APP / DASH COMPONENTS -----------------------------------------------------------------------------------------------------------------
@@ -156,8 +156,9 @@ image_annotation_card = dbc.Card(
                 dcc.Interval(
                     id='frame_interval',
                     interval=350,
+                    disabled=True,
                     n_intervals=0,      # number of times the interval has passed
-                    max_intervals=0
+                    max_intervals=maxFrames
                 ),
                 dcc.Graph(
                     id="graph",
@@ -171,11 +172,11 @@ image_annotation_card = dbc.Card(
                 dcc.Slider(
                     id='frame-slider',
                     min=0,
-                    max=maxTime,
+                    max=maxFrames,
                     value=0,
                     step=1,
-                    marks={round(i*maxTime/16): '{}'.format(round(i*maxTime/16))
-                           for i in range(maxTime)},
+                    marks={round(i*maxFrames/16): '{}'.format(round(i*maxFrames/16))
+                           for i in range(maxFrames)},
                 ),
                 dbc.ButtonGroup(
                     [
@@ -362,26 +363,26 @@ app.layout = app.layout = html.Div(
 # CALLBACK FUNCTION DEFINITIONS -----------------------------------------------------------------------------------------------------------------
 
 @app.callback(
-    Output('frame_interval', 'max_intervals'),
+    Output('frame_interval', 'disabled'),
     Output('playpause', 'children'),
     Input('playpause', 'n_clicks'),
-    State('frame_interval', 'max_intervals'),
+    State('frame_interval', 'disabled'),
 )
-def togglePlay(play, maxInt):
+def togglePlay(play, isPaused):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     # print(cbcontext)
     text = 'Play'
 
     if cbcontext == "playpause.n_clicks":
-        if maxInt == 0:  # STOP
-            maxInt = maxTime
+        if isPaused == True:
+            isPaused = False
             text = 'Pause'
-        elif maxInt == maxTime:  # PLAYING
-            maxInt = 0
+        elif isPaused == False:
+            isPaused = True
         else:
             raise PreventUpdate
 
-    return (maxInt, text)
+    return (isPaused, text)
 
 
 # @app.callback(
@@ -443,50 +444,30 @@ def toggle_collapse(n, is_open):
     Input('frame-slider', 'value'),
     Input('previous', 'n_clicks'),
     Input('next', 'n_clicks'),
-    State('frame_interval', 'max_intervals'),
+    State('frame_interval', 'disabled'),
 )
-def update_figure(interval, slider, previousBut, nextBut, playing):
+def update_figure(interval, slider, previousBut, nextBut, isPaused):
     # print(value)
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    currentFrame = 0;
 
-    if playing == maxTime:  # is playing
+    if isPaused == False:
         if interval is None:
             interval = 0
-        fig = px.imshow(frames[interval], binary_backend="jpg")
-        frame_df = dic[interval]
-        print("\nCurrent Frame Bounding Boxes:")
-        for i in range(len(frame_df)):
-            x0 = frame_df.iloc[i]['x0']
-            y0 = frame_df.iloc[i]['y0']
-            x1 = frame_df.iloc[i]['x1']
-            y1 = frame_df.iloc[i]['y1']
-            print(x0, y0, x1, y1)
-        add_editable_box(fig, x0, y0, x1, y1)
-        return (fig, interval, interval)
-    elif playing != maxTime:  # is paused
+        currentFrame = interval
+    elif isPaused == True:
+        currentFrame = interval
         if cbcontext == "previous.n_clicks":
-            if(interval != 0):
-                interval += -1
+            if(currentFrame != 0):
+                currentFrame += -1
         if cbcontext == "next.n_clicks":
-            if(interval != maxTime):
-                interval += 1
-
-
+            if(currentFrame != maxFrames):
+                currentFrame += 1
     if cbcontext == "frame-slider.value":
-        fig = px.imshow(frames[slider], binary_backend="jpg")
-        frame_df = dic[slider]
-        print("\nCurrent Frame Bounding Boxes:")
-        for i in range(len(frame_df)):
-            x0 = frame_df.iloc[i]['x0']
-            y0 = frame_df.iloc[i]['y0']
-            x1 = frame_df.iloc[i]['x1']
-            y1 = frame_df.iloc[i]['y1']
-            print(x0, y0, x1, y1)
-            add_editable_box(fig, x0, y0, x1, y1)
-        return (fig, slider, slider)
+        currentFrame = slider
 
-    fig = px.imshow(frames[interval], binary_backend="jpg")
-    frame_df = dic[interval]
+    fig = px.imshow(frames[currentFrame], binary_backend="jpg")
+    frame_df = dic[currentFrame]
     print("\nCurrent Frame Bounding Boxes:")
     for i in range(len(frame_df)):
         x0 = frame_df.iloc[i]['x0']
@@ -495,9 +476,8 @@ def update_figure(interval, slider, previousBut, nextBut, playing):
         y1 = frame_df.iloc[i]['y1']
         print(x0, y0, x1, y1)
         add_editable_box(fig, x0, y0, x1, y1)
-
-    return (fig, interval, interval)
-
+    return (fig, currentFrame, currentFrame)
+    
 # MAIN STARTS HERE -----------------------------------------------------------------------------------------------------------------
 
 
