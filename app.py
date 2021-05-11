@@ -9,9 +9,6 @@ import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
-import os
-from os.path import isfile, join
-from skimage import io
 import numpy as np
 from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
@@ -39,11 +36,6 @@ def add_editable_box(
     )
 
 
-def read_input():
-    for i in range(1000):
-        fp = open("./detections/f" + str(i) + ".txt", "r")  # grab new file
-        df = read_file(fp)
-        dic[i] = df
 
 
 def read_file(fp):  # returns complete dataframe
@@ -93,6 +85,13 @@ while success:
     success = getFrame(sec)
 maxFrames = len(frames)-1
 # End of Mark components
+
+
+def read_input():
+    for i in range(maxFrames):
+        fp = open("./detections/f" + str(i) + ".txt", "r")  # grab new file
+        df = read_file(fp)
+        dic[i] = df
 
 # START APP / DASH COMPONENTS -----------------------------------------------------------------------------------------------------------------
 
