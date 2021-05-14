@@ -66,30 +66,45 @@ df_players = pd.DataFrame(data=players_data, columns=pcols)
 # FUNCTION DEFINITIONS ------------------------------------------------------------------------------------------------------------------------
 # Start of Mark components
 
-vidcap = cv2.VideoCapture('Sample Soccer Video.mp4')
-frames = []
 
 
-def getFrame(sec):
-    vidcap.set(cv2.CAP_PROP_POS_MSEC, sec*1000)
-    hasFrames, image = vidcap.read()
-    if hasFrames:
-        # Instead of writing to directory, save to an image array
-        # cv2.imwrite(os.path.join(dirname,"image"+str(count) + ".jpg"), image)
-        image2 = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        frames.append(image2)
-    return hasFrames
+########### NEW VID TO FRAMES###########
+# vidcap = cv2.VideoCapture('Sample Soccer Video.mp4')
+# frames = []
+
+# def getFrame(sec):
+#     vidcap.set(cv2.CAP_PROP_POS_MSEC, sec*1000)
+#     hasFrames, image = vidcap.read()
+#     if hasFrames:
+#         # Instead of writing to directory, save to an image array
+#         # cv2.imwrite(os.path.join(dirname,"image"+str(count) + ".jpg"), image)
+#         image2 = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+#         frames.append(image2)
+#     return hasFrames
+
+# sec = 0
+# frameRate = 0.02  # 30 frames per second?
+# count = 1
+# success = getFrame(sec)
+# while success:
+#     count = count + 1
+#     sec = sec + frameRate
+#     sec = round(sec, 2)
+#     success = getFrame(sec)
+########### END NEW VID TO FRAMES###########
 
 
-sec = 0
-frameRate = 0.02  # 30 frames per second?
-count = 1
-success = getFrame(sec)
-while success:
-    count = count + 1
-    sec = sec + frameRate
-    sec = round(sec, 2)
-    success = getFrame(sec)
+########### OLD VID TO FRAMES###########
+
+pathIn = './vid2img/'
+frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))]
+frames.sort(key=lambda x: int(x[5:-4]))
+
+
+
+########### END OLD VID TO FRAMES###########
+
+
 maxFrames = len(frames)-1
 
 # End of Mark components
@@ -156,7 +171,8 @@ def updateSection(button_id):
 
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
-fig = px.imshow(frames[0], binary_backend="jpg")
+fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg") # OLD
+# fig = px.imshow(frames[0], binary_backend="jpg")  NEW
 
 
 # Hard Coded Data:---------------------------------------------------------------------
@@ -1118,7 +1134,8 @@ def update_figure(interval, slider, previousBut, nextBut, isPaused):
     if cbcontext == "frame-slider.value":
         currentFrame = slider
 
-    fig = px.imshow(frames[currentFrame], binary_backend="jpg")
+    fig = px.imshow(io.imread(pathIn+frames[currentFrame]), binary_backend="jpg") # OLD
+    # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
     frame_df = dic[currentFrame]
     print("\nCurrent Frame Bounding Boxes:")
     for i in range(len(frame_df)):
@@ -1150,4 +1167,4 @@ def update_output(value):
 if __name__ == '__main__':
     read_input()
     print("---Input done---")
-    app.run_server()
+    app.run_server(debug=True)

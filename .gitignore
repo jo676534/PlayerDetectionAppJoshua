@@ -7,5 +7,5 @@ app1.py
 example1.py
 mark_merged.py
 framesToVid.py
-vidToFrames.py
-/vid2img
+vid2Frames.py
+oldApp.py
