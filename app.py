@@ -19,34 +19,27 @@ from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
 
 
-# connect to database-----------------------------------------------------------------------------------------------------------------------
-conn = pg2.connect(database='soccerdb',
-                   user='postgres',
-                   host='localhost', 
-                   password='root')
+# Database Connection and Fetches #############################################################################################################
 
+conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
 cur = conn.cursor()
 
-# execute SQL query
-cur.execute('''SELECT *
-                FROM detections''')
-data = cur.fetchall()
 
-# Create Data Frame
+# fetch the detections ----------------
+
+cur.execute('''SELECT * FROM detections''')
+data = cur.fetchall()
 cols = []
 for elt in cur.description:
     cols.append(elt[0])
 
-df = pd.DataFrame(data=data, columns=cols)
+df_detections = pd.DataFrame(data=data, columns=cols) # this dataframe contains the detections
+# was originally just df (not currently used in the input functions)
 
-# Do it all again for teams
-# teams
 
-cur = conn.cursor()
+# fetch the teams ------------------
 
-cur.execute('''SELECT *
-                FROM team''')
-
+cur.execute('''SELECT * FROM team''')
 teams_data = cur.fetchall()
 tcols = []
 for elt in cur.description:
@@ -54,12 +47,10 @@ for elt in cur.description:
 
 df_teams = pd.DataFrame(data=teams_data, columns=tcols)
 
-# Do it all again for players
-# players
 
-cur = conn.cursor()
-cur.execute('''SELECT *
-                FROM player''')
+# fetch the players ----------------
+
+cur.execute('''SELECT * FROM player''')
 players_data = cur.fetchall()
 pcols = []
 for elt in cur.description:
@@ -67,16 +58,17 @@ for elt in cur.description:
 
 df_players = pd.DataFrame(data=players_data, columns=pcols)
 
-# Close Connection after we are done
+
+# Close Connection after we are done -----------------
+
 cur.close()
 conn.close()
 
-# FUNCTION DEFINITIONS ------------------------------------------------------------------------------------------------------------------------
-# Start of Mark components
 
-
+# GET FRAMES FROM VIDEO OR STORAGE ############################################################################################################
 
 ########### NEW VID TO FRAMES###########
+
 # vidcap = cv2.VideoCapture('Sample Soccer Video.mp4')
 # frames = []
 
@@ -99,31 +91,31 @@ conn.close()
 #     sec = sec + frameRate
 #     sec = round(sec, 2)
 #     success = getFrame(sec)
+
 ########### END NEW VID TO FRAMES###########
 
 
 ########### OLD VID TO FRAMES###########
 
 pathIn = './vid2img/'
-frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))]
+frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))] 
 frames.sort(key=lambda x: int(x[5:-4]))
-
-
 
 ########### END OLD VID TO FRAMES###########
 
 
+# GLOBAL VARIABLES #############################################################################################################################
+
 maxFrames = len(frames)-1
-
-# End of Mark components
-
-# Global Variables Definitions
 player_tracks_counter = 0
 all_tracks_counter = 0
 viewable_tracks_counter = 0
 dic = {}
 current_frame = 0
 player_tracks = ["17", "12"] # Hardcoded until "assign track" is working
+
+# NON-DASH FUNCTIONS ##############################################################################################################################
+
 
 def add_editable_box(
     fig, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None
@@ -139,6 +131,15 @@ def add_editable_box(
         line_width=3,
         name=name,
     )
+#     fig.add_annotation(
+#         x=x0,
+#         y=y0,
+#         text="ID={0}".format(100),
+#         xref="paper",
+#         yref="paper",
+#         showarrow=False,
+#         font_size=20, font_color='cyan'
+#     )
 
 
 def read_input():
@@ -178,10 +179,7 @@ def updateSection(button_id):
 # This function queries the database and gets the current
 # frame value stored 
 def getFrame():
-    conn = pg2.connect(database='soccerdb',
-            user='postgres',
-            host='localhost',  
-            password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
     cur = conn.cursor()
     cur.execute('''SELECT frame FROM variables''')
     currentFrame = cur.fetchall()
@@ -191,12 +189,11 @@ def getFrame():
     conn.close()
     return currentFrame
 
-# START APP / DASH COMPONENTS -----------------------------------------------------------------------------------------------------------------
+# DASH COMPONENTS #######################################################################################################################################
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg") # OLD
 # fig = px.imshow(frames[0], binary_backend="jpg")  NEW
-
 
 # Button Sections for teams:
 # Retrive value for each team
@@ -320,7 +317,7 @@ def generate_allTracks_row(i):
             dcc.Checklist(id="checkbox"+str(i), options=[
                           {'label': ' ', 'value': 'false', 'disabled': False}, ], value=['true']),
             dbc.Button(
-                str(df.iloc[all_tracks_counter]
+                str(df_detections.iloc[all_tracks_counter]
                     ['track_id']),
                 id="collapse-button" +
                 str(all_tracks_counter),
@@ -346,252 +343,11 @@ allTrackSection = html.Div([
 ])
 
 
-# Old AllTrackSectionComponent
-'''
-allTrackSection = html.Div(
-                    [
-                        dbc.Row(
-                         dbc.Col([
-                            html.P("ID #: " + str(df.iloc[0]['track_id']), style={"font-size": "12px"}),
-                            html.P("Start: "+all_uniqueTracks[allids[0]]["start"], style={"font-size": "12px"}),
-                            html.P("End: "+all_uniqueTracks[allids[0]]["end"], style={"font-size": "12px"}),
-                            #dcc.Store(id='store1',value = str(df.iloc[0]['track_id'])),
-                            dbc.Button(
-                                "Expand ",
-                                id="collapse-button1",
-                                className="mb-3",
-                                color="secondary",
-                                style={ "font-size": "12px"},
-                            ),
-                            dbc.Collapse(
-                                dbc.Card(dbc.CardBody([
-                                dcc.Markdown("Modify Track:   " "**Go to Start**"),
-                                dcc.Markdown("Delete Track:   " "**Go to End**")
-                                ])),
-                                id="collapse1",
-                                style={ "font-size": "12px"}
-                            ),
-                        ])),
-                        dbc.Row(
-                          dbc.Col([
-                             html.P("ID #: "+str(df.iloc[1]['track_id']), style={"font-size": "12px"}),
-                            html.P("Start: "+all_uniqueTracks[allids[1]]["start"], style={"font-size": "12px"}),
-                            html.P("End: "+all_uniqueTracks[allids[1]]["end"], style={"font-size": "12px"}),
-                            dbc.Button(
-                                "Expand ",
-                                id="collapse-button2",
-                                className="mb-3",
-                                color="secondary",
-                                style={"font-size": "12px"}
-                            ),
-                            dbc.Collapse(
-                                dbc.Card(dbc.CardBody([
-                                dcc.Markdown("Modify Track:   " "**Go to Start**"),
-                                dcc.Markdown("Delete Track:   " "**Go to End**")
-                                ])),
-                                id="collapse2",
-                                style={ "font-size": "12px"}
-                            ),
-                        ])),
-                         dbc.Row(
-                          dbc.Col([
-                            html.P("ID #: "+str(df.iloc[2]['track_id']), style={"font-size": "12px"}),
-                            html.P("Start: "+all_uniqueTracks[allids[2]]["start"], style={"font-size": "12px"}),
-                            html.P("End: "+all_uniqueTracks[allids[2]]["end"], style={"font-size": "12px"}),
-                            dbc.Button(
-                                "Expand ",
-                                id="collapse-button5",
-                                className="mb-3",
-                                color="secondary",
-                                style={"font-size": "12px"}
-                            ),
-                            dbc.Collapse(
-                                dbc.Card(dbc.CardBody([
-                                dcc.Markdown("Modify Track:   " "**Go to Start**"),
-                                dcc.Markdown("Delete Track:   " "**Go to End**")
-                                ])),
-                                id="collapse5",
-                                style={ "font-size": "12px"}
-                            ),
-                        ])),
-                         dbc.Row(
-                          dbc.Col([
-                             html.P("ID #: "+str(df.iloc[3]['track_id']), style={"font-size": "12px"}),
-                            html.P("Start: "+all_uniqueTracks[allids[3]]["start"], style={"font-size": "12px"}),
-                            html.P("End: "+all_uniqueTracks[allids[3]]["end"], style={"font-size": "12px"}),
-                            dbc.Button(
-                                "Expand ",
-                                className="mb-3",
-                                id="collapse-button6",
-                                color="secondary",
-                                style={"font-size": "12px"}
-                            ),
-                            dbc.Collapse(
-                                dbc.Card(dbc.CardBody([
-                                dcc.Markdown("Modify Track:   " "**Go to Start**"),
-                                dcc.Markdown("Delete Track:   " "**Go to End**")
-                                ])),
-                                id="collapse6",
-                                style={ "font-size": "12px"}
-                            ),
-                        ])),
-                         dbc.Row(
-                          dbc.Col([
-                             html.P("ID #: "+str(df.iloc[4]['track_id']), style={"font-size": "12px"}),
-                            html.P("Start: "+all_uniqueTracks[allids[4]]["start"], style={"font-size": "12px"}),
-                            html.P("End: "+all_uniqueTracks[allids[4]]["end"], style={"font-size": "12px"}),
-                            dbc.Button(
-                                "Expand ",
-                                id="collapse-button7",
-                                className="mb-3",
-                                color="secondary",
-                                style={"font-size": "12px"}
-                            ),
-                            dbc.Collapse(
-                                dbc.Card(dbc.CardBody([
-                                dcc.Markdown("Modify Track:   " "**Go to Start**"),
-                                dcc.Markdown("Delete Track:   " "**Go to End**")
-                                ])),
-                                id="collapse7",
-                                style={ "font-size": "12px"}
-                            ),
-                        ])),
-                         dbc.Row(
-                          dbc.Col([
-                            html.P("ID #: "+str(df.iloc[5]['track_id']), style={"font-size": "12px"}),
-                            html.P("Start: "+all_uniqueTracks[allids[5]]["start"], style={"font-size": "12px"}),
-                            html.P("End: "+all_uniqueTracks[allids[5]]["end"], style={"font-size": "12px"}),
-                            dbc.Button(
-                                "Expand ",
-                                id="collapse-button8",
-                                className="mb-3",
-                                color="secondary",
-                                style={"font-size": "12px"}
-                            ),
-                            dbc.Collapse(
-                                dbc.Card(dbc.CardBody([
-                                dcc.Markdown("Modify Track:   " "**Go to Start**"),
-                                dcc.Markdown("Delete Track:   " "**Go to End**")
-                                ])),
-                                id="collapse8",
-                                style={ "font-size": "12px"}
-                            ),
-                        ])),
-                         dbc.Row(
-                          dbc.Col([
-                            html.P("ID #: "+str(df.iloc[6]['track_id']), style={"font-size": "12px"}),
-                            html.P("Start: "+all_uniqueTracks[allids[6]]["start"], style={"font-size": "12px"}),
-                            html.P("End: "+all_uniqueTracks[allids[6]]["end"], style={"font-size": "12px"}),
-                            dbc.Button(
-                                "Expand ",
-                                id="collapse-button9",
-                                className="mb-3",
-                                color="secondary",
-                                style={"font-size": "12px"}
-                            ),
-                            dbc.Collapse(
-                                dbc.Card(dbc.CardBody([
-                                dcc.Markdown("Modify Track:   " "**Go to Start**"),
-                                dcc.Markdown("Delete Track:   " "**Go to End**")
-                                ])),
-                                id="collapse9",
-                                style={ "font-size": "12px"}
-                            ),
-                        ])),  
-                    ])
-'''
-# viewableTrackSection = html.Div([
-#     dcc.Markdown(str(getFrame()))
-# ])
-
-# Old Viewable Track Section Component
-# viewableTrackSection = html.Div(children=[
-#     dbc.Row(
-#         dbc.Col([
-#                                 html.P(
-#                                     "ID #: "+viewableTracksList[0], style={"font-size": "12px"}),
-#                                 html.P(
-#                                     "Start: "+all_uniqueTracks[viewableTracksList[0]]["start"], style={"font-size": "12px"}),
-#                                 html.P(
-#                                     "End: "+all_uniqueTracks[viewableTracksList[0]]["end"], style={"font-size": "12px"}),
-#                                 dbc.Button(
-#                                     "Expand ",
-#                                     id="collapse-button1",
-#                                     className="mb-3",
-#                                     color="secondary",
-#                                     style={"font-size": "12px"}
-#                                 ),
-#                                 dbc.Collapse(
-#                                     dbc.Card(dbc.CardBody([
-#                                         dcc.Markdown(
-#                                             "Modify Track:   " "**Go to Start**"),
-#                                         dcc.Markdown(
-#                                             "Delete Track:   " "**Go to End**")
-#                                     ])),
-#                                     id="collapse1",
-#                                     style={"font-size": "12px"}
-#                                 ),
-#                                 ])),
-#     dbc.Row(
-#         dbc.Col([
-#             html.P("ID #: "+viewableTracksList[1],
-#                    style={"font-size": "12px"}),
-#             html.P(
-#                 "Start: "+all_uniqueTracks[viewableTracksList[1]]["start"], style={"font-size": "12px"}),
-#             html.P(
-#                 "End: "+all_uniqueTracks[viewableTracksList[1]]["end"], style={"font-size": "12px"}),
-#             dbc.Button(
-#                 "Expand ",
-#                 id="collapse-button2",
-#                 className="mb-3",
-#                 color="secondary",
-#                 style={"font-size": "12px"}
-#             ),
-#             dbc.Collapse(
-#                 dbc.Card(dbc.CardBody([
-#                     dcc.Markdown(
-#                         "Modify Track:   " "**Go to Start**"),
-#                     dcc.Markdown(
-#                         "Delete Track:   " "**Go to End**")
-#                 ])),
-#                 id="collapse2",
-#                 style={"font-size": "12px"}
-#             ),
-#         ])),
-#     dbc.Row(
-#         dbc.Col([
-#             html.P("ID #: "+allids[2], style={"font-size": "12px"}),
-#             html.P(
-#                 "Start: "+all_uniqueTracks[viewableTracksList[2]]["start"], style={"font-size": "12px"}),
-#             html.P(
-#                 "End: "+all_uniqueTracks[viewableTracksList[2]]["end"], style={"font-size": "12px"}),
-#             dbc.Button(
-#                 "Expand ",
-#                 id="collapse-button5",
-#                 className="mb-3",
-#                 color="secondary",
-#                 style={"font-size": "12px"}
-#             ),
-#             dbc.Collapse(
-#                 dbc.Card(dbc.CardBody([
-#                     dcc.Markdown(
-#                         "Modify Track:   " "**Go to Start**"),
-#                     dcc.Markdown(
-#                         "Delete Track:   " "**Go to End**")
-#                 ])),
-#                 id="collapse5",
-#                 style={"font-size": "12px"}
-#             ),
-#         ])),
-# ])
-
-
-
 # Generates ea/ button for the viewable tracks
 # viewable tracks = tracks that have as frame #, the current frame
 def generate_viewableTracks_row(i, value):
     global viewable_tracks_counter
-    viewable_row = df[df["frame"] == value]
+    viewable_row = df_detections[df_detections["frame"] == value]
     viewable_tracks_counter += 1
     if viewable_tracks_counter == 3 or viewable_tracks_counter == 4:
         viewable_tracks_counter += 2
@@ -798,7 +554,7 @@ annotated_data_card2 = dbc.Card(
 )
 
 # App layout 
-app.layout = app.layout = html.Div(
+app.layout = html.Div(
     [
         navbar,
         dbc.Container(
@@ -818,21 +574,6 @@ app.layout = app.layout = html.Div(
 
 
 # CALLBACK FUNCTION DEFINITIONS -----------------------------------------------------------------------------------------------------------------
-
-# Collapse Callback for player tracks collapses
-# Create inputs
-
-# @app.callback(
-# [Output(f"coll_playertrack"+str(i),"is_open") for i in range(1, player_tracks_counter)],
-# [Input(f"collbutt_playertrack"+str(i),"n_clicks") for i in range(1, player_tracks_counter)],
-# [State(f"coll_playertrack"+str(i),"is_open") for i in range(1, player_tracks_counter)],
-# )
-# def toggle_collapse(n, is_open):
-#     if n:
-#         return not is_open
-#     selected_track = df.iloc[0]['track_id']
-#     return is_open
-
 
 # Call Back for player Tracks
 # 1
@@ -1067,7 +808,7 @@ def update_output(value):
     # print("Start of the callback")
     # print("Start of the callback")
     # print("Start of the callback")
-    conn = pg2.connect(database='soccerdb',
+    conn = pg2.connect(database='soccer',
         user='postgres',
         host='localhost',  # localhost-------------------!
         password='root')
@@ -1087,4 +828,4 @@ def update_output(value):
 if __name__ == '__main__':
     read_input()
     print("---Input done---")
-    app.run_server()
+    app.run_server(debug=True)
