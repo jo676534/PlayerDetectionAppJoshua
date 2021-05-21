@@ -117,9 +117,7 @@ player_tracks = ["17", "12"] # Hardcoded until "assign track" is working
 # NON-DASH FUNCTIONS ##############################################################################################################################
 
 
-def add_editable_box(
-    fig, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None
-):
+def add_editable_box(fig, id_num, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None):
     fig.add_shape(
         editable=True,
         x0=x0,
@@ -131,15 +129,29 @@ def add_editable_box(
         line_width=3,
         name=name,
     )
-#     fig.add_annotation(
-#         x=x0,
-#         y=y0,
-#         text="ID={0}".format(100),
-#         xref="paper",
-#         yref="paper",
-#         showarrow=False,
-#         font_size=20, font_color='cyan'
-#     )
+    fig.add_annotation( #((x0+x1)/2)
+        x=((x0+x1)/2),
+        y=y0-30,
+        text="ID={0}".format(id_num),
+        showarrow=False, #True
+        font=dict(
+            family="Courier New, monospace",
+            size=9,
+            color="#ffffff"
+            ),
+        align="center",
+        arrowhead=2,
+        arrowsize=1,
+        arrowwidth=2,
+        arrowcolor="#636363",
+        ax=0, #20
+        ay=0, #-30
+        bordercolor="#c7c7c7",
+        borderwidth=1, #2
+        borderpad=2, #4
+        bgcolor="#ff7f0e",
+        opacity=0.8
+    )
 
 
 def read_input():
@@ -822,8 +834,9 @@ def update_figure(interval, slider, previousBut, nextBut, isPaused):
         y0 = frame_df.iloc[i]['y0']
         x1 = frame_df.iloc[i]['x1']
         y1 = frame_df.iloc[i]['y1']
-        print(x0, y0, x1, y1)
-        add_editable_box(fig, x0, y0, x1, y1)
+        id_num = frame_df.iloc[i]['id']
+        print(id_num, x0, y0, x1, y1)
+        add_editable_box(fig, id_num, x0, y0, x1, y1)
     return (fig, currentFrame, currentFrame)
 
 # Callback for Slider
