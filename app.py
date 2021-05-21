@@ -118,7 +118,7 @@ dic = {}
 
 
 def add_editable_box(
-    fig, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None
+    fig, id_num, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None
 ):
     fig.add_shape(
         editable=True,
@@ -130,6 +130,29 @@ def add_editable_box(
         opacity=opacity,
         line_width=3,
         name=name,
+    )
+    fig.add_annotation( #((x0+x1)/2)
+        x=((x0+x1)/2),
+        y=y0-30,
+        text="ID={0}".format(id_num),
+        showarrow=False, #True
+        font=dict(
+            family="Courier New, monospace",
+            size=9,
+            color="#ffffff"
+            ),
+        align="center",
+        arrowhead=2,
+        arrowsize=1,
+        arrowwidth=2,
+        arrowcolor="#636363",
+        ax=0, #20
+        ay=0, #-30
+        bordercolor="#c7c7c7",
+        borderwidth=1, #2
+        borderpad=2, #4
+        bgcolor="#ff7f0e",
+        opacity=0.8
     )
 
 
@@ -753,7 +776,7 @@ image_annotation_card = dbc.Card(
             [
                 dcc.Interval(
                     id='frame_interval',
-                    interval=500,
+                    interval=750, # was 500
                     disabled=True,
                     n_intervals=0,      # number of times the interval has passed
                     max_intervals=maxFrames
@@ -1143,8 +1166,9 @@ def update_figure(interval, slider, previousBut, nextBut, isPaused):
         y0 = frame_df.iloc[i]['y0']
         x1 = frame_df.iloc[i]['x1']
         y1 = frame_df.iloc[i]['y1']
-        print(x0, y0, x1, y1)
-        add_editable_box(fig, x0, y0, x1, y1)
+        id_num = frame_df.iloc[i]['id']
+        print(id_num, x0, y0, x1, y1)
+        add_editable_box(fig, id_num, x0, y0, x1, y1)
     return (fig, currentFrame, currentFrame)
 
 
