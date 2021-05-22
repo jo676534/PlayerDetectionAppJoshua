@@ -18,6 +18,12 @@ import pandas as pd
 from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
 
+# FILE FUNCTION IMPORTS ----------------------------------------------------------------------------------------------------------------------
+
+# to import from other files do the following
+# from FILE import FUNCTION
+
+
 
 # Database Connection and Fetches #############################################################################################################
 
