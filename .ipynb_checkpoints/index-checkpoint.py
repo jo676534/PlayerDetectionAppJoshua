@@ -19,7 +19,6 @@ from apps import final_review
 
 navbar = dbc.NavbarSimple(
     children=[
-
         dbc.DropdownMenu(
             children=[
                 dbc.DropdownMenuItem(dcc.Link('Home', href='/apps/home')),
@@ -64,7 +63,7 @@ def display_page(pathname):
     if pathname == '/apps/final_review':
         return final_review.layout
     else:
-        return home.layout
+        return dashboard.layout
 
 
 if __name__ == '__main__':
