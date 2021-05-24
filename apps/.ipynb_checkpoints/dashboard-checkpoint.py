@@ -216,7 +216,6 @@ read_input()
 
 # DASH COMPONENTS #######################################################################################################################################
 
-#app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg") # OLD
 # fig = px.imshow(frames[0], binary_backend="jpg")  NEW
 

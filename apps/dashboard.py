@@ -18,6 +18,8 @@ import pandas as pd
 from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
 
+from app import app
+
 # FILE FUNCTION IMPORTS ----------------------------------------------------------------------------------------------------------------------
 
 # to import from other files do the following
@@ -214,7 +216,6 @@ read_input()
 
 # DASH COMPONENTS #######################################################################################################################################
 
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg") # OLD
 # fig = px.imshow(frames[0], binary_backend="jpg")  NEW
 

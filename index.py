@@ -10,8 +10,7 @@ from app import server
 # Connect apps here
 from apps import home
 from apps import test
-from apps import dashboard_oldapp
-from apps import dashboard_newapp
+from apps import dashboard
 
 
 app.layout = html.Div([
@@ -19,8 +18,7 @@ app.layout = html.Div([
     html.Div([
         dcc.Link('Home|', href='/apps/home'),
         dcc.Link('Test|', href='/apps/test'),
-        dcc.Link('Old Dashboard|', href='/apps/dashboard_oldapp'),
-        dcc.Link('New Dashboard', href='/apps/dashboard_newapp'),
+        dcc.Link('Dashboard', href='/apps/dashboard'),
     ], className="row"),
     html.Div(id='page-content', children=[])
 ])
@@ -33,10 +31,8 @@ def display_page(pathname):
         return home.layout
     if pathname == '/apps/test':
         return test.layout
-    if pathname == '/apps/dashboard_oldapp':
-        return dashboard_oldapp.layout
-    if pathname == '/apps/dashboard_newapp':
-        return dashboard_newapp.layout
+    if pathname == '/apps/dashboard':
+        return dashboard.layout
     else:
         return "404 Page Error! Please choose a link"
 
