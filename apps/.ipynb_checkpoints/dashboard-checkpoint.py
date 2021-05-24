@@ -505,6 +505,7 @@ image_annotation_card = dbc.Card(
                 ),
                 dcc.Graph(
                     id="graph",
+                    style={'width':'1000px', 'height':'600px'},
                     figure=fig,
                     config={"modeBarButtonsToAdd": ["drawrect", "eraseshape"]},
                 )
@@ -612,7 +613,7 @@ layout = html.Div( # was app.layout
             [
                 dbc.Row(
                     [
-                        dbc.Col(image_annotation_card, md=6),
+                        dbc.Col(image_annotation_card, md=7.5),
                         dbc.Col(annotated_data_card, md=2.5),
                         dbc.Col(annotated_data_card2, md=2.5),
                     ],
