@@ -1,0 +1,4 @@
+Bounding boxes
+
+x y width height: [593. 127. 656. 953.]   #####   Id: 1
+x y width height: [1370.    8.  541. 1038.]   #####   Id: 2
