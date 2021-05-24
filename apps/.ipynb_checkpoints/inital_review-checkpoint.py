@@ -9,6 +9,5 @@ from app import app
 
 
 layout = html.Div([
-    html.H1('Home Page Placeholder')
+    html.H1('Video Editor Placeholder')
 ])
-

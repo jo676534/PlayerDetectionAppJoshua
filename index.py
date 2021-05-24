@@ -10,17 +10,24 @@ from app import server
 
 # Connect apps here
 from apps import home
-from apps import test
+from apps import initial_review
+from apps import video_edit
 from apps import dashboard
+from apps import add_track
+from apps import final_review
+
 
 navbar = dbc.NavbarSimple(
     children=[
 
         dbc.DropdownMenu(
             children=[
-                dbc.DropdownMenuItem("Home josh", header=True),
-                dbc.DropdownMenuItem("Video Trimming", href="#"),
-                dbc.DropdownMenuItem("Next Phase", href="#"),
+                dbc.DropdownMenuItem(dcc.Link('Home', href='/apps/home')),
+                dbc.DropdownMenuItem(dcc.Link('Initial Review', href='/apps/initial_review')),
+                dbc.DropdownMenuItem(dcc.Link('Video Editor', href='/apps/video_edit')),
+                dbc.DropdownMenuItem(dcc.Link('Dashboard', href='/apps/dashboard')),
+                dbc.DropdownMenuItem(dcc.Link('Add Track', href='/apps/add_track')),
+                dbc.DropdownMenuItem(dcc.Link('Final Review', href='/apps/final_review')),
             ],
             nav=True,
             in_navbar=True,
@@ -37,11 +44,6 @@ navbar = dbc.NavbarSimple(
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     navbar,
-    html.Div([
-        dcc.Link('Home|', href='/apps/home'),
-        dcc.Link('Test|', href='/apps/test'),
-        dcc.Link('Dashboard', href='/apps/dashboard'),
-    ], className="row"),
     html.Div(id='page-content', children=[])
 ])
 
@@ -51,10 +53,16 @@ app.layout = html.Div([
 def display_page(pathname):
     if pathname == '/apps/home':
         return home.layout
-    if pathname == '/apps/test':
-        return test.layout
+    if pathname == '/apps/initial_review':
+        return initial_review.layout
+    if pathname == '/apps/video_edit':
+        return video_edit.layout
     if pathname == '/apps/dashboard':
         return dashboard.layout
+    if pathname == '/apps/add_track':
+        return add_track.layout
+    if pathname == '/apps/final_review':
+        return final_review.layout
     else:
         return home.layout
 
