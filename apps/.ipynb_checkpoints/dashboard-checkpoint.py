@@ -456,26 +456,26 @@ viewPlayerTracks = html.Div([
 # Navbar Component ===============================================================================================================================
 
 
-navbar = dbc.NavbarSimple(
-    children=[
+# navbar = dbc.NavbarSimple(
+#     children=[
 
-        dbc.DropdownMenu(
-            children=[
-                dbc.DropdownMenuItem("Home josh", header=True),
-                dbc.DropdownMenuItem("Video Trimming", href="#"),
-                dbc.DropdownMenuItem("Next Phase", href="#"),
-            ],
-            nav=True,
-            in_navbar=True,
-            label="HOME",
-        ),
-    ],
-    brand="General NavBar",
-    brand_href="#",
-    color="#6A6A6A",
-    dark=True,
-    brand_style={"margin-left": "-160px"},
-)
+#         dbc.DropdownMenu(
+#             children=[
+#                 dbc.DropdownMenuItem("Home josh", header=True),
+#                 dbc.DropdownMenuItem("Video Trimming", href="#"),
+#                 dbc.DropdownMenuItem("Next Phase", href="#"),
+#             ],
+#             nav=True,
+#             in_navbar=True,
+#             label="HOME",
+#         ),
+#     ],
+#     brand="General NavBar",
+#     brand_href="#",
+#     color="#6A6A6A",
+#     dark=True,
+#     brand_style={"margin-left": "-160px"},
+# )
 
 
 # Video Player Card ===============================================================================================================================
@@ -607,7 +607,7 @@ annotated_data_card2 = dbc.Card(
 
 layout = html.Div( # was app.layout
     [
-        navbar,
+        #navbar,
         dbc.Container(
             [
                 dbc.Row(

@@ -1,5 +1,6 @@
 # Imports
 import dash_core_components as dcc
+import dash_bootstrap_components as dbc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
@@ -12,9 +13,30 @@ from apps import home
 from apps import test
 from apps import dashboard
 
+navbar = dbc.NavbarSimple(
+    children=[
+
+        dbc.DropdownMenu(
+            children=[
+                dbc.DropdownMenuItem("Home josh", header=True),
+                dbc.DropdownMenuItem("Video Trimming", href="#"),
+                dbc.DropdownMenuItem("Next Phase", href="#"),
+            ],
+            nav=True,
+            in_navbar=True,
+            label="HOME",
+        ),
+    ],
+    brand="General NavBar",
+    brand_href="#",
+    color="#6A6A6A",
+    dark=True,
+    brand_style={"margin-left": "-160px"},
+)
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
+    navbar,
     html.Div([
         dcc.Link('Home|', href='/apps/home'),
         dcc.Link('Test|', href='/apps/test'),
@@ -34,7 +56,7 @@ def display_page(pathname):
     if pathname == '/apps/dashboard':
         return dashboard.layout
     else:
-        return "404 Page Error! Please choose a link"
+        return home.layout
 
 
 if __name__ == '__main__':
