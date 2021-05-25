@@ -313,7 +313,7 @@ def generate_all_tracks_row(i):
                           {'label': ' ', 'value': 'false', 'disabled': False}, ], value=['true']),
             dbc.Button(
                 str(df_detections.iloc[all_tracks_counter]['track_id']),
-                id="collapse-button" +
+                id="cb" +
                 str(all_tracks_counter),
                 className="mb-3",
                 color="secondary",
@@ -326,7 +326,7 @@ def generate_all_tracks_row(i):
                     dbc.Row(dbc.Button("Delete Track: Go to End("+str(
                         all_tracks_counter+1)+")", color="black", style={"font-size": "12px"}),),
                 ])),
-                id="collapse"+str(all_tracks_counter),
+                id="c"+str(all_tracks_counter),
                 style={"font-size": "12px"}
             ),
         ]))
@@ -334,7 +334,7 @@ def generate_all_tracks_row(i):
 
 # All Track Section Component
 allTrackSection = html.Div([
-    html.Div(children=[generate_all_tracks_row(i) for i in range(0, 7)]),
+    html.Div(children=[generate_all_tracks_row(i) for i in range(0, 20)]),
 ])
 
 
@@ -535,6 +535,7 @@ annotated_data_card2 = dbc.Card(
     ],
     style={"margin-top": "20px", "margin-bottom": "20px"}
 )
+
 
 
 # App Layout ====================================================================================================================================
@@ -743,8 +744,6 @@ def display(btn1, btn2, btn3, value):
 
     if button_id == "viewable_tracks_bt":
         viewable_row = df_detections[df_detections["frame"] == value]
-        print()
-        print(len(viewable_row))
         return html.Div(children=[generate_viewable_tracks_row(i, viewable_row) for i in range(0,len(viewable_row))])
     if button_id == "player_tracks_bt":
         return viewPlayerTracks
@@ -837,6 +836,41 @@ def update_output(value):
     conn.close()
     # print("End of the callback")
     return 'Current Frame "{}"'.format(value)
+
+
+
+
+# Callbacks for all tracks
+def toggle_collapse1(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+for i in range(20):
+    app.callback(
+        dash.dependencies.Output('c%i' % i, 'is_open'),
+        [dash.dependencies.Input('cb%i' %i, "n_clicks"), ],
+        [dash.dependencies.State('c%i' %i, "is_open")]
+    )(toggle_collapse1)
+
+
+# # Callbacks for viewable tracks
+# def toggle_collapse1(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
+# for i in range(20):
+#     app.callback(
+#         dash.dependencies.Output('c%i' % i, 'is_open'),
+#         [dash.dependencies.Input('cb%i' %i, "n_clicks"),
+#         dash.dependencies.Input('' %i, "n_clicks")],
+#         [dash.dependencies.State('c%i' %i, "is_open")]
+#     )(toggle_collapse1)
+
+# @app.callback(Output('track_container', 'children'),
+#               Input("all_tracks_bt", 'n_clicks'),
+#               Input("viewable_tracks_bt", 'n_clicks'),
+#               Input("player_tracks_bt", 'n_clicks'),
+#               State("frame_interval", 'n_intervals'))
 
 
 
