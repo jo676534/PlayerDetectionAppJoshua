@@ -18,60 +18,25 @@ import pandas as pd
 from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
 
-from app import app
 
 # FILE FUNCTION IMPORTS ----------------------------------------------------------------------------------------------------------------------
 
-# to import from other files do the following
-# from FILE import FUNCTION
+from app import app
 
+from api import api_detections
+from api import api_team
+from api import api_player
 
-
-# Database Connection and Fetches #############################################################################################################
-
-conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
-cur = conn.cursor()
-
+# Database Initializations #############################################################################################################
 
 # fetch the detections ----------------
-
-cur.execute('''SELECT * FROM detections''')
-data = cur.fetchall()
-cols = []
-for elt in cur.description:
-    cols.append(elt[0])
-
-df_detections = pd.DataFrame(data=data, columns=cols) # this dataframe contains the detections
-# was originally just df (not currently used in the input functions)
-
+df_detections = api_detections.get_game_detections(0) # was originally just df (not currently used in the input functions)
 
 # fetch the teams ------------------
-
-cur.execute('''SELECT * FROM team''')
-teams_data = cur.fetchall()
-tcols = []
-for elt in cur.description:
-    tcols.append(elt[0])
-
-df_teams = pd.DataFrame(data=teams_data, columns=tcols)
-
+df_teams = api_team.get_teams(0)
 
 # fetch the players ----------------
-
-cur.execute('''SELECT * FROM player''')
-players_data = cur.fetchall()
-pcols = []
-for elt in cur.description:
-    pcols.append(elt[0])
-
-df_players = pd.DataFrame(data=players_data, columns=pcols)
-
-
-# Close Connection after we are done -----------------
-
-cur.close()
-conn.close()
-
+df_players = api_player.get_players(0)
 
 # GET FRAMES FROM VIDEO OR STORAGE ############################################################################################################
 
@@ -140,7 +105,7 @@ def add_editable_box(fig, id_num, x0, y0, x1, y1, name=None, color=None, opacity
     fig.add_annotation( #((x0+x1)/2)
         x=((x0+x1)/2),
         y=y0-30,
-        text="ID={0}".format(id_num),
+        text="{0}".format(id_num),
         showarrow=False, #True
         font=dict(
             family="Courier New, monospace",
@@ -847,7 +812,7 @@ def update_figure(interval, slider, previousBut, nextBut, isPaused):
         x1 = frame_df.iloc[i]['x1']
         y1 = frame_df.iloc[i]['y1']
         id_num = frame_df.iloc[i]['id']
-        print(id_num, x0, y0, x1, y1)
+        #print(id_num, x0, y0, x1, y1)
         add_editable_box(fig, id_num, x0, y0, x1, y1)
     return (fig, currentFrame, currentFrame)
 
