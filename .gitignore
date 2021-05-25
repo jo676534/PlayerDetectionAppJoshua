@@ -9,3 +9,6 @@ mark_merged.py
 framesToVid.py
 vid2Frames.py
 oldApp.py
+__pycache__/
+apps/__pycache__/
+*.pyc

@@ -5,9 +5,13 @@ import plotly.express as px
 import pandas as pd
 import pathlib
 
+from moviepy.editor import *
 from app import app
 
 
-layout = html.Div([
-    html.H1('Video Editor Placeholder')
-])
+clip = VideoFileClip("Sample Soccer Video.mp4")
+
+
+# pull video from s3 bucket ffmpeg_streaming
+# give queries to where to clip video
+# reupload video 
