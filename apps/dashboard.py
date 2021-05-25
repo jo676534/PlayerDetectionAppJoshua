@@ -867,9 +867,6 @@ for i in range(20):
 #     )(toggle_collapse1)
 
 # @app.callback(Output('track_container', 'children'),
-#               Input("all_tracks_bt", 'n_clicks'),
-#               Input("viewable_tracks_bt", 'n_clicks'),
-#               Input("player_tracks_bt", 'n_clicks'),
 #               State("frame_interval", 'n_intervals'))
 
 
