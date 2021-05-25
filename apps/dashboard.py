@@ -140,7 +140,7 @@ def add_editable_box(fig, id_num, x0, y0, x1, y1, name=None, color=None, opacity
     fig.add_annotation( #((x0+x1)/2)
         x=((x0+x1)/2),
         y=y0-30,
-        text="ID={0}".format(id_num),
+        text="{0}".format(id_num),
         showarrow=False, #True
         font=dict(
             family="Courier New, monospace",
@@ -847,7 +847,7 @@ def update_figure(interval, slider, previousBut, nextBut, isPaused):
         x1 = frame_df.iloc[i]['x1']
         y1 = frame_df.iloc[i]['y1']
         id_num = frame_df.iloc[i]['id']
-        print(id_num, x0, y0, x1, y1)
+        #print(id_num, x0, y0, x1, y1)
         add_editable_box(fig, id_num, x0, y0, x1, y1)
     return (fig, currentFrame, currentFrame)
 
