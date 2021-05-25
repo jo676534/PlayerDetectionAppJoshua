@@ -27,17 +27,6 @@ from api import api_detections
 from api import api_team
 from api import api_player
 
-# Database Initializations #############################################################################################################
-
-# fetch the detections ----------------
-df_detections = api_detections.get_game_detections(0) # was originally just df (not currently used in the input functions)
-
-# fetch the teams ------------------
-df_teams = api_team.get_teams(0)
-
-# fetch the players ----------------
-df_players = api_player.get_players(0)
-
 # GET FRAMES FROM VIDEO OR STORAGE ############################################################################################################
 
 ########### NEW VID TO FRAMES###########
@@ -83,9 +72,18 @@ maxFrames = len(frames)-1
 player_tracks_counter = 0
 all_tracks_counter = 0
 viewable_tracks_counter = 0
-dic = {}
 current_frame = 0
 player_tracks = ["17", "12"] # Hardcoded until "assign track" is working
+
+dic = api_detections.get_frame_detections(0)
+dic_tracks, unique_tracks = api_detections.get_tracks(0)
+
+# fetch the detections ----------------
+df_detections = api_detections.get_game_detections(0) # was originally just df (not currently used in the input functions)
+# fetch the teams ------------------
+df_teams = api_team.get_teams(0)
+# fetch the players ----------------
+df_players = api_player.get_players(0)
 
 # NON-DASH FUNCTIONS ##############################################################################################################################
 
@@ -127,33 +125,6 @@ def add_editable_box(fig, id_num, x0, y0, x1, y1, name=None, color=None, opacity
     )
 
 
-def read_input():
-    for i in range(maxFrames):
-        fp = open("./detections/f" + str(i) + ".txt", "r")  # grab new file
-        df = read_file(fp)
-        dic[i] = df
-
-
-def read_file(fp):  # returns complete dataframe
-    df = pd.DataFrame([], columns=['id', 'x0', 'y0', 'x1', 'y1'])
-    fp.read(16)  # get rid of dummy inputs
-    for line in fp:  # loop for the rest of the inputs
-        start, end = line.split("[")
-        nums, garbage = end.split("]")
-        garbage2, id_num = garbage.split(":")
-
-        x, y, w, h = nums.split()
-        x0 = float(x)
-        y0 = float(y)
-        x1 = x0 + float(w)
-        y1 = y0 + float(h)
-
-        df_temp = pd.DataFrame([[int(id_num), x0, y0, x1, y1]], columns=[
-                               'id', 'x0', 'y0', 'x1', 'y1'])
-        df = df.append(df_temp)
-    return df
-
-
 def updateSection(button_id):
     global section
     if button_id == "but7":
@@ -177,7 +148,7 @@ def getFrame():
 
 # FUNCTION WITH RETURNED DASH COMPONENT #################################################################################################################
 
-read_input()
+
 
 # DASH COMPONENTS #######################################################################################################################################
 
@@ -811,7 +782,7 @@ def update_figure(interval, slider, previousBut, nextBut, isPaused):
         y0 = frame_df.iloc[i]['y0']
         x1 = frame_df.iloc[i]['x1']
         y1 = frame_df.iloc[i]['y1']
-        id_num = frame_df.iloc[i]['id']
+        id_num = frame_df.iloc[i]['track_id']
         #print(id_num, x0, y0, x1, y1)
         add_editable_box(fig, id_num, x0, y0, x1, y1)
     return (fig, currentFrame, currentFrame)
