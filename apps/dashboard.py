@@ -27,17 +27,6 @@ from api import api_detections
 from api import api_team
 from api import api_player
 
-# Database Initializations #############################################################################################################
-
-# fetch the detections ----------------
-df_detections = api_detections.get_game_detections(0) # was originally just df (not currently used in the input functions)
-
-# fetch the teams ------------------
-df_teams = api_team.get_teams(0)
-
-# fetch the players ----------------
-df_players = api_player.get_players(0)
-
 # GET FRAMES FROM VIDEO OR STORAGE ############################################################################################################
 
 ########### NEW VID TO FRAMES###########
@@ -83,9 +72,19 @@ maxFrames = len(frames)-1
 player_tracks_counter = 0
 all_tracks_counter = 0
 viewable_tracks_counter = 0
-dic = {}
 current_frame = 0
 player_tracks = ["17", "12"] # Hardcoded until "assign track" is working
+
+dic = api_detections.get_frame_detections(0)
+
+dic_tracks, unique_tracks = api_detections.get_tracks(0)
+
+# fetch the detections ----------------
+df_detections = api_detections.get_game_detections(0) # was originally just df (not currently used in the input functions)
+# fetch the teams ------------------
+df_teams = api_team.get_teams(0)
+# fetch the players ----------------
+df_players = api_player.get_players(0)
 
 # NON-DASH FUNCTIONS ##############################################################################################################################
 
@@ -811,7 +810,7 @@ def update_figure(interval, slider, previousBut, nextBut, isPaused):
         y0 = frame_df.iloc[i]['y0']
         x1 = frame_df.iloc[i]['x1']
         y1 = frame_df.iloc[i]['y1']
-        id_num = frame_df.iloc[i]['id']
+        id_num = frame_df.iloc[i]['track_id']
         # print(id_num, x0, y0, x1, y1)
         add_editable_box(fig, id_num, x0, y0, x1, y1)
     return (fig, currentFrame, currentFrame)
@@ -823,7 +822,7 @@ def update_figure(interval, slider, previousBut, nextBut, isPaused):
     dash.dependencies.Output('slider-output-container', 'children'),
     [dash.dependencies.Input('frame_interval', 'n_intervals')])
 def update_output(value):
-    conn = pg2.connect(database='soccerdb',
+    conn = pg2.connect(database='soccer',
         user='postgres',
         host='localhost',  # localhost-------------------!
         password='root')
