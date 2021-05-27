@@ -303,13 +303,19 @@ sectionB = html.Div(
 def generate_all_tracks_row(i):
     global all_tracks_counter
     all_tracks_counter += 1
+    start_frame = 0
+    end_frame = 1
+
+
+
+    unique_track_id = list(dic_tracks.keys())[i]
 
     return dbc.Row(
         dbc.Col([
             dcc.Checklist(id="checkbox"+str(i), options=[
                           {'label': ' ', 'value': 'false', 'disabled': False}, ], value=['true']),
             dbc.Button(
-                str(df_detections.iloc[all_tracks_counter]['track_id']),
+                str(unique_track_id),
                 id="cb" +
                 str(all_tracks_counter),
                 className="mb-3",
@@ -318,8 +324,7 @@ def generate_all_tracks_row(i):
             ),
             dbc.Collapse(
                 dbc.Card(dbc.CardBody([
-                    dbc.Row(dbc.Button("Modify Track: Go to Start("+str(
-                        all_tracks_counter)+")", color="black", style={"font-size": "12px"}),),
+                    dbc.Row(dbc.Button("Modify Track: Go to Start("+str(1)+")", color="black", style={"font-size": "12px"}),),
                     dbc.Row(dbc.Button("Delete Track: Go to End("+str(
                         all_tracks_counter+1)+")", color="black", style={"font-size": "12px"}),),
                 ])),
@@ -331,7 +336,7 @@ def generate_all_tracks_row(i):
 
 # All Track Section Component
 allTrackSection = html.Div([
-    html.Div(children=[generate_all_tracks_row(i) for i in range(0, 20)]),
+    html.Div(children=[generate_all_tracks_row(i) for i in range(0, unique_tracks)]),
 ])
 
 
@@ -566,133 +571,133 @@ layout = html.Div( # was app.layout
 
 # Call Back for player Tracks
 # 1
-@app.callback(
-    Output("coll_playertrack1", "is_open"),
-    [Input("collbutt_playertrack1", "n_clicks")],
-    [State("coll_playertrack1", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n: 
-        return not is_open
-    return is_open
-# 2
-@app.callback(
-    Output("coll_playertrack2", "is_open"),
-    [Input("collbutt_playertrack2", "n_clicks")],
-    [State("coll_playertrack2", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n: 
-        return not is_open
-    return is_open
+# @app.callback(
+#     Output("coll_playertrack1", "is_open"),
+#     [Input("collbutt_playertrack1", "n_clicks")],
+#     [State("coll_playertrack1", "is_open")],
+# )
+# def toggle_collapse(n, is_open):
+#     if n: 
+#         return not is_open
+#     return is_open
+# # 2
+# @app.callback(
+#     Output("coll_playertrack2", "is_open"),
+#     [Input("collbutt_playertrack2", "n_clicks")],
+#     [State("coll_playertrack2", "is_open")],
+# )
+# def toggle_collapse(n, is_open):
+#     if n: 
+#         return not is_open
+#     return is_open
 
-# Callback for all Tracks
-@app.callback(
-    Output("collapse0", "is_open"),
-    [Input("collapse-button0", "n_clicks")],
-    [State("collapse0", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
+# # Callback for all Tracks
+# @app.callback(
+#     Output("collapse0", "is_open"),
+#     [Input("collapse-button0", "n_clicks")],
+#     [State("collapse0", "is_open")],
+# )
+# def toggle_collapse(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
 
-@app.callback(
-    Output("collapse1", "is_open"),
-    [Input("collapse-button1", "n_clicks")],
-    [State("collapse1", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
-
-
-@app.callback(
-    Output("collapse2", "is_open"),
-    [Input("collapse-button2", "n_clicks")],
-    [State("collapse2", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
+# @app.callback(
+#     Output("collapse1", "is_open"),
+#     [Input("collapse-button1", "n_clicks")],
+#     [State("collapse1", "is_open")],
+# )
+# def toggle_collapse(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
 
 
-@app.callback(
-    Output("collapse3", "is_open"),
-    [Input("collapse-button3", "n_clicks")],
-    [State("collapse3", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
+# @app.callback(
+#     Output("collapse2", "is_open"),
+#     [Input("collapse-button2", "n_clicks")],
+#     [State("collapse2", "is_open")],
+# )
+# def toggle_collapse(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
 
 
-@app.callback(
-    Output("collapse4", "is_open"),
-    [Input("collapse-button4", "n_clicks")],
-    [State("collapse4", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
-
-@app.callback(
-    Output("collapse5", "is_open"),
-    [Input("collapse-button5", "n_clicks")],
-    [State("collapse5", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
+# @app.callback(
+#     Output("collapse3", "is_open"),
+#     [Input("collapse-button3", "n_clicks")],
+#     [State("collapse3", "is_open")],
+# )
+# def toggle_collapse(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
 
 
-@app.callback(
-    Output("collapse6", "is_open"),
-    [Input("collapse-button6", "n_clicks")],
-    [State("collapse6", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
+# @app.callback(
+#     Output("collapse4", "is_open"),
+#     [Input("collapse-button4", "n_clicks")],
+#     [State("collapse4", "is_open")],
+# )
+# def toggle_collapse(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
+
+# @app.callback(
+#     Output("collapse5", "is_open"),
+#     [Input("collapse-button5", "n_clicks")],
+#     [State("collapse5", "is_open")],
+# )
+# def toggle_collapse(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
 
 
-@app.callback(
-    Output("collapse7", "is_open"),
-    [Input("collapse-button7", "n_clicks")],
-    [State("collapse7", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
+# @app.callback(
+#     Output("collapse6", "is_open"),
+#     [Input("collapse-button6", "n_clicks")],
+#     [State("collapse6", "is_open")],
+# )
+# def toggle_collapse(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
 
 
-@app.callback(
-    Output("collapse8", "is_open"),
-    [Input("collapse-button8", "n_clicks")],
-    [State("collapse8", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
+# @app.callback(
+#     Output("collapse7", "is_open"),
+#     [Input("collapse-button7", "n_clicks")],
+#     [State("collapse7", "is_open")],
+# )
+# def toggle_collapse(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
 
 
-@app.callback(
-    Output("collapse9", "is_open"),
-    [Input("collapse-button9", "n_clicks")],
-    [State("collapse9", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
+# @app.callback(
+#     Output("collapse8", "is_open"),
+#     [Input("collapse-button8", "n_clicks")],
+#     [State("collapse8", "is_open")],
+# )
+# def toggle_collapse(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
+
+
+# @app.callback(
+#     Output("collapse9", "is_open"),
+#     [Input("collapse-button9", "n_clicks")],
+#     [State("collapse9", "is_open")],
+# )
+# def toggle_collapse(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
 
 
 # Call back that toggles between Team A and Team B
@@ -822,19 +827,17 @@ def update_figure(interval, slider, previousBut, nextBut, isPaused):
     dash.dependencies.Output('slider-output-container', 'children'),
     [dash.dependencies.Input('frame_interval', 'n_intervals')])
 def update_output(value):
-    conn = pg2.connect(database='soccer',
-        user='postgres',
-        host='localhost',  # localhost-------------------!
-        password='root')
-    cur = conn.cursor()
-    cur.execute('''UPDATE variables SET frame = %s''' % value)
-    conn.commit()
-    cur.close()
-    conn.close()
+    # conn = pg2.connect(database='soccer',
+    #     user='postgres',
+    #     host='localhost',  # localhost-------------------!
+    #     password='root')
+    # cur = conn.cursor()
+    # cur.execute('''UPDATE variables SET frame = %s''' % value)
+    # conn.commit()
+    # cur.close()
+    # conn.close()
     # print("End of the callback")
     return 'Current Frame "{}"'.format(value)
-
-
 
 
 # Callbacks for all tracks
@@ -842,36 +845,26 @@ def toggle_collapse1(n, is_open):
     if n:
         return not is_open
     return is_open
-for i in range(20):
+for i in range(unique_tracks+1):         
     app.callback(
         dash.dependencies.Output('c%i' % i, 'is_open'),
-        [dash.dependencies.Input('cb%i' %i, "n_clicks"), ],
+        [dash.dependencies.Input('cb%i' %i, "n_clicks"),],
         [dash.dependencies.State('c%i' %i, "is_open")]
     )(toggle_collapse1)
 
 
-# # Callbacks for viewable tracks
-# def toggle_collapse1(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
-# for i in range(20):
-#     app.callback(
-#         dash.dependencies.Output('c%i' % i, 'is_open'),
-#         [dash.dependencies.Input('cb%i' %i, "n_clicks"),
-#         dash.dependencies.Input('' %i, "n_clicks")],
-#         [dash.dependencies.State('c%i' %i, "is_open")]
-#     )(toggle_collapse1)
-
-# @app.callback(Output('track_container', 'children'),
-#               State("frame_interval", 'n_intervals'))
+# Callbacks for viewable tracks
+def toggle_collapse2(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+# Number of viewable tracks shouldn't exceed 100, but...
+# Small bug!!!!
+for i in range(100): 
+    app.callback(
+        dash.dependencies.Output('collapse%i' % i, 'is_open'),
+        [dash.dependencies.Input('collapse-button%i' %i, "n_clicks"),],
+        [dash.dependencies.State('collapse%i' %i, "is_open")]
+    )(toggle_collapse2)
 
 
-
-# MAIN STARTS HERE -----------------------------------------------------------------------------------------------------------------
-
-
-# if __name__ == '__main__':
-#     read_input()
-#     print("---Input done---")
-#     app.run_server(debug=True)
