@@ -1,5 +1,8 @@
-*.pyc
+/__pycache__
 /.ipynb_checkpoints
 apps/.ipynb_checkpoints
-/examples
+apps/__pycache__
 api/__pycache__/
+api/.ipynb_checkpoints
+/examples
+*.pyc
