@@ -63,7 +63,7 @@ def display_page(pathname):
     if pathname == '/apps/final_review':
         return final_review.layout
     else:
-        return dashboard.layout
+        return video_edit.layout
 
 
 if __name__ == '__main__':
