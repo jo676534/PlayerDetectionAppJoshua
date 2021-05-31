@@ -28,6 +28,11 @@ pathIn = './vid2img/'
 frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))] 
 frames.sort(key=lambda x: int(x[5:-4]))
 
+first_frame = 100
+final_frame = 200
+
+frames = frames[first_frame:final_frame]
+
 ########### END OLD VID TO FRAMES###########
 
 
