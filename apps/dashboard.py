@@ -60,7 +60,7 @@ from api import api_player
 ########### OLD VID TO FRAMES###########
 
 pathIn = './vid2img/'
-frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))] 
+frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))]
 frames.sort(key=lambda x: int(x[5:-4]))
 
 ########### END OLD VID TO FRAMES###########
@@ -73,14 +73,15 @@ player_tracks_counter = 0
 all_tracks_counter = 0
 viewable_tracks_counter = 0
 current_frame = 0
-player_tracks = ["17", "12"] # Hardcoded until "assign track" is working
+player_tracks = ["17", "12"]  # Hardcoded until "assign track" is working
 
 dic = api_detections.get_frame_detections(0)
 
 dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
 # fetch the detections ----------------
-df_detections = api_detections.get_game_detections(0) # was originally just df (not currently used in the input functions)
+# was originally just df (not currently used in the input functions)
+df_detections = api_detections.get_game_detections(0)
 # fetch the teams ------------------
 df_teams = api_team.get_teams(0)
 # fetch the players ----------------
@@ -101,26 +102,26 @@ def add_editable_box(fig, id_num, x0, y0, x1, y1, name=None, color=None, opacity
         line_width=3,
         name=name,
     )
-    fig.add_annotation( #((x0+x1)/2)
+    fig.add_annotation(  # ((x0+x1)/2)
         x=((x0+x1)/2),
         y=y0-30,
         text="{0}".format(id_num),
-        showarrow=False, #True
+        showarrow=False,  # True
         font=dict(
             family="Courier New, monospace",
             size=9,
             color="#ffffff"
-            ),
+        ),
         align="center",
         arrowhead=2,
         arrowsize=1,
         arrowwidth=2,
         arrowcolor="#636363",
-        ax=0, #20
-        ay=0, #-30
+        ax=0,  # 20
+        ay=0,  # -30
         bordercolor="#c7c7c7",
-        borderwidth=1, #2
-        borderpad=2, #4
+        borderwidth=1,  # 2
+        borderpad=2,  # 4
         bgcolor="#ff7f0e",
         opacity=0.8
     )
@@ -161,9 +162,12 @@ def updateSection(button_id):
         section = "B"
 
 # This function queries the database and gets the current
-# frame value stored 
+# frame value stored
+
+
 def getFrame():
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres',
+                       host='localhost', password='root')
     cur = conn.cursor()
     cur.execute('''SELECT frame FROM variables''')
     currentFrame = cur.fetchall()
@@ -178,13 +182,13 @@ def getFrame():
 
 # DASH COMPONENTS #######################################################################################################################################
 
-fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg") # OLD
+fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")  # OLD
 # fig = px.imshow(frames[0], binary_backend="jpg")  NEW
 
 # Button Sections for teams: ======================================================================================================================
 
 
-# Retrive value for each team 
+# Retrive value for each team
 a_row = df_players[df_players["team_id"] == 0]
 b_row = df_players[df_players["team_id"] == 1]
 
@@ -244,7 +248,7 @@ sectionA = html.Div(
 
 
 # Dash component for team B
-sectionB = html.Div( 
+sectionB = html.Div(
     [
         dbc.Row(
             dbc.Col([
@@ -300,43 +304,64 @@ sectionB = html.Div(
 
 
 # Generate button for each Track
-def generate_all_tracks_row(i):
-    global all_tracks_counter
-    all_tracks_counter += 1
-    start_frame = 0
-    end_frame = 1
+# def generate_all_tracks_row(i):
+#     global all_tracks_counter
+#     all_tracks_counter += 1
+#     start_frame = 0
+#     end_frame = 1
 
+#     unique_track_id = list(dic_tracks.keys())[i]
 
-
-    unique_track_id = list(dic_tracks.keys())[i]
-
-    return dbc.Row(
-        dbc.Col([
-            dcc.Checklist(id="checkbox"+str(i), options=[
-                          {'label': ' ', 'value': 'false', 'disabled': False}, ], value=['true']),
-            dbc.Button(
-                str(unique_track_id),
-                id="cb" +
-                str(all_tracks_counter),
-                className="mb-3",
-                color="secondary",
-                style={"font-size": "12px"},
-            ),
-            dbc.Collapse(
-                dbc.Card(dbc.CardBody([
-                    dbc.Row(dbc.Button("Modify Track: Go to Start("+str(1)+")", color="black", style={"font-size": "12px"}),),
-                    dbc.Row(dbc.Button("Delete Track: Go to End("+str(
-                        all_tracks_counter+1)+")", color="black", style={"font-size": "12px"}),),
-                ])),
-                id="c"+str(all_tracks_counter),
-                style={"font-size": "12px"}
-            ),
-        ]))
+#     return dbc.Row(
+#         dbc.Col([
+#             dcc.Checklist(id="checkbox"+str(i), options=[
+#                           {'label': ' ', 'value': 'false', 'disabled': False}, ], value=['true']),
+#             dbc.Button(
+#                 str(unique_track_id),
+#                 id="cb" +
+#                 str(all_tracks_counter),
+#                 className="mb-3",
+#                 color="secondary",
+#                 style={"font-size": "12px"},
+#             ),
+#             dbc.Collapse(
+#                 dbc.Card(dbc.CardBody([
+#                     #dcc.Store(id = 'storebt'+str(i), data = min(list(dic_tracks[i]['frame'])),),
+#                     dbc.Row(dbc.Button("Modify Track: Go to Start("+str(min(list(dic_tracks[i]['frame'])))+")",
+#                                        color="black", style={"font-size": "12px"}),),
+#                     dbc.Row(dbc.Button("Delete Track: Go to End("+str(max(list(
+#                         dic_tracks[i]['frame'])))+")", color="black", style={"font-size": "12px"}),),
+#                 ])),
+#                 id="c"+str(all_tracks_counter),
+#                 style={"font-size": "12px"}
+#             ),
+#         ]))
 
 
 # All Track Section Component
 allTrackSection = html.Div([
-    html.Div(children=[generate_all_tracks_row(i) for i in range(0, unique_tracks)]),
+    html.Div(children=[
+    dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
+             dbc.Button("Go to End", color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
+             align = 'center',),
+    dbc.Col([dbc.Button("Delete Track", color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+             dbc.Button("Go to Start", color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),],
+             align = 'center'),
+    dbc.Col([dcc.RadioItems(
+    options=[
+        {'label': 'Track ID: ' + str(list(dic_tracks.keys())[i]), 'value': str(list(dic_tracks.keys())[i])} for i in range(1, unique_tracks)],
+    value=str(list(dic_tracks.keys())[1]), 
+    id = "radio_all_tracks",
+   
+    )],
+    align = 'center',
+    style={'width': '100%', 
+                 'height': '550px', 
+                 'overflow': 'scroll', 
+                 'padding': '10px 10px 10px 20px'
+          }), 
+    ],
+    )
 ])
 
 
@@ -344,30 +369,33 @@ allTrackSection = html.Div([
 # viewable tracks = tracks that have as frame #, the current frame
 def generate_viewable_tracks_row(i, viewable_row):
 
-    #print(viewable_row)
+    # print(viewable_row)
 
-    return  dbc.Row(
+    return dbc.Row(
         dbc.Col([
-            dcc.Checklist(id = "checkbox"+str(i), options=[ {'label': ' ', 'value': 'false', 'disabled':False}, ], value=['true']),
+            dcc.Checklist(id="checkbox"+str(i), options=[
+                          {'label': ' ', 'value': 'false', 'disabled': False}, ], value=['true']),
                 dbc.Button(
                     str(viewable_row.iloc[i]['track_id']),
                     id="collapse-button"+str(i),
                     className="mb-3",
                     color="secondary",
-                    style={ "font-size": "12px"},
-                ),
-                dbc.Collapse(
+                    style={"font-size": "12px"},
+            ),
+            dbc.Collapse(
                     dbc.Card(dbc.CardBody([
-                        dbc.Row( dbc.Button("Modify Track: Go to Start("+str(i)+")", color="black", style={ "font-size": "12px"}),),
-                        dbc.Row( dbc.Button("Delete Track: Go to End("+str(i+1)+")", color="black", style={ "font-size": "12px"}),),
+                        dbc.Row(dbc.Button("Modify Track: Go to Start("+str(i)+")",
+                                           color="black", style={"font-size": "12px"}),),
+                        dbc.Row(dbc.Button("Delete Track: Go to End("+str(i+1)+")",
+                                           color="black", style={"font-size": "12px"}),),
                     ])),
                     id="collapse"+str(i),
-                    style={ "font-size": "12px"}
-                ),
-            ]))
+                    style={"font-size": "12px"}
+            ),
+        ]))
 
 
-# Viewable Track Component                            
+# Viewable Track Component
 # viewableTrackSection = html.Div([
 #                             html.Div(children=[generate_viewableTracks_row(i, value) for i in range(1,7)]),
 #                             ])
@@ -376,12 +404,7 @@ def generate_viewable_tracks_row(i, viewable_row):
 # Generate Function for ea/ track (player track)
 def generate_player_tracks_row(i):
     global player_tracks_counter
-    player_tracks_counter += 1
 
-    if player_tracks_counter == 3:
-        player_tracks_counter += 2
-    if player_tracks_counter == 4:
-        player_tracks_counter += 2
     return dbc.Row(
         dbc.Col([
             dcc.Checklist(id="checkbox"+str(i), options=[
@@ -389,7 +412,7 @@ def generate_player_tracks_row(i):
             dbc.Button(
                 i,
                 id="collbutt_playertrack" +
-                str(player_tracks_counter),
+                str(i),
                 className="mb-3",
                 color="secondary",
                 style={"font-size": "12px"},
@@ -402,10 +425,11 @@ def generate_player_tracks_row(i):
                         player_tracks_counter+1)+")", color="black", style={"font-size": "12px"}),),
                 ])),
                 id="coll_playertrack" +
-                str(player_tracks_counter),
+                str(i),
                 style={"font-size": "12px"}
             ),
         ]))
+
 
 # Player Tracks Component
 viewPlayerTracks = html.Div([
@@ -441,7 +465,7 @@ image_annotation_card = dbc.Card(
                 ),
                 dcc.Graph(
                     id="graph",
-                    style={'width':'1000px', 'height':'600px'},
+                    style={'width': '1000px', 'height': '600px'},
                     figure=fig,
                     config={"modeBarButtonsToAdd": ["drawrect", "eraseshape"]},
                 )
@@ -479,7 +503,7 @@ image_annotation_card = dbc.Card(
             ]
         ),
     ],
-    style={"margin-top": "20px", "margin-bottom": "20px"}
+    style={"margin-top": "20px", "margin-bottom": "20px", "margin-right": "10px"}
 )
 
 
@@ -539,13 +563,12 @@ annotated_data_card2 = dbc.Card(
 )
 
 
-
 # App Layout ====================================================================================================================================
 
 
-layout = html.Div( # was app.layout
+layout = html.Div(  # was app.layout
     [
-        #navbar,
+        # navbar,
         dbc.Container(
             [
                 dbc.Row(
@@ -571,25 +594,27 @@ layout = html.Div( # was app.layout
 
 # Call Back for player Tracks
 # 1
-# @app.callback(
-#     Output("coll_playertrack1", "is_open"),
-#     [Input("collbutt_playertrack1", "n_clicks")],
-#     [State("coll_playertrack1", "is_open")],
-# )
-# def toggle_collapse(n, is_open):
-#     if n: 
-#         return not is_open
-#     return is_open
-# # 2
-# @app.callback(
-#     Output("coll_playertrack2", "is_open"),
-#     [Input("collbutt_playertrack2", "n_clicks")],
-#     [State("coll_playertrack2", "is_open")],
-# )
-# def toggle_collapse(n, is_open):
-#     if n: 
-#         return not is_open
-#     return is_open
+@app.callback(
+    Output("coll_playertrack0", "is_open"),
+    [Input("collbutt_playertrack0", "n_clicks")],
+    [State("coll_playertrack0", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+# 2
+
+
+@app.callback(
+    Output("coll_playertrack1", "is_open"),
+    [Input("collbutt_playertrack1", "n_clicks")],
+    [State("coll_playertrack1", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 # # Callback for all Tracks
 # @app.callback(
@@ -624,26 +649,26 @@ layout = html.Div( # was app.layout
 #     return is_open
 
 
-# @app.callback(
-#     Output("collapse3", "is_open"),
-#     [Input("collapse-button3", "n_clicks")],
-#     [State("collapse3", "is_open")],
-# )
-# def toggle_collapse(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
+@app.callback(
+    Output("col3", "is_open"),
+    [Input("colbut3", "n_clicks")],
+    [State("col3", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 
-# @app.callback(
-#     Output("collapse4", "is_open"),
-#     [Input("collapse-button4", "n_clicks")],
-#     [State("collapse4", "is_open")],
-# )
-# def toggle_collapse(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
+@app.callback(
+    Output("col4", "is_open"),
+    [Input("colbut4", "n_clicks")],
+    [State("col4", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 # @app.callback(
 #     Output("collapse5", "is_open"),
@@ -746,7 +771,11 @@ def display(btn1, btn2, btn3, value):
 
     if button_id == "viewable_tracks_bt":
         viewable_row = df_detections[df_detections["frame"] == value]
-        return html.Div(children=[generate_viewable_tracks_row(i, viewable_row) for i in range(0,len(viewable_row))])
+        return html.Div(children=[generate_viewable_tracks_row(i, viewable_row) for i in range(0, len(viewable_row))],
+               style={'width': '100%', 
+                 'height': '745px', 
+                 'overflow': 'scroll', 
+                 'padding': '10px 10px 10px 20px'})
     if button_id == "player_tracks_bt":
         return viewPlayerTracks
     else:
@@ -806,7 +835,8 @@ def update_figure(interval, slider, previousBut, nextBut, isPaused):
     if cbcontext == "frame-slider.value":
         currentFrame = slider
 
-    fig = px.imshow(io.imread(pathIn+frames[currentFrame]), binary_backend="jpg") # OLD
+    fig = px.imshow(
+        io.imread(pathIn+frames[currentFrame]), binary_backend="jpg")  # OLD
     # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
     frame_df = dic[currentFrame]
     # print("\nCurrent Frame Bounding Boxes:")
@@ -823,6 +853,8 @@ def update_figure(interval, slider, previousBut, nextBut, isPaused):
 # Callback for Slider
 # It also stores on the db the current frame slider
 # ea/ time the slider is updated
+
+
 @app.callback(
     dash.dependencies.Output('slider-output-container', 'children'),
     [dash.dependencies.Input('frame_interval', 'n_intervals')])
@@ -845,11 +877,13 @@ def toggle_collapse1(n, is_open):
     if n:
         return not is_open
     return is_open
-for i in range(unique_tracks+1):         
+
+
+for i in range(1, unique_tracks+1):
     app.callback(
         dash.dependencies.Output('c%i' % i, 'is_open'),
-        [dash.dependencies.Input('cb%i' %i, "n_clicks"),],
-        [dash.dependencies.State('c%i' %i, "is_open")]
+        [dash.dependencies.Input('cb%i' % i, "n_clicks"), ],
+        [dash.dependencies.State('c%i' % i, "is_open")]
     )(toggle_collapse1)
 
 
@@ -858,13 +892,44 @@ def toggle_collapse2(n, is_open):
     if n:
         return not is_open
     return is_open
+
+
 # Number of viewable tracks shouldn't exceed 100, but...
 # Small bug!!!!
-for i in range(100): 
+for i in range(100):
     app.callback(
         dash.dependencies.Output('collapse%i' % i, 'is_open'),
-        [dash.dependencies.Input('collapse-button%i' %i, "n_clicks"),],
-        [dash.dependencies.State('collapse%i' %i, "is_open")]
+        [dash.dependencies.Input('collapse-button%i' % i, "n_clicks"), ],
+        [dash.dependencies.State('collapse%i' % i, "is_open")]
     )(toggle_collapse2)
 
+# # Callback for go to start
 
+# def go_to_frame(n_clicks, data):
+#     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+#     currentFrame = 0
+
+#     if cbcontext == "startbt1.n_clicks":
+#         currentFrame = "storebt1.data"
+
+#     fig = px.imshow(io.imread(pathIn+frames[currentFrame]), binary_backend="jpg") # OLD
+#     # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
+#     frame_df = dic[currentFrame]
+#     # print("\nCurrent Frame Bounding Boxes:")
+#     for i in range(len(frame_df)):
+#         x0 = frame_df.iloc[i]['x0']
+#         y0 = frame_df.iloc[i]['y0']
+#         x1 = frame_df.iloc[i]['x1']
+#         y1 = frame_df.iloc[i]['y1']
+#         id_num = frame_df.iloc[i]['track_id']
+#         # print(id_num, x0, y0, x1, y1)
+#         add_editable_box(fig, id_num, x0, y0, x1, y1)
+#     return (fig, currentFrame, currentFrame)
+# for i in range(unique_tracks+1):
+#     @app.callback(
+#         dash.dependencies.OutputOutput('graph', 'figure'),
+#         Output('frame_interval', 'n_intervals'),
+#         Output('frame-slider', 'value'),
+#         Input('startbt%i' %i, 'n_clicks'),
+#         Input('storetbt%i' %i, 'data'),
+#     )(go_to_frame)

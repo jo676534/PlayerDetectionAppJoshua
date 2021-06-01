@@ -17,6 +17,7 @@ from apps import add_track
 from apps import final_review
 
 
+
 navbar = dbc.NavbarSimple(
     children=[
         dbc.DropdownMenu(
