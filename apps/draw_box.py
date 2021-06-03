@@ -74,7 +74,11 @@ data_table = dbc.Card(
             ]
         ),
         dbc.CardFooter(
-            html.H3("Footer")
+            [
+                html.Button('Submit', id='next_page', n_clicks=0),
+                html.Br(),
+                html.Div(id='button_output')
+            ]
         ),
     ]
 )
@@ -99,6 +103,25 @@ layout = html.Div(
 
 
 @app.callback(
+    Output('button_output', 'children'),
+    Input('next_page', 'n_clicks'),
+    State('graph_box', 'relayoutData'),
+)
+def submit_box(n_clicks, graph_relayout):
+    if graph_relayout is None: return '' # stops the error
+    
+    if (not 'shapes' in graph_relayout):
+        return "No bounding box has been drawn yet"
+    elif (len(graph_relayout['shapes']) == 0):
+        return "You have to draw one bounding box"
+    elif (len(graph_relayout['shapes']) == 1): # this is the success case
+        return "You have drawn one bounding box, next page goes here"
+    else:
+        return "There can only be one bounding box, please ensure there is only one"
+# end submit_box
+    
+
+@app.callback(
     Output('output', 'children'),
     Input('graph_box', 'relayoutData')
 )
@@ -108,4 +131,16 @@ def update_output(graph_relayout): # graph_relayout is a dictionary
     if (not 'shapes' in graph_relayout) or (len(graph_relayout['shapes']) == 0): # or shapes is empty 
         return 'no shapes'
     else:
-        return 'Updated output: {}'.format(graph_relayout['shapes'])
+        output_string = "List of boxes: "
+        output_num = 0
+        for box in graph_relayout['shapes']:
+            output_num += 1
+            output_string += "\nBox #{}: ".format(output_num)
+            output_string += "X0: {}, ".format(box['x0'])
+            output_string += "Y0: {}, ".format(box['y0'])
+            output_string += "X1: {}, ".format(box['x1'])
+            output_string += "Y1: {}".format(box['y1'])
+            output_string += " ###### "
+        
+        return 'Number of boxes: {0} "<br />" Updated output: {1}'.format(output_num, output_string) # graph_relayout['shapes']
+# end update_output
