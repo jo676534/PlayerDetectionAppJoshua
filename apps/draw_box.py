@@ -24,6 +24,9 @@ from api import api_detections
 from api import api_team
 from api import api_player
 
+from .pysot.tools import josh_test
+from .pysot.tools import demo
+
 pathIn = './vid2img/'
 frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))] 
 frames.sort(key=lambda x: int(x[5:-4]))
@@ -115,11 +118,19 @@ def submit_box(n_clicks, graph_relayout):
     elif (len(graph_relayout['shapes']) == 0):
         return "You have to draw one bounding box"
     elif (len(graph_relayout['shapes']) == 1): # this is the success case
-        return "You have drawn one bounding box, next page goes here"
+        print("in submit box 1")
+        print("in submit box 2")
+        for box in graph_relayout['shapes']:
+            x0 = box['x0']
+            y0 = box['y0']
+            x1 = box['x1']
+            y1 = box['y1']
+            demo.rt_track(100, 120, x0, y0, x1, y1)
+        return josh_test.josh_string() # "You have drawn one bounding box, next page goes here"
     else:
         return "There can only be one bounding box, please ensure there is only one"
 # end submit_box
-    
+
 
 @app.callback(
     Output('output', 'children'),
