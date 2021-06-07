@@ -292,3 +292,5 @@ def display_dropdowns(n_clicks, children, value):
     children.append(new_element)
     # print(len(children))
     return children
+
+    #testing
