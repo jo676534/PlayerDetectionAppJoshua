@@ -125,27 +125,66 @@ image_annotation_cardVE = dbc.Card(
 video_trimmer_card = dbc.Card(
     id="trimmer_card",
     children=[
+        dbc.CardHeader(
+            html.H2('Video Trimmer'),
+        ),
         dbc.CardBody(
             [
-                html.H2('Video Trimmer'),
-                dcc.RangeSlider(
-                    id='frame-trimmer',
-                    min=0,
-                    max=maxFrames,
-                    marks={round(i*maxFrames/16): '{}'.format(round(i*maxFrames/16))
-                           for i in range(maxFrames)},
-                    step=1,
-                    value=[0, round(maxFrames/16)]
+                # dcc.RangeSlider(
+                #     id='frame-trimmer',
+                #     min=0,
+                #     max=maxFrames,
+                #     marks={round(i*maxFrames/16): '{}'.format(round(i*maxFrames/16))
+                #            for i in range(maxFrames)},
+                #     step=1,
+                #     value=[0, round(maxFrames/16)]
+                # ),
+                # html.Div(id='trimmer-output-containerVE'),
+                # dbc.Button('Add to Trim', id='addToTrim')
+                dbc.Row(
+                    children=[
+                        dbc.Col(children=[
+                            html.H6('Enter Start of Frames to Trim: '),
+                            dcc.Input(id="startingFrame", type="number", debounce=True,
+                                      placeholder="Start Frame", min=0,),
+                        ]),
+                        dbc.Col(children=[
+                            html.H6('Enter End of Frames to Trim: '),
+                            dcc.Input(id="endingFrame", type="number", debounce=True,
+                                      placeholder="End Frame", min=0,),
+                        ]),
+                    ],
+                    style={"margin-bottom": "20px", }
                 ),
-                html.Div(id='trimmer-output-containerVE'),
-                dbc.Button('Add to Trim', id='addToTrim')
+
+                html.Div(
+                    children=[
+                        dbc.ButtonGroup(
+                            [
+                                dbc.Button('Set Start Frame',
+                                           id='setStart',),
+                                dbc.Button('Set End Frame',
+                                           id='setEnd',),
+                                dbc.Button('Jump to Start',
+                                           id='jumpStart',),
+                                dbc.Button('Jump to End',
+                                           id='jumpEnd',),
+                            ],
+                            style={"width": "100%"},
+                        ),
+
+                    ],
+                    style={"margin-top": "20px", "margin-bottom": "10px", }
+                ),
+                dbc.Button('Save to Trim Queue',
+                           id='addToTrim', color="primary", block=True),
 
             ]
         ),
         dbc.CardFooter(
             [
                 html.Div(id='trimming-dropdown', children=[],
-                         style={"maxHeight": "425px", "overflow": "auto"})
+                         style={"maxHeight": "410px", "overflow": "auto", "height": "410px"})
             ]
         ),
     ],
@@ -157,13 +196,15 @@ state_one_card = dbc.Card(
     children=[
         dbc.ButtonGroup(
             [
-                dcc.Link(dbc.Button('Discard Video', id='discard'), href='/apps/home'),
-                dcc.Link(dbc.Button('Save and Quit', id='save-and-quit'), href='/home'),
-                dcc.Link(dbc.Button('Save and Continue', id='save-and-continue'), href='/apps/dashboard'),
-            ]
+                dbc.Button('Discard Video', id='discard',
+                           href='/apps/home', size="lg", color="danger"),
+                dbc.Button('Save and Quit',
+                           id='save-and-quit', href='/apps/home', size="lg"),
+                dbc.Button('Save and Continue',
+                           id='save-and-continue', href='/apps/dashboard', size="lg"),
+            ],
         ),
     ],
-    style={"margin-top": "20px", "margin-bottom": "20px"}
 )
 
 # # App Layout ====================================================================================================================================
@@ -222,9 +263,13 @@ def togglePlayVE(play, isPaused):
     Input('frame-sliderVE', 'value'),
     Input('previousVE', 'n_clicks'),
     Input('nextVE', 'n_clicks'),
+    Input('jumpStart', 'n_clicks'),
+    Input('jumpEnd', 'n_clicks'),
+    State('startingFrame', 'value'),
+    State('endingFrame', 'value'),
     State('frame_intervalVE', 'disabled'),
 )
-def update_figureVE(interval, slider, previousBut, nextBut, isPaused):
+def update_figureVE(interval, slider, previousBut, nextBut, startBut, endBut, start, end, isPaused):
     # print(value)
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     currentFrame = 0
@@ -241,6 +286,12 @@ def update_figureVE(interval, slider, previousBut, nextBut, isPaused):
         if cbcontext == "nextVE.n_clicks":
             if(currentFrame != maxFrames):
                 currentFrame += 1
+        if cbcontext == "jumpStart.n_clicks":
+            if(start >= 0 and start <= maxFrames):
+                currentFrame = start
+        if cbcontext == "jumpEnd.n_clicks":
+            if(end >= 0 and end <= maxFrames):
+                currentFrame = end
     if cbcontext == "frame-sliderVE.value":
         currentFrame = slider
 
@@ -267,20 +318,49 @@ def update_trimmer(value):
     return 'Selected "{}"'.format(value)
 
 
+# @app.callback(
+#     Output('trimming-dropdown', 'children'),
+#     Input('addToTrim', 'n_clicks'),
+#     State('trimming-dropdown', 'children'),
+#     State('frame-trimmer', 'value'), prevent_initial_call=True)
+# def display_dropdowns(n_clicks, children, value):
+#     new_element = html.Div(
+#         dbc.Row(
+#             id={'type': 'dynamic-trim',
+#                 'index': n_clicks
+#                 },
+#             children=[
+#                 html.Div('Trimming frames: {}'.format(value)),
+#                 dbc.Button('Remove from Queue', id='delete-trim')]
+#         ),
+#         # html.Div(
+#         #     id={
+#         #         'type': 'dynamic-output',
+#         #         'index': n_clicks
+#         #     }
+#         # )
+#     )
+#     children.append(new_element)
+#     # print(len(children))
+#     return children
+
+
 @app.callback(
     Output('trimming-dropdown', 'children'),
     Input('addToTrim', 'n_clicks'),
     State('trimming-dropdown', 'children'),
-    State('frame-trimmer', 'value'), prevent_initial_call=True)
-def display_dropdowns(n_clicks, children, value):
+    State('startingFrame', 'value'),
+    State('endingFrame', 'value'),
+    prevent_initial_call=True)
+def display_dropdowns(n_clicks, children, start, end):
     new_element = html.Div(
         dbc.Row(
             id={'type': 'dynamic-trim',
                 'index': n_clicks
                 },
             children=[
-                html.Div('Trimming frames: {}'.format(value)),
-                dbc.Button('Remove from Queue', id='delete-trim')]
+                html.Div('Trimming frames: {}, {}'.format(start, end)),
+                dbc.Button('Remove', id='delete-trim', color='danger')]
         ),
         # html.Div(
         #     id={
@@ -293,4 +373,36 @@ def display_dropdowns(n_clicks, children, value):
     # print(len(children))
     return children
 
-    #testing
+
+@app.callback(
+    Output('startingFrame', 'max'),
+    Output('endingFrame', 'max'),
+    [Input('frame-sliderVE', 'max')])
+def set_maxVid(duration):
+    return duration, duration
+
+@app.callback(
+    Output('startingFrame', 'value'),
+    Input('setStart', 'n_clicks'),
+    State('frame_intervalVE', 'n_intervals'),
+    prevent_initial_call=True
+)
+def setFrameToStart(n_clicks, value):
+    return value
+
+@app.callback(
+    Output('endingFrame', 'value'),
+    Input('setEnd', 'n_clicks'),
+    State('frame_intervalVE', 'n_intervals'),
+    prevent_initial_call=True
+)
+def setFrameToEnd(n_clicks, value):
+    return value
+
+# @app.callback(
+#     Output('frame_intervalVE', 'n_intervals'),
+#     Input('jumpStart', 'n_clicks'),
+#     State('startingFrame', 'value'),
+# )
+# def setFrameToEnd(n_clicks, value):
+#     return value
