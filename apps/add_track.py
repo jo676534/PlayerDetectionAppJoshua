@@ -24,6 +24,9 @@ from api import api_detections
 from api import api_team
 from api import api_player
 
+from .pysot.tools import josh_test
+from .pysot.tools import demo
+
 pathIn = './vid2img/'
 frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))] 
 frames.sort(key=lambda x: int(x[5:-4]))
@@ -33,7 +36,7 @@ final_frame = 200
 
 frames = frames[first_frame:final_frame]
 
-########### END OLD VID TO FRAMES###########
+########### END OLD VID TO FRAMES ###########
 
 
 # GLOBAL VARIABLES #############################################################################################################################
@@ -46,8 +49,15 @@ dic = api_detections.get_frame_detections(0)
 current_frame = 0
 player_tracks = ["17", "12"] # Hardcoded until "assign track" is working
 
-fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")
+state = 0 # 0 is not submitted yet, 1 is submitted (and maybe unfinished, 2 would then be submitted and finished)
 
+fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")
+fig.update_layout(
+    margin=dict(l=0, r=0, b=0, t=0, pad=4),
+    dragmode="drawrect",
+)
+
+# DASH COMPONENTS ##############################################################################################################################
 
 image_annotation_card_add = dbc.Card(
     id="imagebox_add",
@@ -62,7 +72,7 @@ image_annotation_card_add = dbc.Card(
                     max_intervals=maxFrames
                 ),
                 dcc.Graph(
-                    id="graph_add",
+                    id="graph_box",
                     style={'width':'1000px', 'height':'600px'},
                     figure=fig,
                     config={"modeBarButtonsToAdd": ["drawrect", "eraseshape"]},
@@ -105,6 +115,33 @@ image_annotation_card_add = dbc.Card(
 )
 
 
+right_side = dbc.Card(
+    children=[
+        dbc.CardHeader(
+            html.H2("Header")
+        ),
+        dbc.CardBody(
+            [
+                html.Div(id='output'),
+                html.Br(),
+                html.Button('Submit', id='next_page', n_clicks=0),
+                html.Br(),
+                html.Div(id='button_output')
+            ]
+        ),
+        dbc.CardFooter(
+            [
+                html.H2("Footer"),
+                html.Br(),
+                html.Button("State Button", id='state_button', n_clicks=0),
+                html.Br(),
+                html.Div(id="state_output"),
+            ]
+        ),
+    ]
+)
+
+
 layout = html.Div( # was app.layout
     [
         #navbar,
@@ -112,7 +149,8 @@ layout = html.Div( # was app.layout
             [
                 dbc.Row(
                     [
-                        dbc.Col(image_annotation_card_add, md=7.5)
+                        dbc.Col(image_annotation_card_add, md=7.5),
+                        dbc.Col(right_side)
                     ],
                 ),
             ],
@@ -121,6 +159,7 @@ layout = html.Div( # was app.layout
     ]
 )
 
+# CALLBACKS START HERE #########################################################################################################################
 
 # Call back for video Player/Pause
 @app.callback(
@@ -146,47 +185,63 @@ def togglePlay_add(play, isPaused):
 
 # Video Display Callback
 @app.callback(
-    Output('graph_add', 'figure'),
+    Output('graph_box', 'figure'),
     Output('frame_interval_add', 'n_intervals'),
     Output('frame-slider_add', 'value'),
+    Output('graph_box', 'relayoutData'), # testing
     Input('frame_interval_add', 'n_intervals'),
     Input('frame-slider_add', 'value'),
     Input('previous_add', 'n_clicks'),
     Input('next_add', 'n_clicks'),
     State('frame_interval_add', 'disabled'),
+    State('graph_box', 'relayoutData'), # testing
 )
-def update_figure_add(interval, slider, previousBut, nextBut, isPaused):
-    # print(value)
+def update_figure_add(interval, slider, previousBut, nextBut, isPaused, graph_relayout):
+    print(state)
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     currentFrame = 0
+    
+    # check the state to stop the user from scrolling if they haven't input a new track
+    if state != 0:
+        if isPaused == False:
+            if interval is None:
+                interval = 0
+            currentFrame = interval
+        elif isPaused == True:
+            currentFrame = interval
+            if cbcontext == "previous_add.n_clicks":
+                if(currentFrame != 0):
+                    currentFrame += -1
+            if cbcontext == "next_add.n_clicks":
+                if(currentFrame != maxFrames):
+                    currentFrame += 1
+        if cbcontext == "frame-slider_add.value":
+            currentFrame = slider
+    
+    fig = px.imshow(io.imread(pathIn+frames[currentFrame]), binary_backend="jpg") # OLD # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
+    fig.update_layout(
+        margin=dict(l=0, r=0, b=0, t=0, pad=4),
+        dragmode="drawrect",
+    )
+    
+    # Need a new bit of code here to draw the singular new bounding box after it has been set up
+    # if state != 0:
+        # draw the new bounding box
+    
+#     frame_df = dic[currentFrame]
+#     # print("\nCurrent Frame Bounding Boxes:")
+#     for i in range(len(frame_df)):
+#         x0 = frame_df.iloc[i]['x0']
+#         y0 = frame_df.iloc[i]['y0']
+#         x1 = frame_df.iloc[i]['x1']
+#         y1 = frame_df.iloc[i]['y1']
+#         id_num = frame_df.iloc[i]['track_id']
+#         # print(id_num, x0, y0, x1, y1)
 
-    if isPaused == False:
-        if interval is None:
-            interval = 0
-        currentFrame = interval
-    elif isPaused == True:
-        currentFrame = interval
-        if cbcontext == "previous_add.n_clicks":
-            if(currentFrame != 0):
-                currentFrame += -1
-        if cbcontext == "next_add.n_clicks":
-            if(currentFrame != maxFrames):
-                currentFrame += 1
-    if cbcontext == "frame-slider_add.value":
-        currentFrame = slider
-
-    fig = px.imshow(io.imread(pathIn+frames[currentFrame]), binary_backend="jpg") # OLD
-    # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
-    frame_df = dic[currentFrame]
-    # print("\nCurrent Frame Bounding Boxes:")
-    for i in range(len(frame_df)):
-        x0 = frame_df.iloc[i]['x0']
-        y0 = frame_df.iloc[i]['y0']
-        x1 = frame_df.iloc[i]['x1']
-        y1 = frame_df.iloc[i]['y1']
-        id_num = frame_df.iloc[i]['track_id']
-        # print(id_num, x0, y0, x1, y1)
-    return (fig, currentFrame, currentFrame)
+    # print("%%% Graph Relayout Length: {} %%%".format(len(graph_relayout['shapes'])))
+    return (fig, currentFrame, currentFrame, {'shapes': []}) 
+# the empty graph_relayout may cause problems later down the line when we actually want to draw the bounding box
+# solution would be to pass the actual graph_relayout depending on the context/state
 
 
 # Callback for Slider
@@ -195,3 +250,76 @@ def update_figure_add(interval, slider, previousBut, nextBut, isPaused):
     [dash.dependencies.Input('frame_interval_add', 'n_intervals')])
 def update_output_add(value):
     return 'Current Frame "{}"'.format(value)
+
+
+# Callback for state button
+@app.callback(
+    Output('state_output', 'children'),
+    Input('state_button', 'n_clicks')
+)
+def test_func(n_clicks):
+    global state
+    if state == 0:
+        state = 1
+        return "State is 1"
+    else:
+        state = 0
+        return "State is 0"
+
+
+# Callback for the submit button
+@app.callback(
+    Output('button_output', 'children'),
+    Input('next_page', 'n_clicks'),
+    State('graph_box', 'relayoutData'),
+)
+def submit_box(n_clicks, graph_relayout):
+    if graph_relayout is None: return '' # stops the error
+    
+    if (not 'shapes' in graph_relayout):
+        return "No bounding box has been drawn yet"
+    elif (len(graph_relayout['shapes']) == 0):
+        return "You have to draw one bounding box"
+    elif (len(graph_relayout['shapes']) == 1): # this is the success case
+        print("in submit box 1")
+        print("in submit box 2")
+        for box in graph_relayout['shapes']:
+            x0 = box['x0']
+            y0 = box['y0']
+            x1 = box['x1']
+            y1 = box['y1']
+            demo.rt_track(100, 120, x0, y0, x1, y1) # !!! this will have to recieve a dataframe to be used with the display !!! WORK HERE 
+        return josh_test.josh_string() # "You have drawn one bounding box, next page goes here"
+    else:
+        return "There can only be one bounding box, please ensure there is only one"
+# end submit_box
+
+
+# Callback for the updated output
+@app.callback(
+    Output('output', 'children'),
+    Input('graph_box', 'relayoutData')
+)
+def update_output(graph_relayout): # graph_relayout is a dictionary
+    if graph_relayout is None: return '' # stops the error
+    
+    if (not 'shapes' in graph_relayout) or (len(graph_relayout['shapes']) == 0): # or shapes is empty 
+        print(graph_relayout)
+        return 'no shapes'
+    else:
+        print("### TRYING TO DO THIS ###")
+        output_string = "List of boxes: "
+        output_num = 0
+        for box in graph_relayout['shapes']:
+            output_num += 1
+            output_string += "\nBox #{}: ".format(output_num)
+            output_string += "X0: {}, ".format(box['x0'])
+            output_string += "Y0: {}, ".format(box['y0'])
+            output_string += "X1: {}, ".format(box['x1'])
+            output_string += "Y1: {}".format(box['y1'])
+            output_string += " ###### "
+        
+        print(graph_relayout)
+        return 'Number of boxes: {0}'.format(output_num)
+        #return 'Number of boxes: {0} "<br />" Updated output: {1}'.format(output_num, output_string) # graph_relayout['shapes']
+# end update_output
