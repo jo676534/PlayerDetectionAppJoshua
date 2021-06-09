@@ -49,6 +49,8 @@ dic = api_detections.get_frame_detections(0)
 current_frame = 0
 player_tracks = ["17", "12"] # Hardcoded until "assign track" is working
 
+detections_df = []
+
 state = 0 # 0 is not submitted yet, 1 is submitted (and maybe unfinished, 2 would then be submitted and finished)
 
 fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")
