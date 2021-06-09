@@ -13,7 +13,7 @@ import os
 from os.path import isfile, join
 from skimage import io
 import numpy as np
-import psycopg2 as pg2
+# import psycopg2 as pg2
 import pandas as pd
 from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
@@ -162,16 +162,16 @@ def updateSection(button_id):
 
 # This function queries the database and gets the current
 # frame value stored 
-def getFrame():
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
-    cur = conn.cursor()
-    cur.execute('''SELECT frame FROM variables''')
-    currentFrame = cur.fetchall()
-    print(currentFrame)
-    # conn.commit()
-    cur.close()
-    conn.close()
-    return currentFrame
+# def getFrame():
+#     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+#     cur = conn.cursor()
+#     cur.execute('''SELECT frame FROM variables''')
+#     currentFrame = cur.fetchall()
+#     print(currentFrame)
+#     # conn.commit()
+#     cur.close()
+#     conn.close()
+#     return currentFrame
 
 
 # FUNCTION WITH RETURNED DASH COMPONENT #################################################################################################################
