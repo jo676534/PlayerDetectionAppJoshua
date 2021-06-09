@@ -32,7 +32,7 @@ frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))]
 frames.sort(key=lambda x: int(x[5:-4]))
 
 first_frame = 100
-final_frame = 200
+final_frame = 120
 
 frames = frames[first_frame:final_frame]
 
@@ -51,13 +51,51 @@ player_tracks = ["17", "12"] # Hardcoded until "assign track" is working
 
 detections_df = []
 
-state = 0 # 0 is not submitted yet, 1 is submitted (and maybe unfinished, 2 would then be submitted and finished)
+state = 0 # 0 is not submitted yet, 1 is submitted 
 
 fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")
 fig.update_layout(
     margin=dict(l=0, r=0, b=0, t=0, pad=4),
     dragmode="drawrect",
 )
+
+# NORMAL FUNCTIONS #############################################################################################################################
+
+def add_editable_box(fig, id_num, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None):
+    fig.add_shape(
+        editable=True,
+        x0=x0,
+        y0=y0,
+        x1=x1,
+        y1=y1,
+        line_color=color,
+        opacity=opacity,
+        line_width=3,
+        name=name,
+    )
+    fig.add_annotation( #((x0+x1)/2)
+        x=((x0+x1)/2),
+        y=y0-30,
+        text="{0}".format(id_num),
+        showarrow=False, #True
+        font=dict(
+            family="Courier New, monospace",
+            size=9,
+            color="#ffffff"
+            ),
+        align="center",
+        arrowhead=2,
+        arrowsize=1,
+        arrowwidth=2,
+        arrowcolor="#636363",
+        ax=0, #20
+        ay=0, #-30
+        bordercolor="#c7c7c7",
+        borderwidth=1, #2
+        borderpad=2, #4
+        bgcolor="#ff7f0e",
+        opacity=0.8
+    )
 
 # DASH COMPONENTS ##############################################################################################################################
 
@@ -227,18 +265,13 @@ def update_figure_add(interval, slider, previousBut, nextBut, isPaused, graph_re
     )
     
     # Need a new bit of code here to draw the singular new bounding box after it has been set up
-    # if state != 0:
-        # draw the new bounding box
-    
-#     frame_df = dic[currentFrame]
-#     # print("\nCurrent Frame Bounding Boxes:")
-#     for i in range(len(frame_df)):
-#         x0 = frame_df.iloc[i]['x0']
-#         y0 = frame_df.iloc[i]['y0']
-#         x1 = frame_df.iloc[i]['x1']
-#         y1 = frame_df.iloc[i]['y1']
-#         id_num = frame_df.iloc[i]['track_id']
-#         # print(id_num, x0, y0, x1, y1)
+    if state != 0: # draw the new bounding box
+        x0 = detections_df.iloc[currentFrame]['x0']
+        y0 = detections_df.iloc[currentFrame]['y0']
+        x1 = detections_df.iloc[currentFrame]['x1']
+        y1 = detections_df.iloc[currentFrame]['y1']
+        track_id = detections_df.iloc[currentFrame]['track_id']
+        add_editable_box(fig, track_id, x0, y0, x1, y1)
 
     # print("%%% Graph Relayout Length: {} %%%".format(len(graph_relayout['shapes'])))
     return (fig, currentFrame, currentFrame, {'shapes': []}) 
@@ -262,11 +295,11 @@ def update_output_add(value):
 def test_func(n_clicks):
     global state
     if state == 0:
-        state = 1
-        return "State is 1"
-    else:
-        state = 0
+        #state = 1
         return "State is 0"
+    else:
+        #state = 0
+        return "State is 1"
 
 
 # Callback for the submit button
@@ -276,6 +309,9 @@ def test_func(n_clicks):
     State('graph_box', 'relayoutData'),
 )
 def submit_box(n_clicks, graph_relayout):
+    global detections_df
+    global state
+
     if graph_relayout is None: return '' # stops the error
     
     if (not 'shapes' in graph_relayout):
@@ -290,7 +326,8 @@ def submit_box(n_clicks, graph_relayout):
             y0 = box['y0']
             x1 = box['x1']
             y1 = box['y1']
-            demo.rt_track(100, 120, x0, y0, x1, y1) # !!! this will have to recieve a dataframe to be used with the display !!! WORK HERE 
+            detections_df = demo.rt_track(100, 120, x0, y0, x1, y1) # !!! this will have to recieve a dataframe to be used with the display !!! WORK HERE 
+            state = 1
         return josh_test.josh_string() # "You have drawn one bounding box, next page goes here"
     else:
         return "There can only be one bounding box, please ensure there is only one"
