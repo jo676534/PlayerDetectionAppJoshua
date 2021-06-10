@@ -23,11 +23,16 @@ navbar = dbc.NavbarSimple(
         dbc.DropdownMenu(
             children=[
                 dbc.DropdownMenuItem(dcc.Link('Home', href='/apps/home')),
-                dbc.DropdownMenuItem(dcc.Link('Initial Review', href='/apps/initial_review')),
-                dbc.DropdownMenuItem(dcc.Link('Video Editor', href='/apps/video_edit')),
-                dbc.DropdownMenuItem(dcc.Link('Dashboard', href='/apps/dashboard')),
-                dbc.DropdownMenuItem(dcc.Link('Add Track', href='/apps/add_track')),
-                dbc.DropdownMenuItem(dcc.Link('Final Review', href='/apps/final_review')),
+                dbc.DropdownMenuItem(
+                    dcc.Link('Initial Review', href='/apps/initial_review')),
+                dbc.DropdownMenuItem(
+                    dcc.Link('Video Editor', href='/apps/video_edit')),
+                dbc.DropdownMenuItem(
+                    dcc.Link('Dashboard', href='/apps/dashboard')),
+                dbc.DropdownMenuItem(
+                    dcc.Link('Add Track', href='/apps/add_track')),
+                dbc.DropdownMenuItem(
+                    dcc.Link('Final Review', href='/apps/final_review')),
             ],
             nav=True,
             in_navbar=True,
@@ -64,7 +69,7 @@ def display_page(pathname):
     if pathname == '/apps/final_review':
         return final_review.layout
     else:
-        return video_edit.layout
+        return home.layout
 
 
 if __name__ == '__main__':

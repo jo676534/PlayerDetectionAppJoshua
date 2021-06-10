@@ -329,42 +329,6 @@ sectionB = html.Div(
 
 # Button Sections for Tracks: ====================================================================================================================
 
-
-# Generate button for each Track
-# def generate_all_tracks_row(i):
-#     global all_tracks_counter
-#     all_tracks_counter += 1
-#     start_frame = 0
-#     end_frame = 1
-
-#     unique_track_id = list(dic_tracks.keys())[i]
-
-#     return dbc.Row(
-#         dbc.Col([
-#             dcc.Checklist(id="checkbox"+str(i), options=[
-#                           {'label': ' ', 'value': 'false', 'disabled': False}, ], value=['true']),
-#             dbc.Button(
-#                 str(unique_track_id),
-#                 id="cb" +
-#                 str(all_tracks_counter),
-#                 className="mb-3",
-#                 color="secondary",
-#                 style={"font-size": "12px"},
-#             ),
-#             dbc.Collapse(
-#                 dbc.Card(dbc.CardBody([
-#                     #dcc.Store(id = 'storebt'+str(i), data = min(list(dic_tracks[i]['frame'])),),
-#                     dbc.Row(dbc.Button("Modify Track: Go to Start("+str(min(list(dic_tracks[i]['frame'])))+")",
-#                                        color="black", style={"font-size": "12px"}),),
-#                     dbc.Row(dbc.Button("Delete Track: Go to End("+str(max(list(
-#                         dic_tracks[i]['frame'])))+")", color="black", style={"font-size": "12px"}),),
-#                 ])),
-#                 id="c"+str(all_tracks_counter),
-#                 style={"font-size": "12px"}
-#             ),
-#         ]))
-
-
 # All Track Section Component
 allTrackSection = html.Div([
     html.Div(children=[
@@ -420,12 +384,6 @@ def generate_viewable_tracks_row(i, viewable_row):
                     style={"font-size": "12px"}
             ),
         ]))
-
-
-# Viewable Track Component
-# viewableTrackSection = html.Div([
-#                             html.Div(children=[generate_viewableTracks_row(i, value) for i in range(1,7)]),
-#                             ])
 
 
 # Generate Function for ea/ track (player track)
@@ -592,7 +550,6 @@ annotated_data_card2 = dbc.Card(
 
 # App Layout ====================================================================================================================================
 
-
 layout = html.Div(  # was app.layout
     [
         # navbar,
@@ -610,11 +567,6 @@ layout = html.Div(  # was app.layout
         ),
     ]
 )
-
-# layout = html.Div([
-#     "Dashboard"
-# ])
-
 
 # CALLBACK FUNCTION DEFINITIONS #########################################################################################################################
 
@@ -643,39 +595,7 @@ def toggle_collapse(n, is_open):
         return not is_open
     return is_open
 
-# # Callback for all Tracks
-# @app.callback(
-#     Output("collapse0", "is_open"),
-#     [Input("collapse-button0", "n_clicks")],
-#     [State("collapse0", "is_open")],
-# )
-# def toggle_collapse(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
-
-# @app.callback(
-#     Output("collapse1", "is_open"),
-#     [Input("collapse-button1", "n_clicks")],
-#     [State("collapse1", "is_open")],
-# )
-# def toggle_collapse(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
-
-
-# @app.callback(
-#     Output("collapse2", "is_open"),
-#     [Input("collapse-button2", "n_clicks")],
-#     [State("collapse2", "is_open")],
-# )
-# def toggle_collapse(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
-
-
+  
 @app.callback(
     Output("col3", "is_open"),
     [Input("colbut3", "n_clicks")],
@@ -696,60 +616,6 @@ def toggle_collapse(n, is_open):
     if n:
         return not is_open
     return is_open
-
-# @app.callback(
-#     Output("collapse5", "is_open"),
-#     [Input("collapse-button5", "n_clicks")],
-#     [State("collapse5", "is_open")],
-# )
-# def toggle_collapse(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
-
-
-# @app.callback(
-#     Output("collapse6", "is_open"),
-#     [Input("collapse-button6", "n_clicks")],
-#     [State("collapse6", "is_open")],
-# )
-# def toggle_collapse(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
-
-
-# @app.callback(
-#     Output("collapse7", "is_open"),
-#     [Input("collapse-button7", "n_clicks")],
-#     [State("collapse7", "is_open")],
-# )
-# def toggle_collapse(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
-
-
-# @app.callback(
-#     Output("collapse8", "is_open"),
-#     [Input("collapse-button8", "n_clicks")],
-#     [State("collapse8", "is_open")],
-# )
-# def toggle_collapse(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
-
-
-# @app.callback(
-#     Output("collapse9", "is_open"),
-#     [Input("collapse-button9", "n_clicks")],
-#     [State("collapse9", "is_open")],
-# )
-# def toggle_collapse(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
 
 
 # Call back that toggles between Team A and Team B
@@ -930,38 +796,4 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, isPaus
     [dash.dependencies.Input('frame_interval', 'n_intervals')])
 def update_output(value):
     return '  Current Frame "{}"'.format(value)
-
-
-# # Callbacks for all tracks
-# def toggle_collapse1(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
-
-
-# for i in range(1, unique_tracks+1):
-#     app.callback(
-#         dash.dependencies.Output('c%i' % i, 'is_open'),
-#         [dash.dependencies.Input('cb%i' % i, "n_clicks"), ],
-#         [dash.dependencies.State('c%i' % i, "is_open")]
-#     )(toggle_collapse1)
-
-
-# # Callbacks for viewable tracks
-# def toggle_collapse2(n, is_open):
-#     if n:
-#         return not is_open
-#     return is_open
-
-
-# # Number of viewable tracks shouldn't exceed 100, but...
-# # Small bug!!!!
-# for i in range(100):
-#     app.callback(
-#         dash.dependencies.Output('collapse%i' % i, 'is_open'),
-#         [dash.dependencies.Input('collapse-button%i' % i, "n_clicks"), ],
-#         [dash.dependencies.State('collapse%i' % i, "is_open")]
-#     )(toggle_collapse2)
-
-
 
