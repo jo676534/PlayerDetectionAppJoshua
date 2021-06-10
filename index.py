@@ -17,6 +17,7 @@ from apps import add_track
 from apps import final_review
 
 
+
 navbar = dbc.NavbarSimple(
     children=[
         dbc.DropdownMenu(
@@ -72,4 +73,4 @@ def display_page(pathname):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
