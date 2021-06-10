@@ -13,7 +13,7 @@ import os
 from os.path import isfile, join
 from skimage import io
 import numpy as np
-import psycopg2 as pg2
+# import psycopg2 as pg2
 import pandas as pd
 from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
