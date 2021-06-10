@@ -18,6 +18,7 @@ from apps import final_review
 from apps import draw_box
 
 
+
 navbar = dbc.NavbarSimple(
     children=[
         dbc.DropdownMenu(
@@ -67,8 +68,8 @@ def display_page(pathname):
     if pathname == '/apps/final_review':
         return final_review.layout
     else:
-        return video_edit.layout
+        return home.layout
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)

@@ -48,7 +48,7 @@ def get_frame_detections(game_id):
     
     dic = {}
     
-    for frame in range(maxFrame):
+    for frame in range(maxFrame+1):
         # create a temporary cursor and execute the get request for the detections of this frame
         cur_temp = conn.cursor()
         cur_temp.execute('''SELECT * FROM detections WHERE game_id=0 AND frame={0}'''.format(frame))
