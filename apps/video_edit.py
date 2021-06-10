@@ -73,6 +73,10 @@ maxFrames = len(framesVE)-1
 # # DASH COMPONENTS #######################################################################################################################################
 
 fig = px.imshow(io.imread(pathIn+framesVE[0]), binary_backend="jpg")  # OLD
+fig.update_layout(
+    margin=dict(l=0, r=0, b=0, t=0, pad=4),
+    dragmode="drawrect",
+)
 # # fig = px.imshow(frames[0], binary_backend="jpg")  NEW
 
 # Video Player Card ===============================================================================================================================
@@ -309,6 +313,10 @@ def update_figureVE(interval, slider, previousBut, nextBut, startBut, endBut, st
     fig = px.imshow(
         io.imread(pathIn+framesVE[currentFrame]), binary_backend="jpg")  # OLD
     # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
+    fig.update_layout(
+    margin=dict(l=0, r=0, b=0, t=0, pad=4),
+    dragmode="drawrect",
+    )
     # print("\nCurrent Frame Bounding Boxes:")
     return (fig, currentFrame, currentFrame)
 

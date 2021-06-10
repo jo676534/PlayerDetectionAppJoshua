@@ -42,6 +42,9 @@ navbar = dbc.NavbarSimple(
     dark=True,
     brand_style={"margin-left": "-160px"},
 )
+game_info = html.Div([
+    dcc.Store(id="gameId")
+])
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
