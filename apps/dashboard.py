@@ -76,7 +76,7 @@ current_frame = 0
 player_tracks = ["17", "12"]  # Hardcoded until "assign track" is working
 
 dic = api_detections.get_frame_detections(0)
-
+# print(dic[1298])
 dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
 # fetch the detections ----------------
@@ -183,6 +183,10 @@ def getFrame():
 # DASH COMPONENTS #######################################################################################################################################
 
 fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")  # OLD
+fig.update_layout(
+        margin=dict(l=0, r=0, b=0, t=0, pad=4),
+        dragmode="drawrect",
+    )
 # fig = px.imshow(frames[0], binary_backend="jpg")  NEW
 
 # Button Sections for teams: ======================================================================================================================
@@ -190,6 +194,7 @@ fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")  # OLD
 
 # Retrive value for each team
 a_row = df_players[df_players["team_id"] == 0]
+# print(a_row)
 b_row = df_players[df_players["team_id"] == 1]
 
 
@@ -245,6 +250,28 @@ sectionA = html.Div(
                 ),
             ]))
     ])
+
+# sectionA = html.Div([
+#     html.Div(children=[
+#     dbc.Col([dbc.Button("Assign Tracks", id = 'assign_track',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
+#              dbc.Button("Create a track", id = 'create_track', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
+#              align = 'center',),
+#     dbc.Col([dcc.RadioItems(
+#     options=[
+#         {'label': 'PLayer: ' + str(a_row.iloc[i]["name"]), 'value': str(a_row.iloc[i]["name"])} for i in range(3, 6)],
+#     #value=str(list(dic_tracks.keys())[1]), 
+#     id = "radio_players_A",
+   
+#     )],
+#     align = 'center',
+#     style={'width': '100%', 
+#                  'height': '550px', 
+#                  'overflow': 'scroll', 
+#                  'padding': '10px 10px 10px 20px'
+#           }), 
+#     ],
+#     )
+# ])
 
 
 # Dash component for team B
@@ -342,15 +369,15 @@ sectionB = html.Div(
 allTrackSection = html.Div([
     html.Div(children=[
     dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-             dbc.Button("Go to End", color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
+             dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
              align = 'center',),
     dbc.Col([dbc.Button("Delete Track", color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
-             dbc.Button("Go to Start", color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),],
+             dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),],
              align = 'center'),
     dbc.Col([dcc.RadioItems(
     options=[
         {'label': 'Track ID: ' + str(list(dic_tracks.keys())[i]), 'value': str(list(dic_tracks.keys())[i])} for i in range(1, unique_tracks)],
-    value=str(list(dic_tracks.keys())[1]), 
+    #value=str(list(dic_tracks.keys())[1]), 
     id = "radio_all_tracks",
    
     )],
@@ -757,7 +784,7 @@ def display(btn1, btn2):
               Input("viewable_tracks_bt", 'n_clicks'),
               Input("player_tracks_bt", 'n_clicks'),
               State("frame_interval", 'n_intervals'))
-def display(btn1, btn2, btn3, value):
+def display(btn1, btn2, btn3, frame):
     ctx = dash.callback_context
     global current_frame
 
@@ -770,17 +797,17 @@ def display(btn1, btn2, btn3, value):
         return allTrackSection
 
     if button_id == "viewable_tracks_bt":
-        viewable_row = df_detections[df_detections["frame"] == value]
+        viewable_row = df_detections[df_detections["frame"] == frame]
         return html.Div([
                         html.Div(children=[
                             dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, 
                                         style={"font-size": "12px","margin-bottom":"10px"}),
-                                    dbc.Button("Go to End", color="secondary", block = True, 
+                                    dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, 
                                         style={"font-size": "12px","margin-bottom":"10px"},),],
                                     align = 'center',),
                             dbc.Col([dbc.Button("Delete Track", color="secondary",block = True, 
                                         style={"font-size": "12px", "margin-bottom":"10px"}),
-                                    dbc.Button("Go to Start", color="secondary", block = True, 
+                                    dbc.Button("Go to Start", id = 'gts_all_tracks', color="secondary", block = True, 
                                         style={"font-size": "12px", "margin-bottom":"10px"},),],
                                     align = 'center'),
                             dbc.Col([dcc.RadioItems(
@@ -788,8 +815,8 @@ def display(btn1, btn2, btn3, value):
                                     {'label': 'Track ID: ' + str(viewable_row.iloc[i]['track_id']), 
                                     'value': str(viewable_row.iloc[i]['track_id'])} for i in range(0, len(viewable_row))],
                                 # labelStyle = {'textAlign':'center'},
-                                value=str(viewable_row.iloc[1]['track_id']), 
-                                id = "radio_viewable_tracks",)],
+                                #value=str(viewable_row.iloc[frame]['track_id']), 
+                                id = "radio_all_tracks",)],
                             align = 'center',
                             style={'width': '100%', 
                                     'height': '550px', 
@@ -827,6 +854,8 @@ def togglePlay(play, isPaused):
 
 
 # Video Display Callback
+# Go to Start
+# Go to End
 @app.callback(
     Output('graph', 'figure'),
     Output('frame_interval', 'n_intervals'),
@@ -835,12 +864,16 @@ def togglePlay(play, isPaused):
     Input('frame-slider', 'value'),
     Input('previous', 'n_clicks'),
     Input('next', 'n_clicks'),
+    Input('gts_all_tracks', 'n_clicks'),
+    Input('go_to_end','n_clicks' ),
     State('frame_interval', 'disabled'),
+    State('radio_all_tracks', 'value')
 )
-def update_figure(interval, slider, previousBut, nextBut, isPaused):
-    # print(value)
+def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, isPaused, value):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     currentFrame = 0
+
+    #print(list(dic_tracks[int(value)]['frame']))
 
     if isPaused == False:
         if interval is None:
@@ -854,11 +887,26 @@ def update_figure(interval, slider, previousBut, nextBut, isPaused):
         if cbcontext == "next.n_clicks":
             if(currentFrame != maxFrames):
                 currentFrame += 1
+        if cbcontext =="gts_all_tracks.n_clicks":
+            if cbcontext == "frame-slider.value":
+                currentFrame = slider
+            else:
+                currentFrame = min(list(dic_tracks[int(value)]['frame']))
+        if cbcontext =="go_to_end.n_clicks":
+            if cbcontext == "frame-slider.value":
+                currentFrame = slider
+            else:
+                currentFrame = max(list(dic_tracks[int(value)]['frame']))
     if cbcontext == "frame-slider.value":
         currentFrame = slider
+    # print(currentFrame)
 
     fig = px.imshow(
         io.imread(pathIn+frames[currentFrame]), binary_backend="jpg")  # OLD
+    fig.update_layout(
+        margin=dict(l=0, r=0, b=0, t=0, pad=4),
+        dragmode="drawrect",
+    )
     # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
     frame_df = dic[currentFrame]
     # print("\nCurrent Frame Bounding Boxes:")
@@ -881,88 +929,39 @@ def update_figure(interval, slider, previousBut, nextBut, isPaused):
     dash.dependencies.Output('slider-output-container', 'children'),
     [dash.dependencies.Input('frame_interval', 'n_intervals')])
 def update_output(value):
-    # conn = pg2.connect(database='soccer',
-    #     user='postgres',
-    #     host='localhost',  # localhost-------------------!
-    #     password='root')
-    # cur = conn.cursor()
-    # cur.execute('''UPDATE variables SET frame = %s''' % value)
-    # conn.commit()
-    # cur.close()
-    # conn.close()
-    # print("End of the callback")
-    return 'Current Frame "{}"'.format(value)
+    return '  Current Frame "{}"'.format(value)
 
 
-# Callbacks for all tracks
-def toggle_collapse1(n, is_open):
-    if n:
-        return not is_open
-    return is_open
+# # Callbacks for all tracks
+# def toggle_collapse1(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
 
 
-for i in range(1, unique_tracks+1):
-    app.callback(
-        dash.dependencies.Output('c%i' % i, 'is_open'),
-        [dash.dependencies.Input('cb%i' % i, "n_clicks"), ],
-        [dash.dependencies.State('c%i' % i, "is_open")]
-    )(toggle_collapse1)
+# for i in range(1, unique_tracks+1):
+#     app.callback(
+#         dash.dependencies.Output('c%i' % i, 'is_open'),
+#         [dash.dependencies.Input('cb%i' % i, "n_clicks"), ],
+#         [dash.dependencies.State('c%i' % i, "is_open")]
+#     )(toggle_collapse1)
 
 
-# Callbacks for viewable tracks
-def toggle_collapse2(n, is_open):
-    if n:
-        return not is_open
-    return is_open
+# # Callbacks for viewable tracks
+# def toggle_collapse2(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
 
 
-# Number of viewable tracks shouldn't exceed 100, but...
-# Small bug!!!!
-for i in range(100):
-    app.callback(
-        dash.dependencies.Output('collapse%i' % i, 'is_open'),
-        [dash.dependencies.Input('collapse-button%i' % i, "n_clicks"), ],
-        [dash.dependencies.State('collapse%i' % i, "is_open")]
-    )(toggle_collapse2)
-
-# # Callback for go to start
-
-# def go_to_frame(n_clicks, data):
-#     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-#     currentFrame = 0
-
-#     if cbcontext == "startbt1.n_clicks":
-#         currentFrame = "storebt1.data"
-
-#     fig = px.imshow(io.imread(pathIn+frames[currentFrame]), binary_backend="jpg") # OLD
-#     # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
-#     frame_df = dic[currentFrame]
-#     # print("\nCurrent Frame Bounding Boxes:")
-#     for i in range(len(frame_df)):
-#         x0 = frame_df.iloc[i]['x0']
-#         y0 = frame_df.iloc[i]['y0']
-#         x1 = frame_df.iloc[i]['x1']
-#         y1 = frame_df.iloc[i]['y1']
-#         id_num = frame_df.iloc[i]['track_id']
-#         # print(id_num, x0, y0, x1, y1)
-#         add_editable_box(fig, id_num, x0, y0, x1, y1)
-#     return (fig, currentFrame, currentFrame)
-# for i in range(unique_tracks+1):
-#     @app.callback(
-#         dash.dependencies.OutputOutput('graph', 'figure'),
-#         Output('frame_interval', 'n_intervals'),
-#         Output('frame-slider', 'value'),
-#         Input('startbt%i' %i, 'n_clicks'),
-#         Input('storetbt%i' %i, 'data'),
-#     )(go_to_frame)
+# # Number of viewable tracks shouldn't exceed 100, but...
+# # Small bug!!!!
+# for i in range(100):
+#     app.callback(
+#         dash.dependencies.Output('collapse%i' % i, 'is_open'),
+#         [dash.dependencies.Input('collapse-button%i' % i, "n_clicks"), ],
+#         [dash.dependencies.State('collapse%i' % i, "is_open")]
+#     )(toggle_collapse2)
 
 
-# # Radio Items Go to Start Callback
-# @app.callback(
-#     Output('graph', 'figure'),
-#     Output('frame_interval', 'n_intervals'),
-#     Output('frame-slider', 'value'),
-#     State('radio_all_tracks', 'value')
-# )
-# def go_to_frame(value):
-#     return value
+
