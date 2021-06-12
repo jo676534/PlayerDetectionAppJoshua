@@ -165,17 +165,17 @@ def updateSection(button_id):
 # frame value stored
 
 
-def getFrame():
-    conn = pg2.connect(database='soccer', user='postgres',
-                       host='localhost', password='root')
-    cur = conn.cursor()
-    cur.execute('''SELECT frame FROM variables''')
-    currentFrame = cur.fetchall()
-    print(currentFrame)
-    # conn.commit()
-    cur.close()
-    conn.close()
-    return currentFrame
+# def getFrame():
+#     conn = pg2.connect(database='soccer', user='postgres',
+#                        host='localhost', password='root')
+#     cur = conn.cursor()
+#     cur.execute('''SELECT frame FROM variables''')
+#     currentFrame = cur.fetchall()
+#     print(currentFrame)
+#     # conn.commit()
+#     cur.close()
+#     conn.close()
+#     return currentFrame
 
 
 # FUNCTION WITH RETURNED DASH COMPONENT #################################################################################################################
@@ -655,7 +655,8 @@ def display(btn1, btn2, btn3, frame):
     global current_frame
 
     if not ctx.triggered:
-        button_id = 'No clicks yet'
+        return allTrackSection
+        #button_id = 'No clicks yet'
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
