@@ -32,7 +32,7 @@
 # frames.sort(key=lambda x: int(x[5:-4]))
 
 # first_frame = 100
-# final_frame = 120
+# final_frame = 300
 
 # frames = frames[first_frame:final_frame]
 
@@ -99,9 +99,13 @@
 
 # # DASH COMPONENTS ##############################################################################################################################
 
+# # Card for video player and image annotation
 # image_annotation_card_add = dbc.Card(
 #     id="imagebox_add",
 #     children=[
+#         dbc.CardHeader(
+#             html.H2("Annotation Area")
+#         ),
 #         dbc.CardBody(
 #             [
 #                 dcc.Interval(
@@ -154,35 +158,68 @@
 #     style={"margin-top": "20px", "margin-bottom": "20px"}
 # )
 
-
+# # Card for the user interactions on the right side
 # right_side = dbc.Card(
-#     children=[
+#     [
 #         dbc.CardHeader(
-#             html.H2("Header")
+#             html.H2("Bounding Box Submit Area")
 #         ),
 #         dbc.CardBody(
 #             [
-#                 html.Div(id='output'),
+#                 html.H5("Instructions (Part 1):"),
+#                 #html.Div("By default you can click and drag to draw an annotation bounding box on the image to the left. Once you draw a box around the player you are intending to track click on the submit box button to start the tracking."),
+#                 html.Div("1. The video player is locked at the start frame until the tracker is finished running."),
+#                 html.Div("2. Click and drag to draw an annotation bounding box around the intented player on the image."),
+#                 html.Div("3. An already existing box can be interacted with by clicking on it's edges."),
+#                 html.Div("  3a. It can then be modified by draging one of the corners."),
+#                 html.Div("  3b. It can then be deleted by clicking \"Erase active shape\" in the top right corner above the image."),
+#                 html.Div("4. Ensure there is only one bounding box around the intended player."),
+#                 html.Div("5. Click \"Start Tracker\" below and wait for it to finish running."),
+#                 html.Div("6. Don't press the button while the tracker is running."),
+#                 html.Div("7. Once the tracker is finished, proceed to the area below."),
+#                 #html.Br(),
+#                 html.Button('Start Tracker', id='next_page', n_clicks=0),
 #                 html.Br(),
-#                 html.Button('Submit', id='next_page', n_clicks=0),
-#                 html.Br(),
-#                 html.Div(id='button_output')
+#                 dbc.Spinner(html.Div(id='button_output'))
 #             ]
 #         ),
 #         dbc.CardFooter(
 #             [
-#                 html.H2("Footer"),
+#                 html.H5("Instructions (Part 2):"),
+#                 html.Div("There are now three primary options for using the detection track:"),
+#                 html.Div("1. If there are no errors with the detections you can click \"Save Detection Track\" to finish."),
+#                 html.Div("2. If part of the track is correct you can input a start and end frame below before saving the detection track to only save the frames within that window."),
+#                 html.Div("3. If you'd like to remove the detections all together and start over you can reset the tracker and try again."),
+#                 html.Div(""),
+#                 #html.Br(),
+#                 html.Div(
+#                     [
+#                         dbc.Input(id="input_start", placeholder="Start", type="number", min=0, step=1, style={'width': '25%', 'display': 'inline-block', "margin-left": "0px", "margin-right": "15px",}),
+#                         dbc.Input(id="input_final", placeholder="Final", type="number", min=0, step=1, style={'width': '25%', 'display': 'inline-block', "margin-left": "15px", "margin-right": "15px",}),
+#                     ]
+#                 ),
 #                 html.Br(),
-#                 html.Button("State Button", id='state_button', n_clicks=0),
-#                 html.Br(),
-#                 html.Div(id="state_output"),
+#                 html.Div(id="reset_output"),
+#             ]
+#         )
+#     ],
+#     style={"margin-top": "20px", "margin-bottom": "20px", "margin-right": "10px"}
+# )
+
+# # Card for final buttons
+# end_buttons = dbc.Card(
+#     [
+#         dbc.ButtonGroup(
+#             [
+#                 dbc.Button("Save Detection Track", id="button_save"),
+#                 dbc.Button("Reset Tracker", id="button_reset", n_clicks=0),
+#                 dbc.Button("Quit", id="button_quit"),
 #             ]
 #         ),
 #     ]
 # )
 
-
-# layout = html.Div( # was app.layout
+# layout = html.Div(
 #     [
 #         #navbar,
 #         dbc.Container(
@@ -190,7 +227,7 @@
 #                 dbc.Row(
 #                     [
 #                         dbc.Col(image_annotation_card_add, md=7.5),
-#                         dbc.Col(right_side)
+#                         dbc.Col(children=[right_side, end_buttons], md=5),
 #                     ],
 #                 ),
 #             ],
@@ -213,11 +250,11 @@
 #     text = 'Play'
 
 #     if cbcontext == "playpause_add.n_clicks":
-#         if isPaused == True:
+#         if isPaused == False or state == 0:
+#             isPaused = True
+#         elif isPaused == True:
 #             isPaused = False
 #             text = 'Pause'
-#         elif isPaused == False:
-#             isPaused = True
 #         else:
 #             raise PreventUpdate
 #     return (isPaused, text)
@@ -237,7 +274,6 @@
 #     State('graph_box', 'relayoutData'), # testing
 # )
 # def update_figure_add(interval, slider, previousBut, nextBut, isPaused, graph_relayout):
-#     print(state)
 #     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
 #     currentFrame = 0
     
@@ -312,25 +348,34 @@
 #     global detections_df
 #     global state
 
+#     if (state == 99):
+#         return "The tracker is still running, please wait for it to be finished."
+
+#     if (state == 1):
+#         return "The tracker has already been run"
+    
 #     if graph_relayout is None: return '' # stops the error
     
 #     if (not 'shapes' in graph_relayout):
-#         return "No bounding box has been drawn yet"
+#         # this is for whenever the user adjusts their bounding box. the info contained in the graph_relayout is changed and doesn't have shapes inside it so we need to check for and read a new form of info
+#         # a possible error of sorts is that the user could have two (or more) bounding boxes, adjust the zeroth box (the first they drew) and then submit and it would run
+#         if 'shapes[0].x0' in graph_relayout: 
+#             state = 99
+#             detections_df = demo.rt_track(first_frame, final_frame, graph_relayout['shapes[0].x0'], graph_relayout['shapes[0].y0'], graph_relayout['shapes[0].x1'], graph_relayout['shapes[0].y1'])
+#             state = 1
+#             return "The tracking algorithm has now finished, you can review the output in the video player."
+#         # otherwise we just display that there is an improper bounding box configuration
+#         return "Improper bounding box configuration"
 #     elif (len(graph_relayout['shapes']) == 0):
 #         return "You have to draw one bounding box"
 #     elif (len(graph_relayout['shapes']) == 1): # this is the success case
-#         print("in submit box 1")
-#         print("in submit box 2")
-#         for box in graph_relayout['shapes']:
-#             x0 = box['x0']
-#             y0 = box['y0']
-#             x1 = box['x1']
-#             y1 = box['y1']
-#             detections_df = demo.rt_track(100, 120, x0, y0, x1, y1) # !!! this will have to recieve a dataframe to be used with the display !!! WORK HERE 
-#             state = 1
-#         return josh_test.josh_string() # "You have drawn one bounding box, next page goes here"
+#         state = 99
+#         for box in graph_relayout['shapes']: # this will only have one iteration (b/c there should only be one bounding box)
+#             detections_df = demo.rt_track(first_frame, final_frame, box['x0'], box['y0'], box['x1'], box['y1'])
+#         state = 1
+#         return "The tracking algorithm has now finished, you can review the output in the video player."
 #     else:
-#         return "There can only be one bounding box, please ensure there is only one"
+#         return "There are too many bounding boxes"
 # # end submit_box
 
 
@@ -342,11 +387,12 @@
 # def update_output(graph_relayout): # graph_relayout is a dictionary
 #     if graph_relayout is None: return '' # stops the error
     
+#     # print(graph_relayout)
+#     # print("")
+
 #     if (not 'shapes' in graph_relayout) or (len(graph_relayout['shapes']) == 0): # or shapes is empty 
-#         print(graph_relayout)
 #         return 'no shapes'
 #     else:
-#         print("### TRYING TO DO THIS ###")
 #         output_string = "List of boxes: "
 #         output_num = 0
 #         for box in graph_relayout['shapes']:
@@ -357,8 +403,18 @@
 #             output_string += "X1: {}, ".format(box['x1'])
 #             output_string += "Y1: {}".format(box['y1'])
 #             output_string += " ###### "
-        
-#         print(graph_relayout)
-#         return 'Number of boxes: {0}'.format(output_num)
-#         #return 'Number of boxes: {0} "<br />" Updated output: {1}'.format(output_num, output_string) # graph_relayout['shapes']
+#         #return 'Number of boxes: {0}'.format(output_num)
+#         return 'Number of boxes: {0} // Updated output: {1}'.format(output_num, output_string) # graph_relayout['shapes']
 # # end update_output
+
+# # Callback for the reset button
+# @app.callback(
+#     Output('reset_output', 'children'),
+#     Input('button_reset', 'n_clicks')
+# )
+# def reset_button_callback(n_clicks):
+#     global detections_df
+#     global state
+#     detections_df = []
+#     state = 0
+#     return "Reset Complete"
