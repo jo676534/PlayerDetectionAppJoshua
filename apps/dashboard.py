@@ -655,7 +655,9 @@ def display(btn1, btn2, btn3, frame):
     global current_frame
 
     if not ctx.triggered:
-        button_id = 'No clicks yet'
+        # button_id = 'No clicks yet'
+        return allTrackSection
+
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
