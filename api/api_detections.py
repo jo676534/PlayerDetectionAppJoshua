@@ -112,6 +112,7 @@ def save_track(game_id, detections_df, frame, player_id, track_id):
         cur.execute('''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id) VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})'''.format(game_id, frame, det.x0, det.y0, det.x1, det.y1, track_id, player_id))
         frame += 1
 
+    conn.commit()
     cur.close()
     conn.close()
     

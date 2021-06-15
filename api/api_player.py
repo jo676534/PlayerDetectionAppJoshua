@@ -32,3 +32,36 @@ def get_players(game_id): # will need significant rework to find the players for
         pcols.append(elt[0])
 
     return pd.DataFrame(data=players_data, columns=pcols)
+
+# ----------------------------------------------------------------------------
+
+# assigning a track to a player
+def assign_track(game_id, track_id, player_id):
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    cur = conn.cursor()
+    
+    # Query/Commit Here
+    cur.execute('''UPDATE detections SET player_id = %s WHERE game_id = %s AND track_id = %s''', (player_id, game_id, track_id))
+    
+    conn.commit()
+    cur.close()
+    conn.close()
+
+# ----------------------------------------------------------------------------
+
+# getting a player's tracks
+def get_player_detections(game_id, player_id):
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    cur = conn.cursor()
+
+    cur.execute('''SELECT * FROM detections WHERE game_id = %s AND player_id = %s''', (game_id, player_id))
+    data = cur.fetchall()
+
+    cols = []
+    for elt in cur.description:
+        cols.append(elt[0])
+    
+    cur.close()
+    conn.close()
+
+    return(data, cols)

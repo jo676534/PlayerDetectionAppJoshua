@@ -90,7 +90,7 @@ df_players = api_player.get_players(0)
 # NON-DASH FUNCTIONS ##############################################################################################################################
 
 
-def add_editable_box(fig, id_num, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None):
+def add_editable_box(fig, track_id, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None):
     fig.add_shape(
         editable=True,
         x0=x0,
@@ -105,7 +105,7 @@ def add_editable_box(fig, id_num, x0, y0, x1, y1, name=None, color=None, opacity
     fig.add_annotation(  # ((x0+x1)/2)
         x=((x0+x1)/2),
         y=y0-30,
-        text="{0}".format(id_num),
+        text="{0}".format(track_id),
         showarrow=False,  # True
         font=dict(
             family="Courier New, monospace",
