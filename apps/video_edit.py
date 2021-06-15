@@ -36,28 +36,28 @@ from app import app
 
 # ########### NEW VID TO FRAMES###########
 
-# # vidcap = cv2.VideoCapture('Sample Soccer Video.mp4')
-# # frames = []
+# vidcap = cv2.VideoCapture('Sample Soccer Video.mp4')
+# frames = []
 
-# # def getFrame(sec):
-# #     vidcap.set(cv2.CAP_PROP_POS_MSEC, sec*1000)
-# #     hasFrames, image = vidcap.read()
-# #     if hasFrames:
-# #         # Instead of writing to directory, save to an image array
-# #         # cv2.imwrite(os.path.join(dirname,"image"+str(count) + ".jpg"), image)
-# #         image2 = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-# #         frames.append(image2)
-# #     return hasFrames
+# def getFrame(sec):
+#     vidcap.set(cv2.CAP_PROP_POS_MSEC, sec*1000)
+#     hasFrames, image = vidcap.read()
+#     if hasFrames:
+#         # Instead of writing to directory, save to an image array
+#         # cv2.imwrite(os.path.join(dirname,"image"+str(count) + ".jpg"), image)
+#         image2 = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+#         frames.append(image2)
+#     return hasFrames
 
-# # sec = 0
-# # frameRate = 0.02  # 30 frames per second?
-# # count = 1
-# # success = getFrame(sec)
-# # while success:
-# #     count = count + 1
-# #     sec = sec + frameRate
-# #     sec = round(sec, 2)
-# #     success = getFrame(sec)
+# sec = 0
+# frameRate = 0.02  # 30 frames per second?
+# count = 1
+# success = getFrame(sec)
+# while success:
+#     count = count + 1
+#     sec = sec + frameRate
+#     sec = round(sec, 2)
+#     success = getFrame(sec)
 
 # ########### END NEW VID TO FRAMES###########
 # ########### OLD VID TO FRAMES###########
@@ -145,6 +145,14 @@ video_trimmer_card = dbc.Card(
         ),
         dbc.CardBody(
             [
+                html.Div(id='trimming-dropdown', children=[],
+                         style={"maxHeight": "375px", "overflow": "auto", "height": "375px"})
+            ]
+        ),
+        dbc.CardFooter(
+
+
+                        [
                 # dcc.RangeSlider(
                 #     id='frame-trimmer',
                 #     min=0,
@@ -196,17 +204,11 @@ video_trimmer_card = dbc.Card(
 
             ]
         ),
-        dbc.CardFooter(
-            [
-                html.Div(id='trimming-dropdown', children=[],
-                         style={"maxHeight": "410px", "overflow": "auto", "height": "410px"})
-            ]
-        ),
     ],
     style={"margin-top": "20px", "margin-bottom": "20px"}
 )
 
-state_one_card = dbc.Card(
+state_one_card = html.Div(
     id="state_one_card",
     children=[
         dbc.ButtonGroup(
@@ -218,7 +220,20 @@ state_one_card = dbc.Card(
                 dbc.Button('Save and Continue',
                            id='save-and-continue', href='/apps/dashboard', size="lg"),
             ],
+            style={"width": "100%"},
         ),
+        dbc.Modal(
+            [
+                dbc.ModalHeader("Header"),
+                dbc.ModalBody("This is the content of the modal"),
+                dbc.ModalFooter(
+                    children=[dbc.Button("Close", id="close", className="ml-auto"),
+                              dbc.Button("Close", id="close",
+                                         className="ml-auto")
+                              ]
+                ),
+            ]
+        )
     ],
 )
 
@@ -314,8 +329,8 @@ def update_figureVE(interval, slider, previousBut, nextBut, startBut, endBut, st
         io.imread(pathIn+framesVE[currentFrame]), binary_backend="jpg")  # OLD
     # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
     fig.update_layout(
-    margin=dict(l=0, r=0, b=0, t=0, pad=4),
-    dragmode="drawrect",
+        margin=dict(l=0, r=0, b=0, t=0, pad=4),
+        dragmode="drawrect",
     )
     # print("\nCurrent Frame Bounding Boxes:")
     return (fig, currentFrame, currentFrame)
@@ -399,23 +414,35 @@ def display_dropdowns(n_clicks, children, start, end):
 def set_maxVid(duration):
     return duration, duration
 
+
 @app.callback(
     Output('startingFrame', 'value'),
     Input('setStart', 'n_clicks'),
+    Input('addToTrim', 'n_clicks'),
     State('frame_intervalVE', 'n_intervals'),
     prevent_initial_call=True
 )
-def setFrameToStart(n_clicks, value):
-    return value
+def setFrameToStart(set, add, value):
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    if cbcontext == "setStart.n_clicks":
+        return value
+    if cbcontext == "addToTrim.n_clicks":
+        return None
+
 
 @app.callback(
     Output('endingFrame', 'value'),
     Input('setEnd', 'n_clicks'),
+    Input('addToTrim', 'n_clicks'),
     State('frame_intervalVE', 'n_intervals'),
     prevent_initial_call=True
 )
-def setFrameToEnd(n_clicks, value):
-    return value
+def setFrameToEnd(set, add, value):
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    if cbcontext == "setEnd.n_clicks":
+        return value
+    if cbcontext == "addToTrim.n_clicks":
+        return None
 
 # @app.callback(
 #     Output('frame_intervalVE', 'n_intervals'),
