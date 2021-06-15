@@ -13,7 +13,7 @@ import os
 from os.path import isfile, join
 from skimage import io
 import numpy as np
-# import psycopg2 as pg2
+import psycopg2 as pg2
 import pandas as pd
 from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
@@ -72,12 +72,17 @@ maxFrames = len(frames)-1
 player_tracks_counter = 0
 all_tracks_counter = 0
 viewable_tracks_counter = 0
-current_frame = 0
 player_tracks = ["17", "12"]  # Hardcoded until "assign track" is working
 
 dic = api_detections.get_frame_detections(0)
 # print(dic[1298])
 dic_tracks, unique_tracks = api_detections.get_tracks(0)
+# for i in range(len(dic_tracks[1]['frame'])):
+#     dic_tracks[1]['frame'][i] = 2
+# print(dic_tracks[1]['frame'])
+
+# for i in range(1, 221):  
+#     print(dic_tracks[i]['player_id'])
 
 # fetch the detections ----------------
 # was originally just df (not currently used in the input functions)
@@ -86,6 +91,7 @@ df_detections = api_detections.get_game_detections(0)
 df_teams = api_team.get_teams(0)
 # fetch the players ----------------
 df_players = api_player.get_players(0)
+
 
 # NON-DASH FUNCTIONS ##############################################################################################################################
 
@@ -194,138 +200,160 @@ fig.update_layout(
 
 # Retrive value for each team
 a_row = df_players[df_players["team_id"] == 0]
-# print(a_row)
 b_row = df_players[df_players["team_id"] == 1]
 
 
-# Dash component for team A
-sectionA = html.Div(
-    [
-        dbc.Row(
-            dbc.Col([
-                dbc.Button(
-                    str(a_row.iloc[0]["name"]),
-                    id="colbut3",
-                    className="mb-3",
-                    color="secondary",
-                    style={"font-size": "12px"}
-                ),
-                dbc.Collapse(
-                    dbc.Card(dbc.CardBody([
-                        dbc.Row(dcc.Markdown(
-                            "Number of Tracks: 0", style={"font-size": "10px"}),),
-                        dbc.Row(dbc.Button("Add Selected Track", id="add_track", color="black", style={
-                            "font-size": "10px"}),),
-                        dbc.Row(dbc.Button("Create New Track", color="black", style={
-                            "font-size": "10px"}),),
-                        dbc.Row(dbc.Button("View Player Tracks", color="black", style={
-                            "font-size": "10px"}),),
-                    ])),
-                    id="col3",
-                    style={"font-size": "12px"}
-                ),
-            ])),
-        dbc.Row(
-            dbc.Col([
-                dbc.Button(
-                    str(a_row.iloc[1]["name"]),
-                    id="colbut4",
-                    className="mb-3",
-                    color="secondary",
-                    style={"font-size": "12px"}
-                ),
-                dbc.Collapse(
-                    dbc.Card(dbc.CardBody([
-                        dbc.Row(dcc.Markdown(
-                                          "Number of Tracks: 0", style={"font-size": "10px"}),),
-                        dbc.Row(dbc.Button("Add Selected Track", color="black", style={
-                            "font-size": "10px"}),),
-                        dbc.Row(dbc.Button("Create New Track", color="black", style={
-                            "font-size": "10px"}),),
-                        dbc.Row(dbc.Button("View Player Tracks", color="black", style={
-                            "font-size": "10px"}),),
-                    ])),
-                    id="col4",
-                    style={"font-size": "12px"}
-                ),
-            ]))
-    ])
+# # Dash component for team A
+# sectionA = html.Div(
+#     [
+#         dbc.Row(
+#             dbc.Col([
+#                 dbc.Button(
+#                     str(a_row.iloc[0]["name"]),
+#                     id="colbut3",
+#                     className="mb-3",
+#                     color="secondary",
+#                     style={"font-size": "12px"}
+#                 ),
+#                 dbc.Collapse(
+#                     dbc.Card(dbc.CardBody([
+#                         dbc.Row(dcc.Markdown(
+#                             "Number of Tracks: 0", style={"font-size": "10px"}),),
+#                         dbc.Row(dbc.Button("Add Selected Track", id="add_track", color="black", style={
+#                             "font-size": "10px"}),),
+#                         dbc.Row(dbc.Button("Create New Track", color="black", style={
+#                             "font-size": "10px"}),),
+#                         dbc.Row(dbc.Button("View Player Tracks", color="black", style={
+#                             "font-size": "10px"}),),
+#                     ])),
+#                     id="col3",
+#                     style={"font-size": "12px"}
+#                 ),
+#             ])),
+#         dbc.Row(
+#             dbc.Col([
+#                 dbc.Button(
+#                     str(a_row.iloc[1]["name"]),
+#                     id="colbut4",
+#                     className="mb-3",
+#                     color="secondary",
+#                     style={"font-size": "12px"}
+#                 ),
+#                 dbc.Collapse(
+#                     dbc.Card(dbc.CardBody([
+#                         dbc.Row(dcc.Markdown(
+#                                           "Number of Tracks: 0", style={"font-size": "10px"}),),
+#                         dbc.Row(dbc.Button("Add Selected Track", color="black", style={
+#                             "font-size": "10px"}),),
+#                         dbc.Row(dbc.Button("Create New Track", color="black", style={
+#                             "font-size": "10px"}),),
+#                         dbc.Row(dbc.Button("View Player Tracks", color="black", style={
+#                             "font-size": "10px"}),),
+#                     ])),
+#                     id="col4",
+#                     style={"font-size": "12px"}
+#                 ),
+#             ]))
+#     ])
 
-# sectionA = html.Div([
-#     html.Div(children=[
-#     dbc.Col([dbc.Button("Assign Tracks", id = 'assign_track',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-#              dbc.Button("Create a track", id = 'create_track', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
-#              align = 'center',),
-#     dbc.Col([dcc.RadioItems(
-#     options=[
-#         {'label': 'PLayer: ' + str(a_row.iloc[i]["name"]), 'value': str(a_row.iloc[i]["name"])} for i in range(3, 6)],
-#     #value=str(list(dic_tracks.keys())[1]), 
-#     id = "radio_players_A",
+sectionA = html.Div([
+    html.Div(children=[
+    dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
+             dbc.Button("Create a track", id = 'create_track_bt', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
+             align = 'center',),
+    dbc.Col([dcc.RadioItems(
+    options=[
+        {'label': str(a_row.iloc[i]["name"]), 'value': str(a_row.iloc[i]["player_id"])} for i in range(0, len(a_row))],
+    #value=str(a_row.iloc[1]["player_id"]), 
+    id = "radio_players_A",
    
-#     )],
-#     align = 'center',
-#     style={'width': '100%', 
-#                  'height': '550px', 
-#                  'overflow': 'scroll', 
-#                  'padding': '10px 10px 10px 20px'
-#           }), 
-#     ],
-#     )
-# ])
+    )],
+    align = 'center',
+    style={'width': '250px', 
+           'height': '590px', 
+           'overflow': 'scroll', 
+           'padding': '10px 10px 10px 20px'
+          }), 
+    ],
+    )
 
+])
 
-# Dash component for team B
-sectionB = html.Div(
-    [
-        dbc.Row(
-            dbc.Col([
-                dbc.Button(
-                    str(b_row.iloc[3]["name"]),
-                    id="colbut3",
-                    className="mb-3",
-                    color="secondary",
-                    style={"font-size": "12px"}
-                ),
-                dbc.Collapse(
-                    dbc.Card(dbc.CardBody([
-                        dbc.Row(dcc.Markdown(
-                            "Number of Tracks: 0", style={"font-size": "10px"}),),
-                        dbc.Row(dbc.Button("Add Selected Track", color="black", style={
-                            "font-size": "10px"}),),
-                        dbc.Row(dbc.Button("Create New Track", color="black", style={
-                            "font-size": "10px"}),),
-                        dbc.Row(dbc.Button("View Player Tracks", color="black", style={
-                            "font-size": "10px"}),),
-                    ])),
-                    id="col3",
-                    style={"font-size": "12px"},
-                ),
-            ])),
-        dbc.Row(
-            dbc.Col([
-                dbc.Button(
-                    str(b_row.iloc[4]["name"]),
-                    id="colbut4",
-                    className="mb-3",
-                    color="secondary",
-                    style={"font-size": "12px"}
-                ),
-                dbc.Collapse(
-                    dbc.Card(dbc.CardBody([
-                        dbc.Row(dcc.Markdown(
-                            "Number of Tracks: 0", style={"font-size": "10px"}),),
-                        dbc.Row(dbc.Button("Add Selected Track", color="black", style={
-                            "font-size": "10px"}),),
-                        dbc.Row(dbc.Button("Create New Track", color="black", style={
-                            "font-size": "10px"}),),
-                        dbc.Row(dbc.Button("View Player Tracks", color="black", style={
-                            "font-size": "10px"}),),
-                    ])),
-                    id="col4",
-                    style={"font-size": "12px"}
-                ),
-            ]))
-    ])
+sectionB = html.Div([
+    html.Div(children=[
+    dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
+             dbc.Button("Create a track", id = 'create_track', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
+             align = 'center',),
+    dbc.Col([dcc.RadioItems(
+    options=[
+        {'label': str(b_row.iloc[i]["name"]), 'value': str(b_row.iloc[i]["player_id"])} for i in range(0, len(b_row))],
+    #value=str(b_row.iloc[1]["name"]),  
+    id = "radio_players_A",
+   
+    )],
+    align = 'center',
+    style={'width': '250px', 
+           'height': '590px', 
+           'overflow': 'scroll', 
+           'padding': '10px 10px 10px 20px'
+          }), 
+    ],
+    )
+
+])
+
+# # Dash component for team B
+# sectionB = html.Div(
+#     [
+#         dbc.Row(
+#             dbc.Col([
+#                 dbc.Button(
+#                     str(b_row.iloc[3]["name"]),
+#                     id="colbut3",
+#                     className="mb-3",
+#                     color="secondary",
+#                     style={"font-size": "12px"}
+#                 ),
+#                 dbc.Collapse(
+#                     dbc.Card(dbc.CardBody([
+#                         dbc.Row(dcc.Markdown(
+#                             "Number of Tracks: 0", style={"font-size": "10px"}),),
+#                         dbc.Row(dbc.Button("Add Selected Track", color="black", style={
+#                             "font-size": "10px"}),),
+#                         dbc.Row(dbc.Button("Create New Track", color="black", style={
+#                             "font-size": "10px"}),),
+#                         dbc.Row(dbc.Button("View Player Tracks", color="black", style={
+#                             "font-size": "10px"}),),
+#                     ])),
+#                     id="col3",
+#                     style={"font-size": "12px"},
+#                 ),
+#             ])),
+#         dbc.Row(
+#             dbc.Col([
+#                 dbc.Button(
+#                     str(b_row.iloc[4]["name"]),
+#                     id="colbut4",
+#                     className="mb-3",
+#                     color="secondary",
+#                     style={"font-size": "12px"}
+#                 ),
+#                 dbc.Collapse(
+#                     dbc.Card(dbc.CardBody([
+#                         dbc.Row(dcc.Markdown(
+#                             "Number of Tracks: 0", style={"font-size": "10px"}),),
+#                         dbc.Row(dbc.Button("Add Selected Track", color="black", style={
+#                             "font-size": "10px"}),),
+#                         dbc.Row(dbc.Button("Create New Track", color="black", style={
+#                             "font-size": "10px"}),),
+#                         dbc.Row(dbc.Button("View Player Tracks", color="black", style={
+#                             "font-size": "10px"}),),
+#                     ])),
+#                     id="col4",
+#                     style={"font-size": "12px"}
+#                 ),
+#             ]))
+#     ])
 
 # Button Sections for Tracks: ====================================================================================================================
 
@@ -347,7 +375,7 @@ allTrackSection = html.Div([
     )],
     align = 'center',
     style={'width': '100%', 
-                 'height': '550px', 
+                 'height': '500px', 
                  'overflow': 'scroll', 
                  'padding': '10px 10px 10px 20px'
           }), 
@@ -507,7 +535,8 @@ annotated_data_card = dbc.Card(
                            outline=True, style={"font-size": "12px"}),
             ])),
         dbc.CardBody(
-            [
+            [ 
+                html.Div(id='hidden-div', style= {'display':'none'}),
                 html.Div(id='track_container')
             ]
         ),
@@ -544,6 +573,7 @@ annotated_data_card2 = dbc.Card(
             ]
         ),
     ],
+    
     style={"margin-top": "20px", "margin-bottom": "20px"}
 )
 
@@ -640,7 +670,7 @@ def display(btn1, btn2):
         return sectionB
 
     else:
-        return "Select a Team"
+        return sectionA
 
 
 # Callback that toggles between track buttons:
@@ -649,14 +679,15 @@ def display(btn1, btn2):
               Input("all_tracks_bt", 'n_clicks'),
               Input("viewable_tracks_bt", 'n_clicks'),
               Input("player_tracks_bt", 'n_clicks'),
-              State("frame_interval", 'n_intervals'))
-def display(btn1, btn2, btn3, frame):
+              State("frame_interval", 'n_intervals'),
+              State("radio_players_A", 'value'))
+def display(btn1, btn2, btn3, frame, value):
     ctx = dash.callback_context
     global current_frame
 
     if not ctx.triggered:
+        button_id = 'No clicks yet'
         return allTrackSection
-        #button_id = 'No clicks yet'
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
@@ -693,7 +724,83 @@ def display(btn1, btn2, btn3, frame):
                 ])
 
     if button_id == "player_tracks_bt":
-        return viewPlayerTracks
+
+        if value is None:
+            return 'Select a Player to View Tracks'
+        
+        else:
+            trackList =[]
+            conn = pg2.connect(database='soccer',
+            user='postgres',
+            host='localhost',  # localhost-------------------!
+            password='root')
+            cur = conn.cursor()
+            cur.execute('''SELECT * FROM detections WHERE player_id = %s''' % value)
+            data = cur.fetchall()
+            
+            cols = []
+            for elt in cur.description:
+                cols.append(elt[0])
+            conn.commit()
+            cur.close()
+            conn.close()
+
+            if len(data) < 1:
+                return html.Div(children=[
+                                dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, 
+                                            style={"font-size": "12px","margin-bottom":"10px"}),
+                                        dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, 
+                                            style={"font-size": "12px","margin-bottom":"10px"},),],
+                                        align = 'center',),
+                                dbc.Col([dbc.Button("Delete Track", color="secondary",block = True, 
+                                            style={"font-size": "12px", "margin-bottom":"10px"}),
+                                        dbc.Button("Go to Start", id = 'gts_all_tracks', color="secondary", block = True, 
+                                            style={"font-size": "12px", "margin-bottom":"10px"},),],
+                                        align = 'center'),
+                                dcc.Markdown('No Tracks have been assigned to this player',
+                                style={'width': '100%', 
+                                            'font-size': '16px',
+                                            'height': '550px', 
+                                            'overflow': 'scroll', 
+                                            'padding': '10px 10px 10px 20px'}),
+                ])
+            else:
+                
+                data1 = pd.DataFrame(data=data, columns=cols)
+                unique_track_ids_temp = data1.iloc[1]['track_id']
+                trackList.append(data1.iloc[1]['track_id'])
+                for i in range(len(data1)):
+                    if unique_track_ids_temp != data1.iloc[i]['track_id']:
+                        unique_track_ids_temp = data1.iloc[i]['track_id']
+                        trackList.append(unique_track_ids_temp)    
+
+                trackList = sorted(set(trackList))
+                return html.Div([
+                                html.Div(children=[
+                                    dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, 
+                                                style={"font-size": "12px","margin-bottom":"10px"}),
+                                            dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, 
+                                                style={"font-size": "12px","margin-bottom":"10px"},),],
+                                            align = 'center',),
+                                    dbc.Col([dbc.Button("Delete Track", color="secondary",block = True, 
+                                                style={"font-size": "12px", "margin-bottom":"10px"}),
+                                            dbc.Button("Go to Start", id = 'gts_all_tracks', color="secondary", block = True, 
+                                                style={"font-size": "12px", "margin-bottom":"10px"},),],
+                                            align = 'center'),
+                                    dbc.Col([dcc.RadioItems(
+                                        options=[
+                                            {'label': 'Track ID: ' + str(trackList[i]), 
+                                            'value': str(trackList[i])} for i in range( len(trackList))],
+                                        # labelStyle = {'textAlign':'center'},
+                                        #value=str(viewable_row.iloc[frame]['track_id']), 
+                                        id = "radio_all_tracks",)],
+                                    align = 'center',
+                                    style={'width': '100%', 
+                                            'height': '550px', 
+                                            'overflow': 'scroll', 
+                                            'padding': '10px 10px 10px 20px'}), 
+                                ],)
+                        ])
     else:
         return "Select Tracks"
 
@@ -788,13 +895,45 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, isPaus
     return (fig, currentFrame, currentFrame)
 
 # Callback for Slider
-# It also stores on the db the current frame slider
-# ea/ time the slider is updated
-
-
 @app.callback(
     dash.dependencies.Output('slider-output-container', 'children'),
     [dash.dependencies.Input('frame_interval', 'n_intervals')])
 def update_output(value):
     return '  Current Frame "{}"'.format(value)
 
+# Callback for Assign Tracks
+@app.callback(
+    Output('hidden-div', 'children'),
+    Input('assign_track_bt', 'n_clicks'),
+    State('radio_all_tracks', 'value'),
+    State("radio_players_A", 'value')
+)
+def update_player_tracks(assignBt, trackIDValue, playerIDValue):
+    global dic_tracks
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+
+    if cbcontext == 'assign_track_bt.n_clicks':
+        # if trackIDValue is None and playerIDValue is None:
+        #     conn = pg2.connect(database='soccer',
+        #         user='postgres',
+        #         host='localhost',  # localhost-------------------!
+        #         password='root')
+        #     cur = conn.cursor()
+        #     for i in range (0, len(df_detections)):
+        #         cur.execute('''UPDATE detections SET player_id = -1 WHERE track_id = %s''' % i)
+        #     conn.commit()
+        #     cur.close()
+        #     conn.close()
+        #     return '  Test: "{}"'.format(playerIDValue) 
+        # else: 
+        conn = pg2.connect(database='soccer',
+            user='postgres',
+            host='localhost',  # localhost-------------------!
+            password='root')
+        cur = conn.cursor()
+        cur.execute('''UPDATE detections SET player_id = %s WHERE track_id = %s''', (playerIDValue, trackIDValue))
+        conn.commit()
+        cur.close()
+        conn.close()
+
+    return '  Test: "{}"'.format(playerIDValue) 
