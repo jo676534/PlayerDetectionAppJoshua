@@ -43,10 +43,16 @@ navbar = dbc.NavbarSimple(
     brand_style={"margin-left": "-160px"},
 )
 
+info_storage = html.Div([
+    dcc.Store(id="gameId"),
+    dcc.Store(id='start_frame', storage_type='session')
+])
+
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     navbar,
-    html.Div(id='page-content', children=[])
+    html.Div(id='page-content', children=[]),
+    info_storage,
 ])
 
 

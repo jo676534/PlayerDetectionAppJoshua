@@ -23,6 +23,8 @@ import cv2  # from vid2frames
 
 from app import app
 
+from apps import add_track
+
 from api import api_detections
 from api import api_team
 from api import api_player
@@ -190,9 +192,19 @@ def updateSection(button_id):
 
 fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")  # OLD
 fig.update_layout(
-        margin=dict(l=0, r=0, b=0, t=0, pad=4),
-        dragmode="drawrect",
-    )
+    xaxis= {
+        'showgrid': False, # thin lines in the background
+        'zeroline': False, # thick line at x=0
+        'visible': False,  # numbers below
+    },
+    yaxis= {
+        'showgrid': False, # thin lines in the background
+        'zeroline': False, # thick line at x=0
+        'visible': False,  # numbers below
+    },
+    margin=dict(l=0, r=0, b=0, t=0, pad=0),
+    dragmode="drawrect",
+)
 # fig = px.imshow(frames[0], binary_backend="jpg")  NEW
 
 # Button Sections for teams: ======================================================================================================================
@@ -537,7 +549,7 @@ annotated_data_card = dbc.Card(
         dbc.CardBody(
             [ 
                 html.Div(id='hidden-div', style= {'display':'none'}),
-                html.Div(id='track_container')
+                html.Div(id='track_container', children=[allTrackSection])
             ]
         ),
         dbc.CardFooter(
@@ -569,7 +581,26 @@ annotated_data_card2 = dbc.Card(
         ),
         dbc.CardFooter(
             [
-                html.Div()
+                html.H6("Add Track Section"),
+                html.Div(
+                    [
+                        dbc.Input(id="dashboard_input_start", placeholder="Start", type="number", min=0, step=1), # value
+                        dbc.Input(id="dashboard_input_final", placeholder="Final", type="number", min=0, step=1), 
+                    ]
+                ),
+                html.Div(
+                    [
+                        dbc.ButtonGroup(
+                            [
+                                dbc.Button("Set Start Frame", id="set_start"),
+                                dbc.Button("Set Final Frame", id="set_final"),
+                                dbc.Button("Add Track", id="add_track")
+                                #dbc.Button(dcc.Link('Add Track', href='/apps/add_track'))
+                            ]
+                        )
+                    ]
+                ),
+                html.Div(id="add_track_output"),
             ]
         ),
     ],
@@ -600,6 +631,51 @@ layout = html.Div(  # was app.layout
 
 # CALLBACK FUNCTION DEFINITIONS #########################################################################################################################
 
+# callback for set start frame
+@app.callback(
+    Output("dashboard_input_start", "value"),
+    Output("start_frame", "data"),
+    Input("set_start", "n_clicks"),
+    State('frame-slider', 'value')
+)
+def set_start_frame(n_clicks, frame):
+    # probably want to include the values for the other side (and this goes for that side too) to ensure they don't pass each other in negative ways
+    if n_clicks is not None:
+        return frame, frame
+
+# callback for set final frame
+@app.callback(
+    Output("dashboard_input_final", "value"),
+    Input("set_final", "n_clicks"),
+    State('frame-slider', 'value')
+)
+def set_start_frame(n_clicks, frame):
+    if n_clicks is not None:
+        return frame
+
+# callback for add track button
+@app.callback(
+    Output("add_track_output", "children"),
+    Input("add_track", "n_clicks"),
+    State("dashboard_input_start", "value"),
+    State("dashboard_input_final", "value"),
+    State("start_frame", "data"),
+)
+def add_track(n_clicks, start_frame, final_frame, storage):
+    if n_clicks is not None:
+        if ((start_frame is None) or (final_frame is None)):
+            return "Must have inputs for start and final frame."
+        elif start_frame >= final_frame:
+            return "Start frame must be less than final frame."
+        else:
+            # now need some way to store the relevant values
+            # Want to eventually use dcc.store or something like that
+            return dbc.Button(dcc.Link('Now Click Here', href='/apps/add_track'))
+    else:
+        return "{}".format(storage)
+
+
+# --------------------------------------------------
 
 # Call Back for player Tracks
 # 1
@@ -681,9 +757,11 @@ def display(btn1, btn2):
               Input("player_tracks_bt", 'n_clicks'),
               State("frame_interval", 'n_intervals'),
               State("radio_players_A", 'value'))
-def display(btn1, btn2, btn3, frame, value):
+def display_2(btn1, btn2, btn3, frame, value):
     ctx = dash.callback_context
     global current_frame
+
+    print("THIS IS BEING CALLED")
 
     if not ctx.triggered:
         button_id = 'No clicks yet'
@@ -848,6 +926,10 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, isPaus
     currentFrame = 0
 
     #print(list(dic_tracks[int(value)]['frame']))
+    print("CBCONTEXT ON NEXT LINE")
+    print(cbcontext)
+    print("WHOLE CALLBACK CONTEXT TRIGGERED ON NEXT LINE")
+    print(dash.callback_context.triggered)
 
     if isPaused == False:
         if interval is None:
@@ -878,7 +960,17 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, isPaus
     fig = px.imshow(
         io.imread(pathIn+frames[currentFrame]), binary_backend="jpg")  # OLD
     fig.update_layout(
-        margin=dict(l=0, r=0, b=0, t=0, pad=4),
+        xaxis= {
+            'showgrid': False, # thin lines in the background
+            'zeroline': False, # thick line at x=0
+            'visible': False,  # numbers below
+        },
+        yaxis= {
+            'showgrid': False, # thin lines in the background
+            'zeroline': False, # thick line at x=0
+            'visible': False,  # numbers below
+        },
+        margin=dict(l=0, r=0, b=0, t=0, pad=0),
         dragmode="drawrect",
     )
     # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
