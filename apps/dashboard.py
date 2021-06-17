@@ -595,7 +595,6 @@ annotated_data_card2 = dbc.Card(
                                 dbc.Button("Set Start Frame", id="set_start"),
                                 dbc.Button("Set Final Frame", id="set_final"),
                                 dbc.Button("Add Track", id="add_track")
-                                #dbc.Button(dcc.Link('Add Track', href='/apps/add_track'))
                             ]
                         )
                     ]
@@ -634,14 +633,13 @@ layout = html.Div(  # was app.layout
 # callback for set start frame
 @app.callback(
     Output("dashboard_input_start", "value"),
-    Output("start_frame", "data"),
     Input("set_start", "n_clicks"),
     State('frame-slider', 'value')
 )
 def set_start_frame(n_clicks, frame):
     # probably want to include the values for the other side (and this goes for that side too) to ensure they don't pass each other in negative ways
     if n_clicks is not None:
-        return frame, frame
+        return frame
 
 # callback for set final frame
 @app.callback(
@@ -656,23 +654,26 @@ def set_start_frame(n_clicks, frame):
 # callback for add track button
 @app.callback(
     Output("add_track_output", "children"),
+    Output("start_frame_add", "data"),
+    Output("final_frame_add", "data"),
     Input("add_track", "n_clicks"),
     State("dashboard_input_start", "value"),
     State("dashboard_input_final", "value"),
-    State("start_frame", "data"),
+    State("start_frame_add", "data"),
+    State("final_frame_add", "data"),
 )
-def add_track(n_clicks, start_frame, final_frame, storage):
+def add_track(n_clicks, start_frame, final_frame, storage1, storage2):
     if n_clicks is not None:
         if ((start_frame is None) or (final_frame is None)):
-            return "Must have inputs for start and final frame."
+            return ("Must have inputs for start and final frame.", start_frame, final_frame)
         elif start_frame >= final_frame:
-            return "Start frame must be less than final frame."
+            return ("Start frame must be less than final frame.", start_frame, final_frame)
         else:
             # now need some way to store the relevant values
             # Want to eventually use dcc.store or something like that
-            return dbc.Button(dcc.Link('Now Click Here', href='/apps/add_track'))
+            return (dbc.Button("Now Click Here", id="go_to_add_track", href='/apps/add_track'), start_frame, final_frame)
     else:
-        return "{}".format(storage)
+        return ("{}".format(storage1), start_frame, final_frame)
 
 
 # --------------------------------------------------
