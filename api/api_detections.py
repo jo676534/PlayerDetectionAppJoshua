@@ -103,13 +103,16 @@ def get_tracks(game_id):
 
 # ----------------------------------------------------------------------------
 
-def save_track(game_id, detections_df, frame, player_id, track_id):
+def save_track(game_id, detections_df, frame, player_id):
     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
     cur = conn.cursor()
+
+    track_id = unique_track_id(game_id)
     
     # Query/Commit Here
-    for det in detections_df:
-        cur.execute('''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id) VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})'''.format(game_id, frame, det.x0, det.y0, det.x1, det.y1, track_id, player_id))
+    for index, det in detections_df.iterrows():
+        cur.execute('''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id) VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})'''.format(game_id, frame, det['x0'], det['y0'], det['x1'], det['y1'], track_id, player_id))
+        #print('''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id) VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})'''.format(game_id, frame, det['x0'], det['y0'], det['x1'], det['y1'], track_id, player_id))
         frame += 1
 
     conn.commit()
@@ -119,6 +122,23 @@ def save_track(game_id, detections_df, frame, player_id, track_id):
     # Return Here
 
 # ----------------------------------------------------------------------------
+
+def unique_track_id(game_id):
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    cur = conn.cursor()
+    
+    # Query/Commit Here
+    cur.execute('''SELECT MAX(track_id) FROM detections WHERE game_id={0}'''.format(game_id))
+    data = cur.fetchall()
+
+    cur.close()
+    conn.close()
+    
+    # Return Here
+    return data[0][0] + 1
+
+# ----------------------------------------------------------------------------
+
 
 def endpoint_framework(game_id):
     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')

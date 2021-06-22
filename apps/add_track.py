@@ -36,7 +36,7 @@ frames.sort(key=lambda x: int(x[5:-4]))
 
 maxFrames = 0
 state = 0 # 0 is not submitted yet, 1 is submitted 
-state_save = 0 # 0 is not saved, 1 is saved
+state_save = 0 # 0 is not run, 1 is run, 2 is run and saved, 99 is currently running and disables functionality
 
 # NORMAL FUNCTIONS #############################################################################################################################
 
@@ -141,9 +141,10 @@ end_buttons = dbc.Card(
             [
                 dbc.Button("Save Detection Track", id="button_save"),
                 dbc.Button("Reset Tracker", id="button_reset", n_clicks=0),
-                dbc.Button("Quit", id="button_quit")
+                dbc.Button("Quit", id="button_quit_1", href='/apps/dashboard')
             ]
         ),
+        html.Div(id="save_output")
     ])
 
 # Layout
@@ -379,7 +380,8 @@ def submit_box(n_clicks, graph_relayout, start_frame, final_frame):
 @app.callback(
     Output("input_start", "value"),
     Input("set_start_add", "n_clicks"),
-    State("frame-slider_add", "value"),)
+    State("frame-slider_add", "value"),
+    prevent_initial_call=True)
 def set_start_add(n_clicks, frame):
     if n_clicks is not None:
         return frame
@@ -389,20 +391,57 @@ def set_start_add(n_clicks, frame):
 @app.callback(
     Output("input_final", "value"),
     Input("set_final_add", "n_clicks"),
-    State("frame-slider_add", "value"),)
+    State("frame-slider_add", "value"),
+    prevent_initial_call=True)
 def set_start_add(n_clicks, frame):
     if n_clicks is not None:
         return frame
 
 
 # Save Detection Callback
+@app.callback(
+    Output("save_output", "children"),
+    Input("button_save", "n_clicks"),
+    State("input_start", "value"),
+    State("input_final", "value"),
+    State("start_frame_add", "data"),
+    prevent_initial_call=True)
+def save_detection(n_clicks, start_frame, final_frame, frame_value):
+    # STATES TO PRECEED CHECKING THE INPUT
+    global state
+    global detections_df
+    if state == 0 or state == 99:
+        return "The tracker needs to be run first"
+    elif state == 2:
+        return "Track already saved. Now click quit to return."
+    elif state != 1:
+        return "Unkown ERROR"
 
-
+    # STATES FOR ACTUAL INPUT
+    # Good State: user input nothing and wants the whole clip
+    if (start_frame is None) and (final_frame is None):
+        state = 2
+        api_detections.save_track(0, detections_df, frame_value, -1)
+        return "Track saved. Now click quit to return."
+    # Bad State: user input one but not the other
+    elif (start_frame is None) or (final_frame is None): 
+        return "Need either both inputs or neither"
+    # Bad State: start is greater than or equal to final
+    elif (start_frame >= final_frame):
+        return "Start frame has to be less than final frame"
+    # Good State: user input but and we need to use them
+    else:
+        state = 2
+        detections_df = detections_df[start_frame:final_frame+1] # need to cut the df for the frame outline
+        api_detections.save_track(0, detections_df, frame_value+start_frame, -1)
+        return "Track saved. Now click quit to return."
+# End save_detection
 
 # Callback for the reset button
 @app.callback(
     Output('reset_output', 'children'),
-    Input('button_reset', 'n_clicks'))
+    Input('button_reset', 'n_clicks'),
+    prevent_initial_call=True)
 def reset_button_callback(n_clicks):
     global detections_df
     global state
@@ -410,7 +449,9 @@ def reset_button_callback(n_clicks):
     state = 0
     return "Reset Complete"
 
+
 # "Useless" Callbacks ########################################################
+
 
 # Callback for the updated output
 @app.callback(

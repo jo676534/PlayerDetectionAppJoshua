@@ -576,7 +576,8 @@ annotated_data_card2 = dbc.Card(
             ])),
         dbc.CardBody(
             [
-                html.Div(id='container')
+                html.Div(id='container'),
+                dbc.Button("Regenerate Tracks", id="button_regen")
             ]
         ),
         dbc.CardFooter(
@@ -600,6 +601,8 @@ annotated_data_card2 = dbc.Card(
                     ]
                 ),
                 html.Div(id="add_track_output"),
+                html.Br(),
+                html.Div(id="useless_output")
             ]
         ),
     ],
@@ -634,8 +637,7 @@ layout = html.Div(  # was app.layout
 @app.callback(
     Output("dashboard_input_start", "value"),
     Input("set_start", "n_clicks"),
-    State('frame-slider', 'value')
-)
+    State('frame-slider', 'value'))
 def set_start_frame(n_clicks, frame):
     # probably want to include the values for the other side (and this goes for that side too) to ensure they don't pass each other in negative ways
     if n_clicks is not None:
@@ -645,8 +647,7 @@ def set_start_frame(n_clicks, frame):
 @app.callback(
     Output("dashboard_input_final", "value"),
     Input("set_final", "n_clicks"),
-    State('frame-slider', 'value')
-)
+    State('frame-slider', 'value'))
 def set_start_frame(n_clicks, frame):
     if n_clicks is not None:
         return frame
@@ -660,8 +661,7 @@ def set_start_frame(n_clicks, frame):
     State("dashboard_input_start", "value"),
     State("dashboard_input_final", "value"),
     State("start_frame_add", "data"),
-    State("final_frame_add", "data"),
-)
+    State("final_frame_add", "data"),)
 def add_track(n_clicks, start_frame, final_frame, storage1, storage2):
     if n_clicks is not None:
         if ((start_frame is None) or (final_frame is None)):
@@ -674,6 +674,22 @@ def add_track(n_clicks, start_frame, final_frame, storage1, storage2):
             return (dbc.Button("Now Click Here", id="go_to_add_track", href='/apps/add_track'), start_frame, final_frame)
     else:
         return ("{}".format(storage1), start_frame, final_frame)
+
+
+# callback to regenerate the detections dataframe
+@app.callback(
+    Output("useless_output", "children"),
+    Input("button_regen", "n_clicks"),)
+def add_track_return(n_clicks):
+    print("THE DETECTION UPDATE CALLBACK HAS STARTED {}".format(n_clicks))
+    #global df_detections
+    #df_detections = api_detections.get_game_detections(0)
+    global dic
+    print(len(dic))
+    dic = api_detections.get_frame_detections(0)
+    print(len(dic))
+    print("IT HAS NOW ENEDED {}".format(n_clicks))
+    return "test {}".format(n_clicks)
 
 
 # --------------------------------------------------
