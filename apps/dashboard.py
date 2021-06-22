@@ -164,22 +164,6 @@ def updateSection(button_id):
     if button_id == "but8":
         section = "B"
 
-# This function queries the database and gets the current
-# frame value stored
-
-
-# def getFrame():
-#     conn = pg2.connect(database='soccer', user='postgres',
-#                        host='localhost', password='root')
-#     cur = conn.cursor()
-#     cur.execute('''SELECT frame FROM variables''')
-#     currentFrame = cur.fetchall()
-#     print(currentFrame)
-#     # conn.commit()
-#     cur.close()
-#     conn.close()
-#     return currentFrame
-
 
 # FUNCTION WITH RETURNED DASH COMPONENT #################################################################################################################
 
@@ -211,57 +195,6 @@ b_row = df_players[df_players["team_id"] == 1]
 
 
 # # Dash component for team A
-# sectionA = html.Div(
-#     [
-#         dbc.Row(
-#             dbc.Col([
-#                 dbc.Button(
-#                     str(a_row.iloc[0]["name"]),
-#                     id="colbut3",
-#                     className="mb-3",
-#                     color="secondary",
-#                     style={"font-size": "12px"}
-#                 ),
-#                 dbc.Collapse(
-#                     dbc.Card(dbc.CardBody([
-#                         dbc.Row(dcc.Markdown(
-#                             "Number of Tracks: 0", style={"font-size": "10px"}),),
-#                         dbc.Row(dbc.Button("Add Selected Track", id="add_track", color="black", style={
-#                             "font-size": "10px"}),),
-#                         dbc.Row(dbc.Button("Create New Track", color="black", style={
-#                             "font-size": "10px"}),),
-#                         dbc.Row(dbc.Button("View Player Tracks", color="black", style={
-#                             "font-size": "10px"}),),
-#                     ])),
-#                     id="col3",
-#                     style={"font-size": "12px"}
-#                 ),
-#             ])),
-#         dbc.Row(
-#             dbc.Col([
-#                 dbc.Button(
-#                     str(a_row.iloc[1]["name"]),
-#                     id="colbut4",
-#                     className="mb-3",
-#                     color="secondary",
-#                     style={"font-size": "12px"}
-#                 ),
-#                 dbc.Collapse(
-#                     dbc.Card(dbc.CardBody([
-#                         dbc.Row(dcc.Markdown(
-#                                           "Number of Tracks: 0", style={"font-size": "10px"}),),
-#                         dbc.Row(dbc.Button("Add Selected Track", color="black", style={
-#                             "font-size": "10px"}),),
-#                         dbc.Row(dbc.Button("Create New Track", color="black", style={
-#                             "font-size": "10px"}),),
-#                         dbc.Row(dbc.Button("View Player Tracks", color="black", style={
-#                             "font-size": "10px"}),),
-#                     ])),
-#                     id="col4",
-#                     style={"font-size": "12px"}
-#                 ),
-#             ]))
-#     ])
 
 sectionA = html.Div([
     html.Div(children=[
@@ -286,6 +219,7 @@ sectionA = html.Div([
 
 ])
 
+# # Dash component for team B
 sectionB = html.Div([
     html.Div(children=[
     dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
@@ -309,58 +243,6 @@ sectionB = html.Div([
 
 ])
 
-# # Dash component for team B
-# sectionB = html.Div(
-#     [
-#         dbc.Row(
-#             dbc.Col([
-#                 dbc.Button(
-#                     str(b_row.iloc[3]["name"]),
-#                     id="colbut3",
-#                     className="mb-3",
-#                     color="secondary",
-#                     style={"font-size": "12px"}
-#                 ),
-#                 dbc.Collapse(
-#                     dbc.Card(dbc.CardBody([
-#                         dbc.Row(dcc.Markdown(
-#                             "Number of Tracks: 0", style={"font-size": "10px"}),),
-#                         dbc.Row(dbc.Button("Add Selected Track", color="black", style={
-#                             "font-size": "10px"}),),
-#                         dbc.Row(dbc.Button("Create New Track", color="black", style={
-#                             "font-size": "10px"}),),
-#                         dbc.Row(dbc.Button("View Player Tracks", color="black", style={
-#                             "font-size": "10px"}),),
-#                     ])),
-#                     id="col3",
-#                     style={"font-size": "12px"},
-#                 ),
-#             ])),
-#         dbc.Row(
-#             dbc.Col([
-#                 dbc.Button(
-#                     str(b_row.iloc[4]["name"]),
-#                     id="colbut4",
-#                     className="mb-3",
-#                     color="secondary",
-#                     style={"font-size": "12px"}
-#                 ),
-#                 dbc.Collapse(
-#                     dbc.Card(dbc.CardBody([
-#                         dbc.Row(dcc.Markdown(
-#                             "Number of Tracks: 0", style={"font-size": "10px"}),),
-#                         dbc.Row(dbc.Button("Add Selected Track", color="black", style={
-#                             "font-size": "10px"}),),
-#                         dbc.Row(dbc.Button("Create New Track", color="black", style={
-#                             "font-size": "10px"}),),
-#                         dbc.Row(dbc.Button("View Player Tracks", color="black", style={
-#                             "font-size": "10px"}),),
-#                     ])),
-#                     id="col4",
-#                     style={"font-size": "12px"}
-#                 ),
-#             ]))
-#     ])
 
 # Button Sections for Tracks: ====================================================================================================================
 
@@ -985,6 +867,7 @@ def togglePlay(play, isPaused):
 # Video Display Callback
 # Go to Start
 # Go to End
+# Callback for assign/unassign toggle
 @app.callback(
     Output('graph', 'figure'),
     Output('frame_interval', 'n_intervals'),
@@ -1060,6 +943,7 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, isPaus
         y1 = frame_df.iloc[i]['y1']
         id_num = frame_df.iloc[i]['track_id']
         # print(id_num, x0, y0, x1, y1)
+    
         add_editable_box(fig, id_num, x0, y0, x1, y1)
     return (fig, currentFrame, currentFrame)
 
@@ -1130,3 +1014,7 @@ def delete_track(delete_bt, track_id):
         conn.commit()
         cur.close()
         conn.close()
+
+    dic = api_detections.get_frame_detections(0)
+
+
