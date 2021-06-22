@@ -27,37 +27,16 @@
 # from .pysot.tools import josh_test
 # from .pysot.tools import demo
 
+
+# # GLOBAL VARIABLES #############################################################################################################################
+
 # pathIn = './vid2img/'
 # frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))] 
 # frames.sort(key=lambda x: int(x[5:-4]))
 
-# first_frame = 100
-# final_frame = 300
-
-# frames = frames[first_frame:final_frame]
-
-# ########### END OLD VID TO FRAMES ###########
-
-
-# # GLOBAL VARIABLES #############################################################################################################################
-
-# maxFrames = len(frames)-1
-# player_tracks_counter = 0
-# all_tracks_counter = 0
-# viewable_tracks_counter = 0
-# dic = api_detections.get_frame_detections(0)
-# current_frame = 0
-# player_tracks = ["17", "12"] # Hardcoded until "assign track" is working
-
-# detections_df = []
-
+# maxFrames = 0
 # state = 0 # 0 is not submitted yet, 1 is submitted 
-
-# fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")
-# fig.update_layout(
-#     margin=dict(l=0, r=0, b=0, t=0, pad=4),
-#     dragmode="drawrect",
-# )
+# state_save = 0 # 0 is not saved, 1 is saved
 
 # # NORMAL FUNCTIONS #############################################################################################################################
 
@@ -99,70 +78,14 @@
 
 # # DASH COMPONENTS ##############################################################################################################################
 
-# # Card for video player and image annotation
-# image_annotation_card_add = dbc.Card(
-#     id="imagebox_add",
-#     children=[
-#         dbc.CardHeader(
-#             html.H2("Annotation Area")
-#         ),
-#         dbc.CardBody(
-#             [
-#                 dcc.Interval(
-#                     id='frame_interval_add',
-#                     interval=500,
-#                     disabled=True,
-#                     n_intervals=0,      # number of times the interval has passed
-#                     max_intervals=maxFrames
-#                 ),
-#                 dcc.Graph(
-#                     id="graph_box",
-#                     style={'width':'1000px', 'height':'600px'},
-#                     figure=fig,
-#                     config={"modeBarButtonsToAdd": ["drawrect", "eraseshape"]},
-#                 )
-#             ]
-#         ),
-#         dbc.CardFooter(
-#             [
-#                 # Slider Component
-#                 dcc.Slider(
-#                     id='frame-slider_add',
-#                     min=0,
-#                     max=maxFrames,
-#                     value=0,
-#                     step=1,
-#                     marks={round(i*maxFrames/16): '{}'.format(round(i*maxFrames/16))
-#                            for i in range(maxFrames)},
-#                 ),
-#                 html.Div(id='slider-output-container_add'),
-#                 # Pause/Player Buttons
-#                 dbc.ButtonGroup(
-#                     [
-#                         dbc.Button("Previous", id="previous_add", outline=True, style={
-#                                    "margin-left": "50px", "margin-right": "15px", "margin-bottom": "15px"}),
-#                         dbc.Button("Rewind", id="rewind_add", outline=True, style={
-#                                    "margin-right": "15px", "margin-bottom": "15px"}),
-#                         dbc.Button("Play", id="playpause_add", outline=True,
-#                                    style={"margin-right": "15px", "margin-bottom": "15px"}),
-#                         dbc.Button("Fastforward", id="fastforward_add", outline=True, style={
-#                                    "margin-right": "15px", "margin-bottom": "15px"}),
-#                         dbc.Button("  Next  ", id="next_add", outline=True, style={
-#                                    "margin-right": "15px", "margin-bottom": "15px"}),
-#                     ],
-#                     style={"width": "100%"}
-#                 ),
-#             ]
-#         ),
-#     ],
-#     style={"margin-top": "20px", "margin-bottom": "20px"}
-# )
-
 # # Card for the user interactions on the right side
 # right_side = dbc.Card(
 #     [
 #         dbc.CardHeader(
-#             html.H2("Bounding Box Submit Area")
+#             [
+#                 html.H2("Bounding Box Submit Area"),
+#                 html.Div(id="test_output")
+#             ]
 #         ),
 #         dbc.CardBody(
 #             [
@@ -198,13 +121,18 @@
 #                         dbc.Input(id="input_final", placeholder="Final", type="number", min=0, step=1, style={'width': '25%', 'display': 'inline-block', "margin-left": "15px", "margin-right": "15px",}),
 #                     ]
 #                 ),
+#                 html.Div(
+#                     [
+#                         dbc.Button("Set Start Frame", id="set_start_add", style={'width': '25%', 'display': 'inline-block', "margin-left": "0px", "margin-right": "15px",}),
+#                         dbc.Button("Set Final Frame", id="set_final_add", style={'width': '25%', 'display': 'inline-block', "margin-left": "15px", "margin-right": "15px",}),
+#                     ]
+#                 ),
 #                 html.Br(),
 #                 html.Div(id="reset_output"),
 #             ]
 #         )
 #     ],
-#     style={"margin-top": "20px", "margin-bottom": "20px", "margin-right": "10px"}
-# )
+#     style={"margin-top": "20px", "margin-bottom": "20px", "margin-right": "10px"})
 
 # # Card for final buttons
 # end_buttons = dbc.Card(
@@ -213,12 +141,12 @@
 #             [
 #                 dbc.Button("Save Detection Track", id="button_save"),
 #                 dbc.Button("Reset Tracker", id="button_reset", n_clicks=0),
-#                 dbc.Button("Quit", id="button_quit"),
+#                 dbc.Button("Quit", id="button_quit")
 #             ]
 #         ),
-#     ]
-# )
+#     ])
 
+# # Layout
 # layout = html.Div(
 #     [
 #         #navbar,
@@ -226,25 +154,106 @@
 #             [
 #                 dbc.Row(
 #                     [
-#                         dbc.Col(image_annotation_card_add, md=7.5),
+#                         dbc.Col(id="video_card", md=7.5),
 #                         dbc.Col(children=[right_side, end_buttons], md=5),
 #                     ],
 #                 ),
 #             ],
 #             fluid=True,
 #         ),
-#     ]
-# )
+#     ])
 
 # # CALLBACKS START HERE #########################################################################################################################
+
+# # Initialization Callback (should create the image annotation card)
+# @app.callback(
+#     Output("video_card", "children"),
+#     Input("start_frame_add", "data"),
+#     Input("final_frame_add", "data"))
+# def initalizer(start_frame, final_frame):
+#     print("INITIALIZER CALLED w/SF: {}".format(start_frame))
+    
+#     # set up the fig and inital variables
+#     global frames
+#     frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))] 
+#     frames.sort(key=lambda x: int(x[5:-4]))
+#     frames = frames[start_frame:final_frame]
+
+#     global maxFrames
+#     maxFrames = len(frames)-1
+
+#     fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")
+#     fig.update_layout(
+#         margin=dict(l=0, r=0, b=0, t=0, pad=4),
+#         dragmode="drawrect",
+#     )
+
+#     # and then the big one
+#     return dbc.Card(
+#         id="imagebox_add",
+#         children=[
+#             dbc.CardHeader(
+#                 html.H2("Annotation Area")
+#             ),
+#             dbc.CardBody(
+#                 [
+#                     dcc.Interval(
+#                         id='frame_interval_add',
+#                         interval=500,
+#                         disabled=True,
+#                         n_intervals=0,      # number of times the interval has passed
+#                         max_intervals=maxFrames
+#                     ),
+#                     dcc.Graph(
+#                         id="graph_box",
+#                         style={'width':'1000px', 'height':'600px'},
+#                         figure=fig,
+#                         config={"modeBarButtonsToAdd": ["drawrect", "eraseshape"]},
+#                     )
+#                 ]
+#             ),
+#             dbc.CardFooter(
+#                 [
+#                     # Slider Component
+#                     dcc.Slider(
+#                         id='frame-slider_add',
+#                         min=0,
+#                         max=maxFrames,
+#                         value=0,
+#                         step=1,
+#                         marks={round(i*maxFrames/16): '{}'.format(round(i*maxFrames/16))
+#                             for i in range(maxFrames)},
+#                     ),
+#                     html.Div(id='slider-output-container_add'),
+#                     # Pause/Player Buttons
+#                     dbc.ButtonGroup(
+#                         [
+#                             dbc.Button("Previous", id="previous_add", outline=True, style={
+#                                     "margin-left": "50px", "margin-right": "15px", "margin-bottom": "15px"}),
+#                             dbc.Button("Rewind", id="rewind_add", outline=True, style={
+#                                     "margin-right": "15px", "margin-bottom": "15px"}),
+#                             dbc.Button("Play", id="playpause_add", outline=True,
+#                                     style={"margin-right": "15px", "margin-bottom": "15px"}),
+#                             dbc.Button("Fastforward", id="fastforward_add", outline=True, style={
+#                                     "margin-right": "15px", "margin-bottom": "15px"}),
+#                             dbc.Button("  Next  ", id="next_add", outline=True, style={
+#                                     "margin-right": "15px", "margin-bottom": "15px"}),
+#                         ],
+#                         style={"width": "100%"}
+#                     ),
+#                 ]
+#             ),
+#         ],
+#         style={"margin-top": "20px", "margin-bottom": "20px"}
+#     )
+
 
 # # Call back for video Player/Pause
 # @app.callback(
 #     Output('frame_interval_add', 'disabled'),
 #     Output('playpause_add', 'children'),
 #     Input('playpause_add', 'n_clicks'),
-#     State('frame_interval_add', 'disabled'),
-# )
+#     State('frame_interval_add', 'disabled'),)
 # def togglePlay_add(play, isPaused):
 #     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
 #     text = 'Play'
@@ -265,14 +274,14 @@
 #     Output('graph_box', 'figure'),
 #     Output('frame_interval_add', 'n_intervals'),
 #     Output('frame-slider_add', 'value'),
-#     Output('graph_box', 'relayoutData'), # testing
+#     Output('graph_box', 'relayoutData'),
 #     Input('frame_interval_add', 'n_intervals'),
 #     Input('frame-slider_add', 'value'),
 #     Input('previous_add', 'n_clicks'),
 #     Input('next_add', 'n_clicks'),
 #     State('frame_interval_add', 'disabled'),
-#     State('graph_box', 'relayoutData'), # testing
-# )
+#     State('graph_box', 'relayoutData'),
+#     prevent_initial_call=True)
 # def update_figure_add(interval, slider, previousBut, nextBut, isPaused, graph_relayout):
 #     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
 #     currentFrame = 0
@@ -323,28 +332,15 @@
 #     return 'Current Frame "{}"'.format(value)
 
 
-# # Callback for state button
-# @app.callback(
-#     Output('state_output', 'children'),
-#     Input('state_button', 'n_clicks')
-# )
-# def test_func(n_clicks):
-#     global state
-#     if state == 0:
-#         #state = 1
-#         return "State is 0"
-#     else:
-#         #state = 0
-#         return "State is 1"
-
-
 # # Callback for the submit button
 # @app.callback(
 #     Output('button_output', 'children'),
 #     Input('next_page', 'n_clicks'),
 #     State('graph_box', 'relayoutData'),
-# )
-# def submit_box(n_clicks, graph_relayout):
+#     State("start_frame_add", "data"),
+#     State("final_frame_add", "data"),
+#     prevent_initial_call=True)
+# def submit_box(n_clicks, graph_relayout, start_frame, final_frame):
 #     global detections_df
 #     global state
 
@@ -361,7 +357,7 @@
 #         # a possible error of sorts is that the user could have two (or more) bounding boxes, adjust the zeroth box (the first they drew) and then submit and it would run
 #         if 'shapes[0].x0' in graph_relayout: 
 #             state = 99
-#             detections_df = demo.rt_track(first_frame, final_frame, graph_relayout['shapes[0].x0'], graph_relayout['shapes[0].y0'], graph_relayout['shapes[0].x1'], graph_relayout['shapes[0].y1'])
+#             detections_df = demo.rt_track(start_frame, final_frame, graph_relayout['shapes[0].x0'], graph_relayout['shapes[0].y0'], graph_relayout['shapes[0].x1'], graph_relayout['shapes[0].y1'])
 #             state = 1
 #             return "The tracking algorithm has now finished, you can review the output in the video player."
 #         # otherwise we just display that there is an improper bounding box configuration
@@ -371,7 +367,7 @@
 #     elif (len(graph_relayout['shapes']) == 1): # this is the success case
 #         state = 99
 #         for box in graph_relayout['shapes']: # this will only have one iteration (b/c there should only be one bounding box)
-#             detections_df = demo.rt_track(first_frame, final_frame, box['x0'], box['y0'], box['x1'], box['y1'])
+#             detections_df = demo.rt_track(start_frame, final_frame, box['x0'], box['y0'], box['x1'], box['y1'])
 #         state = 1
 #         return "The tracking algorithm has now finished, you can review the output in the video player."
 #     else:
@@ -379,11 +375,48 @@
 # # end submit_box
 
 
+# # Set start frame callback
+# @app.callback(
+#     Output("input_start", "value"),
+#     Input("set_start_add", "n_clicks"),
+#     State("frame-slider_add", "value"),)
+# def set_start_add(n_clicks, frame):
+#     if n_clicks is not None:
+#         return frame
+
+
+# # Set final frame callback
+# @app.callback(
+#     Output("input_final", "value"),
+#     Input("set_final_add", "n_clicks"),
+#     State("frame-slider_add", "value"),)
+# def set_start_add(n_clicks, frame):
+#     if n_clicks is not None:
+#         return frame
+
+
+# # Save Detection Callback
+
+
+
+# # Callback for the reset button
+# @app.callback(
+#     Output('reset_output', 'children'),
+#     Input('button_reset', 'n_clicks'))
+# def reset_button_callback(n_clicks):
+#     global detections_df
+#     global state
+#     detections_df = []
+#     state = 0
+#     return "Reset Complete"
+
+# # "Useless" Callbacks ########################################################
+
 # # Callback for the updated output
 # @app.callback(
 #     Output('output', 'children'),
-#     Input('graph_box', 'relayoutData')
-# )
+#     Input('graph_box', 'relayoutData'),
+#     prevent_initial_call=True)
 # def update_output(graph_relayout): # graph_relayout is a dictionary
 #     if graph_relayout is None: return '' # stops the error
     
@@ -407,14 +440,15 @@
 #         return 'Number of boxes: {0} // Updated output: {1}'.format(output_num, output_string) # graph_relayout['shapes']
 # # end update_output
 
-# # Callback for the reset button
+# # Callback for state button
 # @app.callback(
-#     Output('reset_output', 'children'),
-#     Input('button_reset', 'n_clicks')
-# )
-# def reset_button_callback(n_clicks):
-#     global detections_df
+#     Output('state_output', 'children'),
+#     Input('state_button', 'n_clicks'))
+# def test_func(n_clicks):
 #     global state
-#     detections_df = []
-#     state = 0
-#     return "Reset Complete"
+#     if state == 0:
+#         #state = 1
+#         return "State is 0"
+#     else:
+#         #state = 0
+#         return "State is 1"
