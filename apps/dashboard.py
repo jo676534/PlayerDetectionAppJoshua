@@ -670,7 +670,7 @@ def display(btn1, btn2):
               State("radio_players_A", 'value'))
 def display_2(btn1, btn2, btn3, frame, value):
     ctx = dash.callback_context
-    
+
     dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
     print("THIS IS BEING CALLED")
@@ -999,6 +999,7 @@ def update_player_tracks(assignBt, trackIDValue, playerIDValue):
 )
 def delete_track(delete_bt, track_id):
 
+    global dic
     if track_id is None:
         return track_id
    
