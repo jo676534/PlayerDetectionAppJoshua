@@ -437,34 +437,38 @@ annotated_data_card = dbc.Card(
                 html.Div(id='hidden-div', style= {'display':'none'}),
                 html.Div(id='hidden-div2', style= {'display':'none'}),
                 html.Div(id='track_container', children=[html.Div([
-    html.Div(children=[
-    dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-             dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
-             align = 'center',),
-    dbc.Col([dbc.Button("Delete Track", color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
-             dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),],
-             align = 'center'),
-    dbc.Col([dcc.RadioItems(
-    options=[
-        {'label': 'Track ID: ' + str(list(dic_tracks.keys())[i]), 'value': str(list(dic_tracks.keys())[i])} for i in range(1, unique_tracks)],
-    #value=str(list(dic_tracks.keys())[1]), 
-    id = "radio_all_tracks",
-   
-    )],
-    align = 'center',
-    style={'width': '100%', 
-                 'height': '500px', 
-                 'overflow': 'scroll', 
-                 'padding': '10px 10px 10px 20px'
-          }), 
-    ],
-    )
-])])
+                    html.Div(children=[
+                    dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
+                            dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
+                            align = 'center',),
+                    dbc.Col([dbc.Button("Delete Track", color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                            dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),],
+                            align = 'center'),
+                    dbc.Col([dcc.RadioItems(
+                    options=[
+                        {'label': 'Track ID: ' + str(list(dic_tracks.keys())[i]), 'value': str(list(dic_tracks.keys())[i])} for i in range(1, unique_tracks)],
+                    #value=str(list(dic_tracks.keys())[1]), 
+                    id = "radio_all_tracks",
+                    )],
+                    align = 'center',
+                    style={'width': '100%', 
+                                'height': '500px', 
+                                'overflow': 'scroll', 
+                                'padding': '10px 10px 10px 20px'
+                        }), 
+                    ],
+                    )
+                ])])
             ]
         ),
         dbc.CardFooter(
             [
-                html.Div()
+                dbc.Col([
+                    html.H6("Manual Annotation"),
+                    dbc.Button("Add Box", id='add_box', color="secondary",block = True, style={"font-size": "12px","margin-bottom":"5px"}),
+                    dbc.Button("Delete Box", id='delete_box', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"5px"},),
+                    html.Div(id="manual_annotation_output")
+                ], align = 'center',),
             ]
         ),
     ],
@@ -543,6 +547,71 @@ layout = html.Div(  # was app.layout
 
 # CALLBACK FUNCTION DEFINITIONS #########################################################################################################################
 
+# Callbacks for the Manual Annotation Portion ==========================================================
+
+@app.callback(
+    Output("manual_annotation_output", "children"),
+    Input("add_box", "n_clicks"),
+    Input("delete_box", "n_clicks"),
+    State('frame-slider', 'value'),
+    State('radio_all_tracks', 'value'),
+    State("radio_players_A", 'value'),
+    State('graph', 'relayoutData'),
+    prevent_initial_call=True)
+def manual_annotation(n_add, n_delete, frame, track_id, player_id, graph_relayout):
+    global dic
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    
+    # DELETE BOX ---------------------------------
+    if (cbcontext == "delete_box.n_clicks"): 
+        # Simple to just remove the detection now
+        # just remove from dictionary and database
+        df = dic[frame]
+
+        df = df.drop(df[df['track_id'] == int(track_id)].index)
+
+        dic[frame] = df
+        return "Detection box deleted from frame {} and track {}".format(frame, track_id)
+
+    # ADD BOX ------------------------------------
+    elif (cbcontext == "add_box.n_clicks"): 
+        num_boxes = len(dic[frame])
+
+        # need to account for the weirdness w/adjusting a box
+        if (not 'shapes' in graph_relayout):
+            print(graph_relayout)
+            if 'shapes[{}].x0'.format(num_boxes) in graph_relayout: 
+                df_temp = pd.DataFrame([[0, frame, graph_relayout['shapes[{}].x0'.format(num_boxes)], graph_relayout['shapes[{}].y0'.format(num_boxes)], graph_relayout['shapes[{}].x1'.format(num_boxes)], graph_relayout['shapes[{}].y1'.format(num_boxes)], -2, player_id]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id'])
+                dic[frame] = dic[frame].append(df_temp)
+                return "Box successfully added (not db linked) [weird]"
+            else:
+                return "Need to adjust the correct box for this method"
+        # otherwise we can do this the normal way
+        else: 
+            new_num_boxes = len(graph_relayout['shapes'])
+            if (num_boxes+1 == new_num_boxes):
+                ctr = 0
+                df_temp = []
+                for box in graph_relayout['shapes']: # this will only have one iteration (b/c there should only be one bounding box)
+                    if ctr == num_boxes:
+                        df_temp = pd.DataFrame([[0, frame, box['x0'], box['y0'], box['x1'], box['y1'], -2, player_id]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id'])
+                    else:
+                        ctr += 1
+                dic[frame] = dic[frame].append(df_temp)
+                return "Box successfully added (not db linked) [norm]"
+            elif (num_boxes >= new_num_boxes):
+                return "Bad Output: None drawn -or- Deleted and drawn"
+            elif (num_boxes+1 < new_num_boxes):
+                return "Bad Output: Too many drawn"
+            else:
+                return "Unknown ERROR"
+
+    # ERROR --------------------------------------
+    else:
+        return "Unknown ERROR"
+
+# Callbacks for the Add Track Portion ==================================================================
+
 # callback for set start frame
 @app.callback(
     Output("dashboard_input_start", "value"),
@@ -585,22 +654,20 @@ def add_track(n_clicks, start_frame, final_frame, storage1, storage2):
     else:
         return ("{}".format(storage1), start_frame, final_frame)
 
-
 # callback to regenerate the detections dataframe
 @app.callback(
     Output("useless_output", "children"),
     Input("button_regen", "n_clicks"),)
 def add_track_return(n_clicks):
-    print("THE DETECTION UPDATE CALLBACK HAS STARTED {}".format(n_clicks))
+    #print("THE DETECTION UPDATE CALLBACK HAS STARTED {}".format(n_clicks))
     #global df_detections
     #df_detections = api_detections.get_game_detections(0)
     global dic
-    print(len(dic))
+    #print(len(dic))
     dic = api_detections.get_frame_detections(0)
-    print(len(dic))
-    print("IT HAS NOW ENEDED {}".format(n_clicks))
+    #print(len(dic))
+    #print("IT HAS NOW ENEDED {}".format(n_clicks))
     return "test {}".format(n_clicks)
-
 
 # --------------------------------------------------
 
@@ -689,7 +756,7 @@ def display_2(btn1, btn2, btn3, frame, value):
 
     dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
-    print("THIS IS BEING CALLED")
+    #print("THIS IS BEING CALLED")
 
     if not ctx.triggered:
         button_id = 'No clicks yet'
@@ -902,10 +969,10 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, isPaus
     currentFrame = 0
 
     #print(list(dic_tracks[int(value)]['frame']))
-    print("CBCONTEXT ON NEXT LINE")
-    print(cbcontext)
-    print("WHOLE CALLBACK CONTEXT TRIGGERED ON NEXT LINE")
-    print(dash.callback_context.triggered)
+    #print("CBCONTEXT ON NEXT LINE")
+    #print(cbcontext)
+    #print("WHOLE CALLBACK CONTEXT TRIGGERED ON NEXT LINE")
+    #print(dash.callback_context.triggered)
 
     if isPaused == False:
         if interval is None:
