@@ -567,10 +567,12 @@ def manual_annotation(n_add, n_delete, frame, track_id, player_id, graph_relayou
         # Simple to just remove the detection now
         # just remove from dictionary and database
         df = dic[frame]
-
         df = df.drop(df[df['track_id'] == int(track_id)].index)
-
         dic[frame] = df
+
+        # works, just commented out for now
+        api_detections.delete_detection(0, frame, track_id)
+
         return "Detection box deleted from frame {} and track {}".format(frame, track_id)
 
     # ADD BOX ------------------------------------
@@ -581,24 +583,39 @@ def manual_annotation(n_add, n_delete, frame, track_id, player_id, graph_relayou
         if (not 'shapes' in graph_relayout):
             print(graph_relayout)
             if 'shapes[{}].x0'.format(num_boxes) in graph_relayout: 
-                df_temp = pd.DataFrame([[0, frame, graph_relayout['shapes[{}].x0'.format(num_boxes)], graph_relayout['shapes[{}].y0'.format(num_boxes)], graph_relayout['shapes[{}].x1'.format(num_boxes)], graph_relayout['shapes[{}].y1'.format(num_boxes)], -2, player_id]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id'])
+                x0 = graph_relayout['shapes[{}].x0'.format(num_boxes)]
+                y0 = graph_relayout['shapes[{}].y0'.format(num_boxes)]
+                x1 = graph_relayout['shapes[{}].x1'.format(num_boxes)]
+                y1 = graph_relayout['shapes[{}].y1'.format(num_boxes)]
+
+                if x0 > x1: x0, x1 = x1, x0
+                if y0 > y1: y0, y1 = y1, y0
+
+                df_temp = pd.DataFrame([[0, frame, x0, y0, x1, y1, -2, player_id]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id'])
                 dic[frame] = dic[frame].append(df_temp)
+
+                api_detections.add_detection(0, frame, x0, y0, x1, y1, -2, player_id)
+
                 return "Box successfully added (not db linked) [weird]"
             else:
                 return "Need to adjust the correct box for this method"
         # otherwise we can do this the normal way
         else: 
             new_num_boxes = len(graph_relayout['shapes'])
-            if (num_boxes+1 == new_num_boxes):
+            if (num_boxes+1 == new_num_boxes): # good condition
                 ctr = 0
                 df_temp = []
+
                 for box in graph_relayout['shapes']: # this will only have one iteration (b/c there should only be one bounding box)
                     if ctr == num_boxes:
                         df_temp = pd.DataFrame([[0, frame, box['x0'], box['y0'], box['x1'], box['y1'], -2, player_id]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id'])
+                        dic[frame] = dic[frame].append(df_temp)
+
+                        api_detections.add_detection(0, frame, box['x0'], box['y0'], box['x1'], box['y1'], -2, player_id)
+
+                        return "Box successfully added (not db linked) [norm]"
                     else:
                         ctr += 1
-                dic[frame] = dic[frame].append(df_temp)
-                return "Box successfully added (not db linked) [norm]"
             elif (num_boxes >= new_num_boxes):
                 return "Bad Output: None drawn -or- Deleted and drawn"
             elif (num_boxes+1 < new_num_boxes):

@@ -139,6 +139,35 @@ def unique_track_id(game_id):
 
 # ----------------------------------------------------------------------------
 
+def delete_detection(game_id, frame, track_id):
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    cur = conn.cursor()
+    
+    # Query/Commit Here
+    cur.execute('''DELETE FROM detections WHERE game_id={0} AND frame={1} AND track_id={2}'''.format(game_id, frame, track_id))
+    
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    # Return Here
+
+# ----------------------------------------------------------------------------
+
+def add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id):
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    cur = conn.cursor()
+    
+    # Query/Commit Here
+    cur.execute('''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id) VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})'''.format(game_id, frame, x0, y0, x1, y1, track_id, player_id))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    # Return Here
+
+# ----------------------------------------------------------------------------
 
 def endpoint_framework(game_id):
     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
