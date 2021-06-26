@@ -15,6 +15,7 @@ from skimage import io
 import numpy as np
 import psycopg2 as pg2
 import pandas as pd
+import json
 
 # FILE FUNCTION IMPORTS ----------------------------------------------------------------------------------------------------------------------
 from app import app
@@ -73,7 +74,7 @@ def processFramesToVid(blacklist):
             frame_array.append(img)
 
     pathOut = 'NEW.avi'
-    # fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
+    # fourcc = cv2.VideoWriter_fourcc('H','2','6','4')
     fourcc = cv2.VideoWriter_fourcc(*'DIVX')
 
     out = cv2.VideoWriter(pathOut, fourcc, 50, size)
@@ -156,7 +157,7 @@ video_trimmer_card = dbc.Card(
     id="trimmer_card",
     children=[
         dcc.Store(id='blacklist',
-        storage_type='memory'),
+                  storage_type='memory'),
         dbc.CardHeader(
             html.H2('Video Trimmer', id='testing',),
         ),
@@ -222,7 +223,7 @@ state_one_card = html.Div(
                 # dbc.Button('Save and Continue',
                 #            id='save-and-continue', href='/apps/dashboard', size="lg"),
                 dbc.Button('Save and Continue',
-                            id='save-and-continue', size="lg"),
+                           id='save-and-continue', size="lg"),
             ],
             style={"width": "100%"},
         ),
@@ -251,7 +252,7 @@ layout = html.Div(
                     [
                         dbc.Col(image_annotation_cardVE, md=7.5),
                         dbc.Col(children=[video_trimmer_card,
-                                          state_one_card, ], md=5),
+                                        state_one_card, ], md=5),
                     ],
                 ),
             ],
@@ -376,57 +377,53 @@ def update_trimmer(value):
 @app.callback(
     Output('trimming-container', 'children'),
     Input('addToTrim', 'n_clicks'),
+    Input({'type': 'remove-trim', 'index': ALL}, 'n_clicks'),
     State('trimming-container', 'children'),
     State('startingFrame', 'value'),
     State('endingFrame', 'value'),
     prevent_initial_call=True)
-def display_dropdown(n_clicks, children, start, end):
-    new_trim = html.Div(
-        dbc.Row(
-            id='trimEntry',
-            children=[
-                html.Div('Trimming frames: {}, {}'.format(start, end)),
-                dcc.Store(
-                    id={
-                        'type': 'trim-start',
-                        'index': n_clicks
-                    },
-                    storage_type='memory', # change to session when in prod?
-                    data=start
-                ),
-                dcc.Store(
-                    id={
-                        'type': 'trim-end',
-                        'index': n_clicks
-                    },
-                    storage_type='memory', # change to session when in prod?
-                    data=end
-                ),
-                dbc.Button('Remove',                    
-                    id={
-                        'type': 'remove-trim',
-                        'index': n_clicks
-                    }, 
-                    color='danger')]
-        ),
-        # html.Div(
-        #     id={
-        #         'type': 'dynamic-output',
-        #         'index': n_clicks
-        #     }
-        # )
-    )
-    children.append(new_trim)
-    # print(len(children))
+def display_dropdown(n_clicks, _, children, start, end):
+    input_id = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
+    if "index" in input_id:
+        delete_trim = json.loads(input_id)["index"]
+        children = [
+            trim
+            for trim in children
+            if "'index': " + str(delete_trim) not in str(trim)
+        ]
+    else:
+        new_trim = html.Div(
+            dbc.Row(
+                id='trimEntry',
+                children=[
+                    html.Div('Trimming frames: {}, {}'.format(start, end)),
+                    dcc.Store(
+                        id={
+                            'type': 'trim-start',
+                            'index': n_clicks
+                        },
+                        storage_type='memory',  # change to session when in prod?
+                        data=start
+                    ),
+                    dcc.Store(
+                        id={
+                            'type': 'trim-end',
+                            'index': n_clicks
+                        },
+                        storage_type='memory',  # change to session when in prod?
+                        data=end
+                    ),
+                    dbc.Button('Remove',
+                                id={
+                                    'type': 'remove-trim',
+                                    'index': n_clicks
+                                },
+                                color='danger')], style={"display": "flex",  "justify-content": "space-between"}
+            ), style={"width": "100%"}
+        )
+        children.append(new_trim)
     return children
 
-# @app.callback(
-#     # Output('') store?
-#     #Input save and continue
-#     #Input save and quit
-#     State('trimming-dropdown', 'children'),
-# )
-# def processFrames(trimmings):
 @app.callback(
     Output('blacklist', 'data'),
     Input('save-and-continue', 'n_clicks'),
@@ -437,7 +434,8 @@ def blacklistFrames(n_clicks, start, end):
     if n_clicks is None:
         raise PreventUpdate
     else:
-        blacklist = np.ones(len(framesVE), dtype=bool) # initialize array of True size of vid
+        # initialize array of True size of vid
+        blacklist = np.ones(len(framesVE), dtype=bool)
         for (i, data) in enumerate(start):
             for j in range(start[i], end[i]+1, 1):
                 if(blacklist[j]):
@@ -450,7 +448,6 @@ def blacklistFrames(n_clicks, start, end):
 )
 def processVideo(blacklist):
     processFramesToVid(blacklist)
-    print(blacklist)
     return 'Donezo'
 
 @app.callback(
@@ -473,7 +470,6 @@ def setFrameToStart(set, add, value):
         return value
     if cbcontext == "addToTrim.n_clicks":
         return None
-
 
 @app.callback(
     Output('endingFrame', 'value'),
