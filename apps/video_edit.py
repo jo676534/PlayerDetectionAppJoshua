@@ -1,33 +1,21 @@
 # # INSTALL LIBRARIES ---------------------------------------------------------------------------------------------------------------------------
-# Comment
-import pandas as pd
 import plotly.express as px  # (version 4.7.0)
 import plotly.graph_objects as go
-
 import dash  # (version 1.12.0) pip install dash
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
-import plotly.express as px
-import pandas as pd
+from dash.dependencies import Input, Output, State, ALL
+from dash.exceptions import PreventUpdate
 import pathlib
-# import ffmpeg_streaming
-# import dash_player
-# from moviepy.editor import *
-from app import app
-
 import cv2
-import numpy as np
-
 import os
 from os.path import isfile, join
 from skimage import io
 import numpy as np
 import psycopg2 as pg2
 import pandas as pd
-from dash.exceptions import PreventUpdate
-import cv2  # from vid2frames
+import json
 
 # FILE FUNCTION IMPORTS ----------------------------------------------------------------------------------------------------------------------
 from app import app
@@ -36,30 +24,30 @@ from app import app
 
 # ########### NEW VID TO FRAMES###########
 
-# # vidcap = cv2.VideoCapture('Sample Soccer Video.mp4')
-# # frames = []
+# vidcap = cv2.VideoCapture('Sample Soccer Video.mp4')
+# frames = []
 
-# # def getFrame(sec):
-# #     vidcap.set(cv2.CAP_PROP_POS_MSEC, sec*1000)
-# #     hasFrames, image = vidcap.read()
-# #     if hasFrames:
-# #         # Instead of writing to directory, save to an image array
-# #         # cv2.imwrite(os.path.join(dirname,"image"+str(count) + ".jpg"), image)
-# #         image2 = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-# #         frames.append(image2)
-# #     return hasFrames
+# def getFrame(sec):
+#     vidcap.set(cv2.CAP_PROP_POS_MSEC, sec*1000)
+#     hasFrames, image = vidcap.read()
+#     if hasFrames:
+#         # Instead of writing to directory, save to an image array
+#         # cv2.imwrite(os.path.join(dirname,"image"+str(count) + ".jpg"), image)
+#         image2 = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+#         frames.append(image2)
+#     return hasFrames
 
-# # sec = 0
-# # frameRate = 0.02  # 30 frames per second?
-# # count = 1
-# # success = getFrame(sec)
-# # while success:
-# #     count = count + 1
-# #     sec = sec + frameRate
-# #     sec = round(sec, 2)
-# #     success = getFrame(sec)
+# sec = 0
+# frameRate = 0.02  # 30 frames per second?
+# count = 1
+# success = getFrame(sec)
+# while success:
+#     count = count + 1
+#     sec = sec + frameRate
+#     sec = round(sec, 2)
+#     success = getFrame(sec)
 
-# ########### END NEW VID TO FRAMES###########
+# ########### END NEW VID TO FRAMES#######
 # ########### OLD VID TO FRAMES###########
 
 pathIn = './vid2img/'
@@ -67,13 +55,46 @@ framesVE = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))]
 framesVE.sort(key=lambda x: int(x[5:-4]))
 
 ########### END OLD VID TO FRAMES###########
+
+
+def processFramesToVid(blacklist):
+
+    frame_array = []
+
+    for i in range(len(framesVE)):
+        if(blacklist[i]):
+            filename = pathIn + framesVE[i]
+
+            # reading each files
+            img = cv2.imread(filename)
+            height, width, layers = img.shape
+            size = (width, height)
+
+            # inserting the frames into an image array
+            frame_array.append(img)
+
+    pathOut = 'NEW.avi'
+    # fourcc = cv2.VideoWriter_fourcc('H','2','6','4')
+    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+
+    out = cv2.VideoWriter(pathOut, fourcc, 50, size)
+    for i in range(len(frame_array)):
+        # writing to a image array
+        out.write(frame_array[i])
+    out.release()
+
+
 # GLOBAL VARIABLES #############################################################################################################################
-framesBL = True * len(framesVE)
 maxFrames = len(framesVE)-1
-# # DASH COMPONENTS #######################################################################################################################################
+# DASH COMPONENTS #######################################################################################################################################
 
 fig = px.imshow(io.imread(pathIn+framesVE[0]), binary_backend="jpg")  # OLD
-# # fig = px.imshow(frames[0], binary_backend="jpg")  NEW
+# fig = px.imshow(frames[0], binary_backend="jpg")  NEW
+
+fig.update_layout(
+    margin=dict(l=0, r=0, b=0, t=0, pad=4),
+    dragmode="drawrect",
+)
 
 # Video Player Card ===============================================================================================================================
 image_annotation_cardVE = dbc.Card(
@@ -132,38 +153,34 @@ image_annotation_cardVE = dbc.Card(
     style={"margin-top": "20px", "margin-bottom": "20px"}
 )
 
-
 video_trimmer_card = dbc.Card(
     id="trimmer_card",
     children=[
+        dcc.Store(id='blacklist',
+                  storage_type='memory'),
         dbc.CardHeader(
-            html.H2('Video Trimmer'),
+            html.H2('Video Trimmer', id='testing',),
         ),
         dbc.CardBody(
             [
-                # dcc.RangeSlider(
-                #     id='frame-trimmer',
-                #     min=0,
-                #     max=maxFrames,
-                #     marks={round(i*maxFrames/16): '{}'.format(round(i*maxFrames/16))
-                #            for i in range(maxFrames)},
-                #     step=1,
-                #     value=[0, round(maxFrames/16)]
-                # ),
-                # html.Div(id='trimmer-output-containerVE'),
-                # dbc.Button('Add to Trim', id='addToTrim')
+                html.Div(id='trimming-container', children=[],
+                         style={"maxHeight": "375px", "overflow": "auto", "height": "375px"})
+            ]
+        ),
+        dbc.CardFooter(
+            [
                 dbc.Row(
                     children=[
                         dbc.Col(children=[
-                            html.H6('Enter Start of Frames to Trim: '),
-                            dcc.Input(id="startingFrame", type="number", debounce=True,
-                                      placeholder="Start Frame", min=0,),
-                        ]),
+                                html.H6('Enter Start of Frames to Trim: '),
+                                dcc.Input(id="startingFrame", type="number", debounce=True,
+                                          placeholder="Start Frame", min=0,),
+                                ]),
                         dbc.Col(children=[
-                            html.H6('Enter End of Frames to Trim: '),
-                            dcc.Input(id="endingFrame", type="number", debounce=True,
-                                      placeholder="End Frame", min=0,),
-                        ]),
+                                html.H6('Enter End of Frames to Trim: '),
+                                dcc.Input(id="endingFrame", type="number", debounce=True,
+                                          placeholder="End Frame", min=0,),
+                                ]),
                     ],
                     style={"margin-bottom": "20px", }
                 ),
@@ -183,26 +200,18 @@ video_trimmer_card = dbc.Card(
                             ],
                             style={"width": "100%"},
                         ),
-
                     ],
                     style={"margin-top": "20px", "margin-bottom": "10px", }
                 ),
                 dbc.Button('Save to Trim Queue',
                            id='addToTrim', color="primary", block=True),
-
-            ]
-        ),
-        dbc.CardFooter(
-            [
-                html.Div(id='trimming-dropdown', children=[],
-                         style={"maxHeight": "410px", "overflow": "auto", "height": "410px"})
             ]
         ),
     ],
     style={"margin-top": "20px", "margin-bottom": "20px"}
 )
 
-state_one_card = dbc.Card(
+state_one_card = html.Div(
     id="state_one_card",
     children=[
         dbc.ButtonGroup(
@@ -211,15 +220,30 @@ state_one_card = dbc.Card(
                            href='/apps/home', size="lg", color="danger"),
                 dbc.Button('Save and Quit',
                            id='save-and-quit', href='/apps/home', size="lg"),
+                # dbc.Button('Save and Continue',
+                #            id='save-and-continue', href='/apps/dashboard', size="lg"),
                 dbc.Button('Save and Continue',
-                           id='save-and-continue', href='/apps/dashboard', size="lg"),
+                           id='save-and-continue', size="lg"),
             ],
+            style={"width": "100%"},
         ),
+        # dbc.Modal(
+        #     [
+        #         dbc.ModalHeader("Header"),
+        #         dbc.ModalBody("This is the content of the modal"),
+        #         dbc.ModalFooter(
+        #             children=[dbc.Button("Close", id="close", className="ml-auto"),
+        #                       dbc.Button("Close", id="close",
+        #                                  className="ml-auto")
+        #                       ]
+        #         ),
+        #     ]
+        # )
     ],
 )
 
 # # App Layout ====================================================================================================================================
-layout = html.Div(  # was app.layout
+layout = html.Div(
     [
         # navbar,
         dbc.Container(
@@ -228,7 +252,7 @@ layout = html.Div(  # was app.layout
                     [
                         dbc.Col(image_annotation_cardVE, md=7.5),
                         dbc.Col(children=[video_trimmer_card,
-                                          state_one_card, ], md=5),
+                                        state_one_card, ], md=5),
                     ],
                 ),
             ],
@@ -236,11 +260,6 @@ layout = html.Div(  # was app.layout
         ),
     ]
 )
-
-# # layout = html.Div([
-# #     "Dashboard"
-# # ])VE
-
 
 # Call back for video Player/Pause
 @app.callback(
@@ -264,8 +283,6 @@ def togglePlayVE(play, isPaused):
     return (isPaused, text)
 
 # Video Display Callback
-
-
 @app.callback(
     Output('graphVE', 'figure'),
     Output('frame_intervalVE', 'n_intervals'),
@@ -309,12 +326,14 @@ def update_figureVE(interval, slider, previousBut, nextBut, startBut, endBut, st
     fig = px.imshow(
         io.imread(pathIn+framesVE[currentFrame]), binary_backend="jpg")  # OLD
     # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
+    fig.update_layout(
+        margin=dict(l=0, r=0, b=0, t=0, pad=4),
+        dragmode="drawrect",
+    )
     # print("\nCurrent Frame Bounding Boxes:")
     return (fig, currentFrame, currentFrame)
 
 # # Callback for Slider
-
-
 @app.callback(
     dash.dependencies.Output('slider-output-containerVE', 'children'),
     [dash.dependencies.Input('frame_intervalVE', 'n_intervals')])
@@ -328,61 +347,81 @@ def update_outputVE(value):
 def update_trimmer(value):
     return 'Selected "{}"'.format(value)
 
-
-# @app.callback(
-#     Output('trimming-dropdown', 'children'),
-#     Input('addToTrim', 'n_clicks'),
-#     State('trimming-dropdown', 'children'),
-#     State('frame-trimmer', 'value'), prevent_initial_call=True)
-# def display_dropdowns(n_clicks, children, value):
-#     new_element = html.Div(
-#         dbc.Row(
-#             id={'type': 'dynamic-trim',
-#                 'index': n_clicks
-#                 },
-#             children=[
-#                 html.Div('Trimming frames: {}'.format(value)),
-#                 dbc.Button('Remove from Queue', id='delete-trim')]
-#         ),
-#         # html.Div(
-#         #     id={
-#         #         'type': 'dynamic-output',
-#         #         'index': n_clicks
-#         #     }
-#         # )
-#     )
-#     children.append(new_element)
-#     # print(len(children))
-#     return children
-
 @app.callback(
-    Output('trimming-dropdown', 'children'),
+    Output('trimming-container', 'children'),
     Input('addToTrim', 'n_clicks'),
-    State('trimming-dropdown', 'children'),
+    Input({'type': 'remove-trim', 'index': ALL}, 'n_clicks'),
+    State('trimming-container', 'children'),
     State('startingFrame', 'value'),
     State('endingFrame', 'value'),
     prevent_initial_call=True)
-def display_dropdowns(n_clicks, children, start, end):
-    new_element = html.Div(
-        dbc.Row(
-            id={'type': 'dynamic-trim',
-                'index': n_clicks
-                },
-            children=[
-                html.Div('Trimming frames: {}, {}'.format(start, end)),
-                dbc.Button('Remove', id='delete-trim', color='danger')]
-        ),
-        # html.Div(
-        #     id={
-        #         'type': 'dynamic-output',
-        #         'index': n_clicks
-        #     }
-        # )
-    )
-    children.append(new_element)
-    # print(len(children))
+def display_dropdown(n_clicks, _, children, start, end):
+    input_id = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
+    if "index" in input_id:
+        delete_trim = json.loads(input_id)["index"]
+        children = [
+            trim
+            for trim in children
+            if "'index': " + str(delete_trim) not in str(trim)
+        ]
+    else:
+        new_trim = html.Div(
+            dbc.Row(
+                id='trimEntry',
+                children=[
+                    html.Div('Trimming frames: {}, {}'.format(start, end)),
+                    dcc.Store(
+                        id={
+                            'type': 'trim-start',
+                            'index': n_clicks
+                        },
+                        storage_type='memory',  # change to session when in prod?
+                        data=start
+                    ),
+                    dcc.Store(
+                        id={
+                            'type': 'trim-end',
+                            'index': n_clicks
+                        },
+                        storage_type='memory',  # change to session when in prod?
+                        data=end
+                    ),
+                    dbc.Button('Remove',
+                                id={
+                                    'type': 'remove-trim',
+                                    'index': n_clicks
+                                },
+                                color='danger')], style={"display": "flex",  "justify-content": "space-between"}
+            ), style={"width": "100%"}
+        )
+        children.append(new_trim)
     return children
 
+@app.callback(
+    Output('blacklist', 'data'),
+    Input('save-and-continue', 'n_clicks'),
+    State({'type': 'trim-start', 'index': ALL}, 'data'),
+    State({'type': 'trim-end', 'index': ALL}, 'data'),
+)
+def blacklistFrames(n_clicks, start, end):
+    if n_clicks is None:
+        raise PreventUpdate
+    else:
+        # initialize array of True size of vid
+        blacklist = np.ones(len(framesVE), dtype=bool)
+        for (i, data) in enumerate(start):
+            for j in range(start[i], end[i]+1, 1):
+                if(blacklist[j]):
+                    blacklist[j] = False
+        return blacklist
+
+@app.callback(
+    Output('testing', 'children'),
+    Input('blacklist', 'data'),
+)
+def processVideo(blacklist):
+    processFramesToVid(blacklist)
+    return 'Donezo'
 
 @app.callback(
     Output('startingFrame', 'max'),
@@ -394,25 +433,28 @@ def set_maxVid(duration):
 @app.callback(
     Output('startingFrame', 'value'),
     Input('setStart', 'n_clicks'),
+    Input('addToTrim', 'n_clicks'),
     State('frame_intervalVE', 'n_intervals'),
     prevent_initial_call=True
 )
-def setFrameToStart(n_clicks, value):
-    return value
+def setFrameToStart(set, add, value):
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    if cbcontext == "setStart.n_clicks":
+        return value
+    if cbcontext == "addToTrim.n_clicks":
+        return None
 
 @app.callback(
     Output('endingFrame', 'value'),
     Input('setEnd', 'n_clicks'),
+    Input('addToTrim', 'n_clicks'),
     State('frame_intervalVE', 'n_intervals'),
     prevent_initial_call=True
 )
-def setFrameToEnd(n_clicks, value):
-    return value
+def setFrameToEnd(set, add, value):
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    if cbcontext == "setEnd.n_clicks":
+        return value
+    if cbcontext == "addToTrim.n_clicks":
+        return None
 
-# @app.callback(
-#     Output('frame_intervalVE', 'n_intervals'),
-#     Input('jumpStart', 'n_clicks'),
-#     State('startingFrame', 'value'),
-# )
-# def setFrameToEnd(n_clicks, value):
-#     return value
