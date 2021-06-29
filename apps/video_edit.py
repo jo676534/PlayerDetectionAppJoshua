@@ -347,33 +347,6 @@ def update_outputVE(value):
 def update_trimmer(value):
     return 'Selected "{}"'.format(value)
 
-
-# @app.callback(
-#     Output('trimming-dropdown', 'children'),
-#     Input('addToTrim', 'n_clicks'),
-#     State('trimming-dropdown', 'children'),
-#     State('frame-trimmer', 'value'), prevent_initial_call=True)
-# def display_dropdowns(n_clicks, children, value):
-#     new_element = html.Div(
-#         dbc.Row(
-#             id={'type': 'dynamic-trim',
-#                 'index': n_clicks
-#                 },
-#             children=[
-#                 html.Div('Trimming frames: {}'.format(value)),
-#                 dbc.Button('Remove from Queue', id='delete-trim')]
-#         ),
-#         # html.Div(
-#         #     id={
-#         #         'type': 'dynamic-output',
-#         #         'index': n_clicks
-#         #     }
-#         # )
-#     )
-#     children.append(new_element)
-#     # print(len(children))
-#     return children
-
 @app.callback(
     Output('trimming-container', 'children'),
     Input('addToTrim', 'n_clicks'),
@@ -485,10 +458,3 @@ def setFrameToEnd(set, add, value):
     if cbcontext == "addToTrim.n_clicks":
         return None
 
-# @app.callback(
-#     Output('frame_intervalVE', 'n_intervals'),
-#     Input('jumpStart', 'n_clicks'),
-#     State('startingFrame', 'value'),
-# )
-# def setFrameToEnd(n_clicks, value):
-#     return value
