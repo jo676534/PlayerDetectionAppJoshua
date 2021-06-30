@@ -15,7 +15,6 @@ from apps import video_edit
 from apps import dashboard
 from apps import add_track
 from apps import final_review
-from apps import draw_box
 
 
 
@@ -28,7 +27,6 @@ navbar = dbc.NavbarSimple(
                 dbc.DropdownMenuItem(dcc.Link('Video Editor', href='/apps/video_edit')),
                 dbc.DropdownMenuItem(dcc.Link('Dashboard', href='/apps/dashboard')),
                 dbc.DropdownMenuItem(dcc.Link('Add Track', href='/apps/add_track')),
-                dbc.DropdownMenuItem(dcc.Link('Draw Box', href='/apps/draw_box')),
                 dbc.DropdownMenuItem(dcc.Link('Final Review', href='/apps/final_review')),
             ],
             nav=True,
@@ -71,8 +69,6 @@ def display_page(pathname):
         return dashboard.layout
     if pathname == '/apps/add_track':
         return add_track.layout
-    if pathname == '/apps/draw_box':
-        return draw_box.layout
     if pathname == '/apps/final_review':
         return final_review.layout
     else:
