@@ -394,7 +394,7 @@ annotated_data_card = dbc.Card(
                 )],
                 align = 'center',
                 style={'width': '100%', 
-                            'height': '500px', 
+                            'height': '350px', 
                             'overflow': 'scroll', 
                             'padding': '10px 10px 10px 20px'
                     }), 
@@ -405,7 +405,27 @@ annotated_data_card = dbc.Card(
         ),
         dbc.CardFooter(
             [
-
+                html.H6("Add Track Section"),
+                html.Div(
+                    [
+                        dbc.Input(id="dashboard_input_start", placeholder="Start", type="number", min=0, step=1), # value
+                        dbc.Input(id="dashboard_input_final", placeholder="Final", type="number", min=0, step=1), 
+                    ]
+                ),
+                html.Div(
+                    [
+                        dbc.ButtonGroup(
+                            [
+                                dbc.Button("Set Start Frame", id="set_start"),
+                                dbc.Button("Set Final Frame", id="set_final"),
+                                dbc.Button("Add Track", id="add_track")
+                            ]
+                        )
+                    ]
+                ),
+                html.Div(id="add_track_output"),
+                html.Br(),
+                html.Div(id="useless_output")
             ]
         ),
     ],
@@ -433,27 +453,7 @@ annotated_data_card2 = dbc.Card(
         ),
         dbc.CardFooter(
             [
-                html.H6("Add Track Section"),
-                html.Div(
-                    [
-                        dbc.Input(id="dashboard_input_start", placeholder="Start", type="number", min=0, step=1), # value
-                        dbc.Input(id="dashboard_input_final", placeholder="Final", type="number", min=0, step=1), 
-                    ]
-                ),
-                html.Div(
-                    [
-                        dbc.ButtonGroup(
-                            [
-                                dbc.Button("Set Start Frame", id="set_start"),
-                                dbc.Button("Set Final Frame", id="set_final"),
-                                dbc.Button("Add Track", id="add_track")
-                            ]
-                        )
-                    ]
-                ),
-                html.Div(id="add_track_output"),
-                html.Br(),
-                html.Div(id="useless_output")
+
             ]
         ),
     ],
@@ -696,7 +696,7 @@ def display_2(btn1, btn2, btn3, frame, value):
                 )],
                 align = 'center',
                 style={'width': '100%', 
-                            'height': '500px', 
+                            'height': '350px', 
                             'overflow': 'scroll', 
                             'padding': '10px 10px 10px 20px'
                     }), 
@@ -725,7 +725,7 @@ def display_2(btn1, btn2, btn3, frame, value):
                 )],
                 align = 'center',
                 style={'width': '100%', 
-                            'height': '500px', 
+                            'height': '350px', 
                             'overflow': 'scroll', 
                             'padding': '10px 10px 10px 20px'
                     }), 
@@ -757,7 +757,7 @@ def display_2(btn1, btn2, btn3, frame, value):
                                 id = "radio_all_tracks",)],
                             align = 'center',
                             style={'width': '100%', 
-                                    'height': '550px', 
+                                    'height': '350px', 
                                     'overflow': 'scroll', 
                                     'padding': '10px 10px 10px 20px'}), 
                         ],)
