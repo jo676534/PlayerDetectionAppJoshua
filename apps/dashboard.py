@@ -79,11 +79,17 @@ player_tracks = ["17", "12"]  # Hardcoded until "assign track" is working
 dic = api_detections.get_frame_detections(0)
 # print(dic[1298])
 dic_tracks, unique_tracks = api_detections.get_tracks(0)
-
+# print("List of Frames")
+# print(dic_tracks['frame'])
+# print(" ")
+# print(" ")
+# print(" ")
+# print(" ")
 
 # fetch the detections ----------------
 # was originally just df (not currently used in the input functions)
 df_detections = api_detections.get_game_detections(0)
+
 # fetch the teams ------------------
 df_teams = api_team.get_teams(0)
 # fetch the players ----------------
@@ -354,15 +360,20 @@ image_annotation_card = dbc.Card(
                 #            outline=True, style={"margin-right": "15px", "font-size": "12px"}),
                 # dbc.Button("Toggle Assigned Tracks View", id="but3", outline=True, style={
                 #     "margin-right": "15px", "font-size": "12px"}),
-                dcc.Checklist(
-                    options=[
-                        {'label': 'Assigned Track Boxes', 'value': 'assigned'},
-                        {'label': 'Unassigned Track Boxes', 'value': 'unassigned'},
-                    ],
-                    value=['assigned', 'unassigned'],
-                    labelStyle ={'display': 'inline-block', 'margin-left':'100px'},
-
-                )  
+                dbc.FormGroup(
+                            [
+                                dbc.Checklist(
+                                    options=[
+                                        {"label": "Assigned Track Boxes", "value": 1}, #1 is assigned
+                                        {"label": "Unassigned Track Boxes", "value": 2}, #2 is unassigned
+                                    ],
+                                    value=[1, 2],
+                                    labelStyle = {'display': 'inline-block', 'margin-left':'100px'},
+                                    id="switches-input",
+                                    switch=True,
+                                ),
+                            ]
+                        ),
             ]
         )),
         dbc.CardBody(
@@ -437,26 +448,26 @@ annotated_data_card = dbc.Card(
                 html.Div(id='hidden-div', style= {'display':'none'}),
                 html.Div(id='hidden-div2', style= {'display':'none'}),
                 html.Div(id='track_container', children=[html.Div([
-    html.Div(children=[
-    dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-             dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
-             align = 'center',),
-    dbc.Col([dbc.Button("Delete Track", color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
-             dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),],
-             align = 'center'),
-    dbc.Col([dcc.RadioItems(
-    options=[
-        {'label': 'Track ID: ' + str(list(dic_tracks.keys())[i]), 'value': str(list(dic_tracks.keys())[i])} for i in range(1, unique_tracks)],
-    #value=str(list(dic_tracks.keys())[1]), 
-    id = "radio_all_tracks",
-   
-    )],
-    align = 'center',
-    style={'width': '100%', 
-                 'height': '500px', 
-                 'overflow': 'scroll', 
-                 'padding': '10px 10px 10px 20px'
-          }), 
+                html.Div(children=[
+                dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
+                        dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
+                        align = 'center',),
+                dbc.Col([dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                        dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),],
+                        align = 'center'),
+                dbc.Col([dcc.RadioItems(
+                options=[
+                    {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
+                #value=str(list(dic_tracks.keys())[1]), 
+                id = "radio_all_tracks",
+            
+                )],
+                align = 'center',
+                style={'width': '100%', 
+                            'height': '500px', 
+                            'overflow': 'scroll', 
+                            'padding': '10px 10px 10px 20px'
+                    }), 
     ],
     )
 ])])
@@ -487,32 +498,32 @@ annotated_data_card2 = dbc.Card(
         dbc.CardBody(
             [
                 html.Div(id='container'),
-                dbc.Button("Regenerate Tracks", id="button_regen")
+                # dbc.Button("Regenerate Tracks", id="button_regen")
             ]
         ),
         dbc.CardFooter(
             [
-                html.H6("Add Track Section"),
-                html.Div(
-                    [
-                        dbc.Input(id="dashboard_input_start", placeholder="Start", type="number", min=0, step=1), # value
-                        dbc.Input(id="dashboard_input_final", placeholder="Final", type="number", min=0, step=1), 
-                    ]
-                ),
-                html.Div(
-                    [
-                        dbc.ButtonGroup(
-                            [
-                                dbc.Button("Set Start Frame", id="set_start"),
-                                dbc.Button("Set Final Frame", id="set_final"),
-                                dbc.Button("Add Track", id="add_track")
-                            ]
-                        )
-                    ]
-                ),
-                html.Div(id="add_track_output"),
-                html.Br(),
-                html.Div(id="useless_output")
+                # html.H6("Add Track Section"),
+                # html.Div(
+                #     [
+                #         dbc.Input(id="dashboard_input_start", placeholder="Start", type="number", min=0, step=1), # value
+                #         dbc.Input(id="dashboard_input_final", placeholder="Final", type="number", min=0, step=1), 
+                #     ]
+                # ),
+                # html.Div(
+                #     [
+                #         dbc.ButtonGroup(
+                #             [
+                #                 dbc.Button("Set Start Frame", id="set_start"),
+                #                 dbc.Button("Set Final Frame", id="set_final"),
+                #                 dbc.Button("Add Track", id="add_track")
+                #             ]
+                #         )
+                #     ]
+                # ),
+                # html.Div(id="add_track_output"),
+                # html.Br(),
+                # html.Div(id="useless_output")
             ]
         ),
     ],
@@ -687,6 +698,9 @@ def display(btn1, btn2):
 def display_2(btn1, btn2, btn3, frame, value):
     ctx = dash.callback_context
 
+    global dic_tracks
+    global unique_tracks
+
     dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
     print("THIS IS BEING CALLED")
@@ -698,12 +712,12 @@ def display_2(btn1, btn2, btn3, frame, value):
                 dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
                         dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
                         align = 'center',),
-                dbc.Col([dbc.Button("Delete Track", id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                dbc.Col([dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
                         dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),],
                         align = 'center'),
                 dbc.Col([dcc.RadioItems(
                 options=[
-                    {'label': 'Track ID: ' + str(list(dic_tracks.keys())[i]), 'value': str(list(dic_tracks.keys())[i])} for i in range(1, unique_tracks)],
+                    {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
                 #value=str(list(dic_tracks.keys())[1]), 
                 id = "radio_all_tracks",
             
@@ -719,6 +733,7 @@ def display_2(btn1, btn2, btn3, frame, value):
             ])
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    #str(dic_tracks[i]['track_id'][0]
 
     if button_id == "all_tracks_bt":
         return  html.Div([
@@ -731,7 +746,7 @@ def display_2(btn1, btn2, btn3, frame, value):
                         align = 'center'),
                 dbc.Col([dcc.RadioItems(
                 options=[
-                    {'label': 'Track ID: ' + str(list(dic_tracks.keys())[i]), 'value': str(list(dic_tracks.keys())[i])} for i in range(1, unique_tracks)],
+                    {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
                 #value=str(list(dic_tracks.keys())[1]), 
                 id = "radio_all_tracks",
             
@@ -894,10 +909,11 @@ def togglePlay(play, isPaused):
     Input('next', 'n_clicks'),
     Input('gts_all_tracks', 'n_clicks'),
     Input('go_to_end','n_clicks' ),
+    Input('switches-input', 'value'),
     State('frame_interval', 'disabled'),
     State('radio_all_tracks', 'value')
 )
-def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, isPaused, value):
+def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switches_value, isPaused, value):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     currentFrame = 0
 
@@ -906,6 +922,8 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, isPaus
     print(cbcontext)
     print("WHOLE CALLBACK CONTEXT TRIGGERED ON NEXT LINE")
     print(dash.callback_context.triggered)
+
+    global dic
 
     if isPaused == False:
         if interval is None:
@@ -922,13 +940,17 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, isPaus
         if cbcontext =="gts_all_tracks.n_clicks":
             if cbcontext == "frame-slider.value":
                 currentFrame = slider
-            else:
-                currentFrame = min(list(dic_tracks[int(value)]['frame']))
+            else:  
+                for i in range (0, unique_tracks):
+                    if int(dic_tracks[i]['track_id'][0]) == int(value):
+                        currentFrame = min(dic_tracks[i]['frame'])
         if cbcontext =="go_to_end.n_clicks":
             if cbcontext == "frame-slider.value":
                 currentFrame = slider
             else:
-                currentFrame = max(list(dic_tracks[int(value)]['frame']))
+                for i in range (0, unique_tracks):
+                    if int(dic_tracks[i]['track_id'][0]) == int(value):
+                        currentFrame = max(dic_tracks[i]['frame'])
     if cbcontext == "frame-slider.value":
         currentFrame = slider
     # print(currentFrame)
@@ -951,16 +973,61 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, isPaus
     )
     # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
     frame_df = dic[currentFrame]
-    # print("\nCurrent Frame Bounding Boxes:")
-    for i in range(len(frame_df)):
-        x0 = frame_df.iloc[i]['x0']
-        y0 = frame_df.iloc[i]['y0']
-        x1 = frame_df.iloc[i]['x1']
-        y1 = frame_df.iloc[i]['y1']
-        id_num = frame_df.iloc[i]['track_id']
-        # print(id_num, x0, y0, x1, y1)
     
-        add_editable_box(fig, id_num, x0, y0, x1, y1)
+    # print("\nCurrent Frame Bounding Boxes:")
+    unassinged_is_checked = False
+    assigned_is_checked = False
+    
+    if (len(switches_value)==2):
+        unassinged_is_checked = True
+        assigned_is_checked = True
+
+    if (len(switches_value)==1):
+        if (switches_value[0]==1):
+            unassinged_is_checked = False
+            assigned_is_checked = True
+        if (switches_value[0]==2):
+            unassinged_is_checked = True
+            assigned_is_checked = False 
+    
+    if (len(switches_value)==0):
+        unassinged_is_checked = False
+        assigned_is_checked = False
+    
+    if   (unassinged_is_checked and assigned_is_checked):
+        for i in range(len(frame_df)):
+            x0 = frame_df.iloc[i]['x0']
+            y0 = frame_df.iloc[i]['y0']
+            x1 = frame_df.iloc[i]['x1']
+            y1 = frame_df.iloc[i]['y1']
+            id_num = frame_df.iloc[i]['track_id']
+            add_editable_box(fig, id_num, x0, y0, x1, y1)
+
+    elif (unassinged_is_checked and assigned_is_checked == 0):
+        for i in range(len(frame_df)):
+            player_id = frame_df.iloc[i]['player_id']
+            if(player_id == -1):
+                #print(player_id)
+                x0 = frame_df.iloc[i]['x0']
+                y0 = frame_df.iloc[i]['y0']
+                x1 = frame_df.iloc[i]['x1']
+                y1 = frame_df.iloc[i]['y1']
+                id_num = frame_df.iloc[i]['track_id']
+                add_editable_box(fig, id_num, x0, y0, x1, y1)
+
+    elif (assigned_is_checked and unassinged_is_checked == 0):
+        for i in range(len(frame_df)):
+            player_id = frame_df.iloc[i]['player_id']
+            if(player_id != -1):
+                #print(player_id)
+                x0 = frame_df.iloc[i]['x0']
+                y0 = frame_df.iloc[i]['y0']
+                x1 = frame_df.iloc[i]['x1']
+                y1 = frame_df.iloc[i]['y1']
+                id_num = frame_df.iloc[i]['track_id']
+                add_editable_box(fig, id_num, x0, y0, x1, y1)       
+
+    # print(id_num, x0, y0, x1, y1)
     return (fig, currentFrame, currentFrame)
 
 # Callback for Slider
@@ -980,6 +1047,8 @@ def update_output(value):
 def update_player_tracks(assignBt, trackIDValue, playerIDValue):
     global dic_tracks
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+
+    global dic
 
     if cbcontext == 'assign_track_bt.n_clicks':
         # if trackIDValue is None and playerIDValue is None:
@@ -1004,6 +1073,9 @@ def update_player_tracks(assignBt, trackIDValue, playerIDValue):
         conn.commit()
         cur.close()
         conn.close()
+    
+    # Instead of updating the whole dictionary, update the assigned track for efficiency ------ change to make!
+    dic = api_detections.get_frame_detections(0)
 
     return '  Test: "{}"'.format(playerIDValue) 
 
@@ -1016,9 +1088,15 @@ def update_player_tracks(assignBt, trackIDValue, playerIDValue):
 def delete_track(delete_bt, track_id):
 
     global dic
+
     if track_id is None:
         return track_id
-   
+    print("  ")
+    print("This is the value I am deleteing")
+    print(track_id)
+    print("  ")
+    print("  ")
+    print("  ")
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     if cbcontext == 'delete_bt.n_clicks':
         print("It entered")
@@ -1032,6 +1110,9 @@ def delete_track(delete_bt, track_id):
         cur.close()
         conn.close()
 
+    # Instead of updating the whole dictionary, update the deleted track for efficiency ------ change to make!
     dic = api_detections.get_frame_detections(0)
+   
+    
 
 

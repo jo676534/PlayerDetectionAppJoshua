@@ -70,36 +70,42 @@ def get_frame_detections(game_id):
 
 def get_tracks(game_id):
     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
-    
+
     cur = conn.cursor()
     cur.execute('''SELECT MAX(track_id) FROM detections WHERE game_id={0}'''.format(game_id))
     maxTrack = cur.fetchone()[0]
     cur.close()
-    
+
     cur = conn.cursor()
     cur.execute('''SELECT COUNT(DISTINCT track_id) FROM detections WHERE game_id={0}'''.format(game_id))
     unique_tracks = cur.fetchone()[0]
     cur.close()
-    
+
     dic = {}
-    
+
+    ctr = 0
+
+
     for track_id in range(maxTrack):
         # create a temporary cursor and execute the get request for the detections of this frame
         cur_temp = conn.cursor()
         cur_temp.execute('''SELECT * FROM detections WHERE game_id={0} AND track_id={1}'''.format(game_id, track_id))
         data = cur_temp.fetchall()
-        
-        cols = []
-        for elt in cur_temp.description:
-            cols.append(elt[0])
-        
-        dic[track_id] = pd.DataFrame(data=data, columns=cols)
+
+        if data:
+            cols = []
+            for elt in cur_temp.description:
+                cols.append(elt[0])
+
+            dic[ctr] = pd.DataFrame(data=data, columns=cols)
+            ctr += 1
+
         cur_temp.close()
-    
+
     cur.close()
     conn.close()
-    
-    return dic, unique_tracks
+
+    return dic, len(dic)
 
 # ----------------------------------------------------------------------------
 
