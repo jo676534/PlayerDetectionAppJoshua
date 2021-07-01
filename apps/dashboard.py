@@ -77,17 +77,9 @@ viewable_tracks_counter = 0
 player_tracks = ["17", "12"]  # Hardcoded until "assign track" is working
 
 dic = api_detections.get_frame_detections(0)
-# print(dic[1298])
 dic_tracks, unique_tracks = api_detections.get_tracks(0)
-# print("List of Frames")
-# print(dic_tracks['frame'])
-# print(" ")
-# print(" ")
-# print(" ")
-# print(" ")
 
 # fetch the detections ----------------
-# was originally just df (not currently used in the input functions)
 df_detections = api_detections.get_game_detections(0)
 
 # fetch the teams ------------------
@@ -222,7 +214,6 @@ sectionA = html.Div([
           }), 
     ],
     )
-
 ])
 
 # # Dash component for team B
@@ -251,63 +242,6 @@ sectionB = html.Div([
 
 
 # Button Sections for Tracks: ====================================================================================================================
-
-# All Track Section Component
-# allTrackSection = html.Div([
-#     html.Div(children=[
-#     dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-#              dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
-#              align = 'center',),
-#     dbc.Col([dbc.Button("Delete Track", color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
-#              dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),],
-#              align = 'center'),
-#     dbc.Col([dcc.RadioItems(
-#     options=[
-#         {'label': 'Track ID: ' + str(list(dic_tracks.keys())[i]), 'value': str(list(dic_tracks.keys())[i])} for i in range(1, unique_tracks)],
-#     #value=str(list(dic_tracks.keys())[1]), 
-#     id = "radio_all_tracks",
-   
-#     )],
-#     align = 'center',
-#     style={'width': '100%', 
-#                  'height': '500px', 
-#                  'overflow': 'scroll', 
-#                  'padding': '10px 10px 10px 20px'
-#           }), 
-#     ],
-#     )
-# ])
-
-
-# Generates ea/ button for the viewable tracks
-# viewable tracks = tracks that have as frame #, the current frame
-def generate_viewable_tracks_row(i, viewable_row):
-
-    # print(viewable_row)
-
-    return dbc.Row(
-        dbc.Col([
-            dcc.Checklist(id="checkbox"+str(i), options=[
-                          {'label': ' ', 'value': 'false', 'disabled': False}, ], value=['true']),
-                dbc.Button(
-                    str(viewable_row.iloc[i]['track_id']),
-                    id="collapse-button"+str(i),
-                    className="mb-3",
-                    color="secondary",
-                    style={"font-size": "12px"},
-            ),
-            dbc.Collapse(
-                    dbc.Card(dbc.CardBody([
-                        dbc.Row(dbc.Button("Modify Track: Go to Start("+str(i)+")",
-                                           color="black", style={"font-size": "12px"}),),
-                        dbc.Row(dbc.Button("Delete Track: Go to End("+str(i+1)+")",
-                                           color="black", style={"font-size": "12px"}),),
-                    ])),
-                    id="collapse"+str(i),
-                    style={"font-size": "12px"}
-            ),
-        ]))
-
 
 # Generate Function for ea/ track (player track)
 def generate_player_tracks_row(i):
@@ -354,12 +288,6 @@ image_annotation_card = dbc.Card(
     children=[
         dbc.CardHeader(html.Div(
             [
-                # dbc.Button("Hide/Unhide all track overlays", id="but1", outline=True, style={
-                #            "margin-left": "50px", "margin-right": "15px", "font-size": "12px"}),
-                # dbc.Button("Hide/Unhide track overlay in scene", id="but2",
-                #            outline=True, style={"margin-right": "15px", "font-size": "12px"}),
-                # dbc.Button("Toggle Assigned Tracks View", id="but3", outline=True, style={
-                #     "margin-right": "15px", "font-size": "12px"}),
                 dbc.FormGroup(
                             [
                                 dbc.Checklist(
@@ -376,8 +304,10 @@ image_annotation_card = dbc.Card(
                         ),
             ]
         )),
+        html.Div(id='hidden_div_j0', style= {'display':'none'}),
         dbc.CardBody(
             [
+                html.Div(id="manual_annotation_output"),
                 dcc.Interval(
                     id='frame_interval',
                     interval=500,
@@ -475,7 +405,7 @@ annotated_data_card = dbc.Card(
         ),
         dbc.CardFooter(
             [
-                html.Div()
+
             ]
         ),
     ],
@@ -503,27 +433,27 @@ annotated_data_card2 = dbc.Card(
         ),
         dbc.CardFooter(
             [
-                # html.H6("Add Track Section"),
-                # html.Div(
-                #     [
-                #         dbc.Input(id="dashboard_input_start", placeholder="Start", type="number", min=0, step=1), # value
-                #         dbc.Input(id="dashboard_input_final", placeholder="Final", type="number", min=0, step=1), 
-                #     ]
-                # ),
-                # html.Div(
-                #     [
-                #         dbc.ButtonGroup(
-                #             [
-                #                 dbc.Button("Set Start Frame", id="set_start"),
-                #                 dbc.Button("Set Final Frame", id="set_final"),
-                #                 dbc.Button("Add Track", id="add_track")
-                #             ]
-                #         )
-                #     ]
-                # ),
-                # html.Div(id="add_track_output"),
-                # html.Br(),
-                # html.Div(id="useless_output")
+                html.H6("Add Track Section"),
+                html.Div(
+                    [
+                        dbc.Input(id="dashboard_input_start", placeholder="Start", type="number", min=0, step=1), # value
+                        dbc.Input(id="dashboard_input_final", placeholder="Final", type="number", min=0, step=1), 
+                    ]
+                ),
+                html.Div(
+                    [
+                        dbc.ButtonGroup(
+                            [
+                                dbc.Button("Set Start Frame", id="set_start"),
+                                dbc.Button("Set Final Frame", id="set_final"),
+                                dbc.Button("Add Track", id="add_track")
+                            ]
+                        )
+                    ]
+                ),
+                html.Div(id="add_track_output"),
+                html.Br(),
+                html.Div(id="useless_output")
             ]
         ),
     ],
@@ -553,6 +483,103 @@ layout = html.Div(  # was app.layout
 )
 
 # CALLBACK FUNCTION DEFINITIONS #########################################################################################################################
+
+# Callbacks for the Manual Annotation Portion ==========================================================
+
+ma_output_fix = 0
+@app.callback(
+    Output("manual_annotation_output", "children"),
+    Output("hidden_div_j0", "children"),
+    Input('graph', 'relayoutData'),
+    State('frame-slider', 'value'),
+    State("radio_players_A", 'value'),
+    prevent_initial_call=True)
+def manual_annotation(graph_relayout, frame, player_id):
+    global dic
+    global ma_output_fix
+    
+    if (ma_output_fix == 0):
+        ma_output_fix = 1
+        return None, None
+
+    if (not 'shapes' in graph_relayout):
+        return "Please do not resize boxes, that is not supported", None
+    
+    old_num_boxes = len(dic[frame])
+    new_num_boxes = len(graph_relayout['shapes'])
+
+    track_id = 0
+
+    # DELETE BOX ---------------------------------
+    if (new_num_boxes < old_num_boxes): 
+        df = dic[frame]
+
+        i = 0
+        skip = 0
+        graph_len = len(graph_relayout['shapes'])
+        
+        # Iterate through the known values
+        for index, temp_df in df.iterrows():
+            x0_a = temp_df['x0']
+            y0_a = temp_df['y0']
+            x1_a = temp_df['x1']
+            y1_a = temp_df['y1']
+            
+            if i != graph_len:
+                x0_b = graph_relayout['shapes'][i]['x0']
+                y0_b = graph_relayout['shapes'][i]['y0']
+                x1_b = graph_relayout['shapes'][i]['x1']
+                y1_b = graph_relayout['shapes'][i]['y1']
+            else:
+                skip = 1
+
+            i += 1
+
+            # Determine if this is the missing value
+            if (x0_a != x0_b or y0_a != y0_b or x1_a != x1_b or y1_a != y1_b or skip == 1):
+                track_id = temp_df['track_id']
+                break
+        
+        df = df.reset_index() # needed because the add box indexing can overlap, causing multiple entries to be deleted
+        df = df.drop(df[df['track_id'] == int(track_id)].index)
+        dic[frame] = df
+
+        # works, just commented out for now
+        # api_detections.delete_detection(0, frame, track_id)
+
+        return "Detection box deleted from frame {} and track {}".format(frame, track_id), None
+
+    # ADD BOX ------------------------------------
+    elif (new_num_boxes > old_num_boxes): 
+        if (player_id is None):
+            return "Need a player_id selected to add a box", None
+        elif (old_num_boxes+1 == new_num_boxes): # good condition
+            ctr = 0
+            df_temp = []
+
+            for box in graph_relayout['shapes']: # this will only have one iteration (b/c there should only be one bounding box)
+                if ctr == old_num_boxes:
+                    df_temp = pd.DataFrame([[0, frame, box['x0'], box['y0'], box['x1'], box['y1'], -2, player_id]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id'])
+                    dic[frame] = dic[frame].append(df_temp)
+
+                    # works, just commented out for now
+                    # api_detections.add_detection(0, frame, box['x0'], box['y0'], box['x1'], box['y1'], -2, player_id)
+
+                    return "Box successfully added (not db linked) [norm]", None
+                else:
+                    ctr += 1
+        elif (old_num_boxes >= new_num_boxes):
+            return "Bad Output: None drawn -or- Deleted and drawn", None
+        elif (old_num_boxes+1 < new_num_boxes):
+            return "Bad Output: Too many drawn", None
+        else:
+            return "Unknown ERROR", None
+
+    # ERROR --------------------------------------
+    else:
+        return "Unknown ERROR", None
+
+# Callbacks for the Add Track Portion ==================================================================
 
 # callback for set start frame
 @app.callback(
@@ -596,71 +623,16 @@ def add_track(n_clicks, start_frame, final_frame, storage1, storage2):
     else:
         return ("{}".format(storage1), start_frame, final_frame)
 
-
 # callback to regenerate the detections dataframe
 @app.callback(
     Output("useless_output", "children"),
     Input("button_regen", "n_clicks"),)
 def add_track_return(n_clicks):
-    print("THE DETECTION UPDATE CALLBACK HAS STARTED {}".format(n_clicks))
-    #global df_detections
-    #df_detections = api_detections.get_game_detections(0)
     global dic
-    print(len(dic))
     dic = api_detections.get_frame_detections(0)
-    print(len(dic))
-    print("IT HAS NOW ENEDED {}".format(n_clicks))
     return "test {}".format(n_clicks)
 
-
 # --------------------------------------------------
-
-# Call Back for player Tracks
-# 1
-@app.callback(
-    Output("coll_playertrack0", "is_open"),
-    [Input("collbutt_playertrack0", "n_clicks")],
-    [State("coll_playertrack0", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
-# 2
-
-
-@app.callback(
-    Output("coll_playertrack1", "is_open"),
-    [Input("collbutt_playertrack1", "n_clicks")],
-    [State("coll_playertrack1", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
-
-  
-@app.callback(
-    Output("col3", "is_open"),
-    [Input("colbut3", "n_clicks")],
-    [State("col3", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
-
-
-@app.callback(
-    Output("col4", "is_open"),
-    [Input("colbut4", "n_clicks")],
-    [State("col4", "is_open")],
-)
-def toggle_collapse(n, is_open):
-    if n:
-        return not is_open
-    return is_open
-
 
 # Call back that toggles between Team A and Team B
 @app.callback(Output('container', 'children'),
@@ -703,7 +675,7 @@ def display_2(btn1, btn2, btn3, frame, value):
 
     dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
-    print("THIS IS BEING CALLED")
+    #print("THIS IS BEING CALLED")
 
     if not ctx.triggered:
         button_id = 'No clicks yet'
@@ -908,20 +880,15 @@ def togglePlay(play, isPaused):
     Input('previous', 'n_clicks'),
     Input('next', 'n_clicks'),
     Input('gts_all_tracks', 'n_clicks'),
-    Input('go_to_end','n_clicks' ),
+    Input('go_to_end','n_clicks'),
     Input('switches-input', 'value'),
+    Input("hidden_div_j0", "children"),
     State('frame_interval', 'disabled'),
-    State('radio_all_tracks', 'value')
+    State('radio_all_tracks', 'value'),
 )
-def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switches_value, isPaused, value):
+def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switches_value, hidden_div_j0, isPaused, value):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     currentFrame = 0
-
-    #print(list(dic_tracks[int(value)]['frame']))
-    print("CBCONTEXT ON NEXT LINE")
-    print(cbcontext)
-    print("WHOLE CALLBACK CONTEXT TRIGGERED ON NEXT LINE")
-    print(dash.callback_context.triggered)
 
     global dic
 
@@ -1051,19 +1018,6 @@ def update_player_tracks(assignBt, trackIDValue, playerIDValue):
     global dic
 
     if cbcontext == 'assign_track_bt.n_clicks':
-        # if trackIDValue is None and playerIDValue is None:
-        #     conn = pg2.connect(database='soccer',
-        #         user='postgres',
-        #         host='localhost',  # localhost-------------------!
-        #         password='root')
-        #     cur = conn.cursor()
-        #     for i in range (0, len(df_detections)):
-        #         cur.execute('''UPDATE detections SET player_id = -1 WHERE track_id = %s''' % i)
-        #     conn.commit()
-        #     cur.close()
-        #     conn.close()
-        #     return '  Test: "{}"'.format(playerIDValue) 
-        # else: 
         conn = pg2.connect(database='soccer',
             user='postgres',
             host='localhost',  # localhost-------------------!
@@ -1091,12 +1045,7 @@ def delete_track(delete_bt, track_id):
 
     if track_id is None:
         return track_id
-    print("  ")
-    print("This is the value I am deleteing")
-    print(track_id)
-    print("  ")
-    print("  ")
-    print("  ")
+
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     if cbcontext == 'delete_bt.n_clicks':
         print("It entered")
@@ -1112,7 +1061,3 @@ def delete_track(delete_bt, track_id):
 
     # Instead of updating the whole dictionary, update the deleted track for efficiency ------ change to make!
     dic = api_detections.get_frame_detections(0)
-   
-    
-
-
