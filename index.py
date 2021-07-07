@@ -42,10 +42,10 @@ navbar = dbc.NavbarSimple(
 )
 
 info_storage = html.Div([
-    dcc.Store(id="gameId"),
+    dcc.Store(id="gameId", storage_type='session'),
     dcc.Store(id='start_frame_add', storage_type='session'),
     dcc.Store(id='final_frame_add', storage_type='session'),
-    dcc.Store(id='player_id_add', storage_type='session')
+    dcc.Store(id='player_id_add', storage_type='session'),
 ])
 
 app.layout = html.Div([
