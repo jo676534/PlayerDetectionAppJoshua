@@ -1,5 +1,6 @@
 # INSTALL LIBRARIES ---------------------------------------------------------------------------------------------------------------------------
 # Comment
+from typing import final
 import pandas as pd
 import plotly.express as px  # (version 4.7.0)
 import plotly.graph_objects as go
@@ -455,7 +456,6 @@ layout = html.Div(  # was app.layout
 
 # Callbacks for the Manual Annotation Portion ==========================================================
 
-ma_output_fix = 0
 @app.callback(
     Output("manual_annotation_output", "children"),
     Output("hidden_div_j0", "children"),
@@ -465,11 +465,6 @@ ma_output_fix = 0
     prevent_initial_call=True)
 def manual_annotation(graph_relayout, frame, player_id):
     global dic
-    global ma_output_fix
-    
-    if (ma_output_fix == 0):
-        ma_output_fix = 1
-        return None, None
 
     if (not 'shapes' in graph_relayout):
         return "Please do not resize boxes, that is not supported", None
@@ -523,20 +518,24 @@ def manual_annotation(graph_relayout, frame, player_id):
         if (player_id is None):
             return "Need a player_id selected to add a box", None
         elif (old_num_boxes+1 == new_num_boxes): # good condition
-            ctr = 0
-            df_temp = []
+            # Need to check here if there is already a track/detection with an assigned player_id in this frame
+            err = False
+            for index, detection in dic[frame].iterrows():
+                if detection['player_id'] == int(player_id):
+                    err = True
+                    break
+            if not err:
+                bounding_box = graph_relayout['shapes'][old_num_boxes]
 
-            for box in graph_relayout['shapes']: # this will only have one iteration (b/c there should only be one bounding box)
-                if ctr == old_num_boxes:
-                    df_temp = pd.DataFrame([[0, frame, box['x0'], box['y0'], box['x1'], box['y1'], -2, player_id]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id'])
-                    dic[frame] = dic[frame].append(df_temp)
+                df_temp = pd.DataFrame([[0, frame, bounding_box['x0'], bounding_box['y0'], bounding_box['x1'], bounding_box['y1'], -2, player_id]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id'])
+                dic[frame] = dic[frame].append(df_temp)
 
-                    # works, just commented out for now
-                    # api_detections.add_detection(0, frame, box['x0'], box['y0'], box['x1'], box['y1'], -2, player_id)
+                # works, just commented out for now
+                # api_detections.add_detection(0, frame, box['x0'], box['y0'], box['x1'], box['y1'], -2, player_id)
 
-                    return "Box successfully added (not db linked) [norm]", None
-                else:
-                    ctr += 1
+                return "Box successfully added (not db linked) [norm]", None
+            else:
+                return "This player already has a detection assigned to them in this frame", None
         elif (old_num_boxes >= new_num_boxes):
             return "Bad Output: None drawn -or- Deleted and drawn", None
         elif (old_num_boxes+1 < new_num_boxes):
@@ -574,23 +573,27 @@ def set_start_frame(n_clicks, frame):
     Output("add_track_output", "children"),
     Output("start_frame_add", "data"),
     Output("final_frame_add", "data"),
+    Output('player_id_add', 'data'),
     Input("add_track", "n_clicks"),
     State("dashboard_input_start", "value"),
     State("dashboard_input_final", "value"),
     State("start_frame_add", "data"),
-    State("final_frame_add", "data"),)
-def add_track(n_clicks, start_frame, final_frame, storage1, storage2):
+    State("final_frame_add", "data"),
+    State("radio_players_A", 'value'))
+def add_track(n_clicks, start_frame, final_frame, storage1, storage2, player_id):
     if n_clicks is not None:
         if ((start_frame is None) or (final_frame is None)):
-            return ("Must have inputs for start and final frame.", start_frame, final_frame)
+            return ("Must have inputs for start and final frame.", start_frame, final_frame, player_id)
         elif start_frame >= final_frame:
-            return ("Start frame must be less than final frame.", start_frame, final_frame)
+            return ("Start frame must be less than final frame.", start_frame, final_frame, player_id)
+        elif player_id is None:
+            return ("Must have an intended player selected.", start_frame, final_frame, player_id)
         else:
             # now need some way to store the relevant values
             # Want to eventually use dcc.store or something like that
-            return (dbc.Button("Now Click Here", id="go_to_add_track", href='/apps/add_track'), start_frame, final_frame)
+            return (dbc.Button("Now Click Here", id="go_to_add_track", href='/apps/add_track'), start_frame, final_frame, player_id)
     else:
-        return ("{}".format(storage1), start_frame, final_frame)
+        return ("{}".format(storage1), start_frame, final_frame, player_id)
 
 # callback to regenerate the detections dataframe
 @app.callback(
@@ -962,7 +965,7 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
         unassinged_is_checked = False
         assigned_is_checked = False
     
-    if   (unassinged_is_checked and assigned_is_checked):
+    if (unassinged_is_checked and assigned_is_checked):
         for i in range(len(frame_df)):
             x0 = frame_df.iloc[i]['x0']
             y0 = frame_df.iloc[i]['y0']
@@ -1017,6 +1020,14 @@ def update_player_tracks(assignBt, trackIDValue, playerIDValue):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
 
     global dic
+
+    # need to check here if the assignment has any overlap
+    # also need a way for all of these assignments to tell the user where the overlap is
+
+    # Theoretical way to do this:
+        # Make api call to determine the minimum and maximum parts of the track
+            # Could encounter issues with missing/deleted parts in the middle
+        # Then need to loop through to check if there are any detections already assigned to that player
 
     if cbcontext == 'assign_track_bt.n_clicks':
         conn = pg2.connect(database='soccer',

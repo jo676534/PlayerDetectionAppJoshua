@@ -1,5 +1,6 @@
 # INSTALL LIBRARIES ---------------------------------------------------------------------------------------------------------------------------
 
+from typing import final
 import pandas as pd
 import plotly.express as px  # (version 4.7.0)
 import plotly.graph_objects as go
@@ -37,6 +38,8 @@ frames.sort(key=lambda x: int(x[5:-4]))
 maxFrames = 0
 state = 0 # 0 is not submitted yet, 1 is submitted 
 state_save = 0 # 0 is not run, 1 is run, 2 is run and saved, 99 is currently running and disables functionality
+
+dic = {}
 
 # NORMAL FUNCTIONS #############################################################################################################################
 
@@ -127,8 +130,6 @@ right_side = dbc.Card(
                         dbc.Button("Set Final Frame", id="set_final_add", style={'width': '25%', 'display': 'inline-block', "margin-left": "15px", "margin-right": "15px",}),
                     ]
                 ),
-                html.Br(),
-                html.Div(id="reset_output"),
             ]
         )
     ],
@@ -170,18 +171,24 @@ layout = html.Div(
 @app.callback(
     Output("video_card", "children"),
     Input("start_frame_add", "data"),
-    Input("final_frame_add", "data"))
-def initalizer(start_frame, final_frame):
+    Input("final_frame_add", "data"),
+    Input('player_id_add', 'data'))
+def initalizer(start_frame, final_frame, player_id):
     print("INITIALIZER CALLED w/SF: {}".format(start_frame))
-    
+    print("chosen player_id: {}".format(player_id))
+
     # set up the fig and inital variables
     global frames
     frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))] 
     frames.sort(key=lambda x: int(x[5:-4]))
-    frames = frames[start_frame:final_frame]
+    frames = frames[start_frame:final_frame+1]
 
     global maxFrames
-    maxFrames = len(frames)-1
+    maxFrames = len(frames)-1 # need to fix
+
+    global dic
+    dic = api_detections.get_partial_frame_detections(0, start_frame, final_frame)
+    print(len(dic))
 
     fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")
     fig.update_layout(
@@ -222,7 +229,7 @@ def initalizer(start_frame, final_frame):
                         max=maxFrames,
                         value=0,
                         step=1,
-                        marks={round(i*maxFrames/16): '{}'.format(round(i*maxFrames/16))
+                        marks={round(i*maxFrames/4): '{}'.format(round(i*maxFrames/4))
                             for i in range(maxFrames)},
                     ),
                     html.Div(id='slider-output-container_add'),
@@ -422,14 +429,28 @@ def set_start_add(n_clicks, frame):
 @app.callback(
     Output("save_output", "children"),
     Input("button_save", "n_clicks"),
-    State("input_start", "value"),
-    State("input_final", "value"),
-    State("start_frame_add", "data"),
+    Input("button_reset", "n_clicks"),
+    State("input_start", "value"), # start_frame (represents the start value for a subset selection of frames)
+    State("input_final", "value"), # final_frame 
+    State("start_frame_add", "data"), # sf (represents the original start frame value)
+    State("final_frame_add", "data"), # ff
+    State('player_id_add', 'data'),
     prevent_initial_call=True)
-def save_detection(n_clicks, start_frame, final_frame, frame_value):
+def save_detection(save_clicks, reset_clicks, start_frame, final_frame, sf, ff, player_id):
     # STATES TO PRECEED CHECKING THE INPUT
     global state
     global detections_df
+
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    print(cbcontext)
+
+    # first check for if it was reset button
+    if cbcontext == "button_reset.n_clicks":
+        detections_df = []
+        state = 0
+        return "Reset Complete"
+
+    # Check states to make sure we're ready to take the input
     if state == 0 or state == 99:
         return "The tracker needs to be run first"
     elif state == 2:
@@ -440,8 +461,15 @@ def save_detection(n_clicks, start_frame, final_frame, frame_value):
     # STATES FOR ACTUAL INPUT
     # Good State: user input nothing and wants the whole clip
     if (start_frame is None) and (final_frame is None):
+        # need to check for player track overlap
+        temp_frame = sf
+        while temp_frame <= ff:
+            if (int(player_id) in dic[temp_frame].player_id):
+                return "This player already has a track assigned to them within this selection of frames."
+            temp_frame += 1
+        
         state = 2
-        api_detections.save_track(0, detections_df, frame_value, -1)
+        #api_detections.save_track(0, detections_df, frame_value, -1)
         return "Track saved. Now click quit to return."
     # Bad State: user input one but not the other
     elif (start_frame is None) or (final_frame is None): 
@@ -451,23 +479,18 @@ def save_detection(n_clicks, start_frame, final_frame, frame_value):
         return "Start frame has to be less than final frame"
     # Good State: user input but and we need to use them
     else:
+        # need to check for player track overlap
+        temp_frame = start_frame+sf
+        while temp_frame <= final_frame+sf:
+            if (int(player_id) in dic[temp_frame].player_id):
+                return "This player already has a track assigned to them within this selection of frames."
+            temp_frame += 1
+
         state = 2
         detections_df = detections_df[start_frame:final_frame+1] # need to cut the df for the frame outline
-        api_detections.save_track(0, detections_df, frame_value+start_frame, -1)
+        #api_detections.save_track(0, detections_df, sf+start_frame, -1)
         return "Track saved. Now click quit to return."
 # End save_detection
-
-# Callback for the reset button
-@app.callback(
-    Output('reset_output', 'children'),
-    Input('button_reset', 'n_clicks'),
-    prevent_initial_call=True)
-def reset_button_callback(n_clicks):
-    global detections_df
-    global state
-    detections_df = []
-    state = 0
-    return "Reset Complete"
 
 
 # "Useless" Callbacks ########################################################

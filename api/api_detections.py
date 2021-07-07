@@ -38,6 +38,12 @@ def get_game_detections(game_id):
 
 # ----------------------------------------------------------------------------
 
+# name is testSoccer
+# password is rootroot
+# username is postgres
+# port is 5432
+# host is test-database.cl6mqrzwrjrf.us-east-1.rds.amazonaws.com
+
 # Get All Detections From a Frame
 def get_frame_detections(game_id):
     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
@@ -172,6 +178,43 @@ def add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id):
     conn.close()
     
     # Return Here
+
+# ----------------------------------------------------------------------------
+
+def get_partial_frame_detections(game_id, start_frame, final_frame):
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    cur = conn.cursor()
+
+    cur.execute('''SELECT MAX(frame) FROM detections''')
+    maxFrame = cur.fetchone()[0]
+    
+    dic = {}
+    frame = start_frame
+
+    print("Start Frame: {}".format(start_frame))
+    print("Final Frame: {}".format(final_frame))
+
+    while frame <= final_frame:
+        cur_temp = conn.cursor()
+        cur_temp.execute('''SELECT * FROM detections WHERE game_id=0 AND frame={0}'''.format(frame))
+        data = cur_temp.fetchall()
+        
+        cols = []
+        for elt in cur_temp.description:
+            cols.append(elt[0])
+        
+        dic[frame] = pd.DataFrame(data=data, columns=cols)
+
+        print("Frame #{}:".format(frame))
+        print(dic[frame])
+
+        cur_temp.close()
+        frame += 1
+    
+    cur.close()
+    conn.close()
+    
+    return dic
 
 # ----------------------------------------------------------------------------
 
