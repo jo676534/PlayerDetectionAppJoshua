@@ -241,44 +241,6 @@ sectionB = html.Div([
 ])
 
 
-# Button Sections for Tracks: ====================================================================================================================
-
-# Generate Function for ea/ track (player track)
-def generate_player_tracks_row(i):
-    global player_tracks_counter
-
-    return dbc.Row(
-        dbc.Col([
-            dcc.Checklist(id="checkbox"+str(i), options=[
-                          {'label': ' ', 'value': 'false', 'disabled': False}, ], value=['true']),
-            dbc.Button(
-                i,
-                id="collbutt_playertrack" +
-                str(i),
-                className="mb-3",
-                color="secondary",
-                style={"font-size": "12px"},
-            ),
-            dbc.Collapse(
-                dbc.Card(dbc.CardBody([
-                    dbc.Row(dbc.Button("Modify Track: Go to Start("+str(
-                        player_tracks_counter)+")", color="black", style={"font-size": "12px"}),),
-                    dbc.Row(dbc.Button("Delete Track: Go to End("+str(
-                        player_tracks_counter+1)+")", color="black", style={"font-size": "12px"}),),
-                ])),
-                id="coll_playertrack" +
-                str(i),
-                style={"font-size": "12px"}
-            ),
-        ]))
-
-
-# Player Tracks Component
-viewPlayerTracks = html.Div([
-                            html.Div(children=[generate_player_tracks_row(
-                                i) for i in player_tracks]),
-                            ])
-
 
 # Video Player Card ===============================================================================================================================
 
@@ -296,9 +258,10 @@ image_annotation_card = dbc.Card(
                                         {"label": "Unassigned Track Boxes", "value": 2}, #2 is unassigned
                                     ],
                                     value=[1, 2],
-                                    labelStyle = {'display': 'inline-block', 'margin-left':'100px'},
                                     id="switches-input",
+                                    style ={'margin-left':'20px'},
                                     switch=True,
+                                    inline=True,
                                 ),
                             ]
                         ),
@@ -341,21 +304,25 @@ image_annotation_card = dbc.Card(
                     [
                         dbc.Button("Previous", id="previous", outline=True, style={
                                    "margin-left": "50px", "margin-right": "15px", "margin-bottom": "15px"}),
-                        dbc.Button("Rewind", id="rewind", outline=True, style={
+                        dbc.Button("Rewind 50", id="rewind-50", outline=True, style={
+                                   "margin-right": "15px", "margin-bottom": "15px"}),
+                        dbc.Button("Rewind 10", id="rewind-10", outline=True, style={
                                    "margin-right": "15px", "margin-bottom": "15px"}),
                         dbc.Button("Play", id="playpause", outline=True,
                                    style={"margin-right": "15px", "margin-bottom": "15px"}),
-                        dbc.Button("Fastforward", id="fastforward", outline=True, style={
+                        dbc.Button("Fastforward 10", id="fastforward-10", outline=True, style={
+                                   "margin-right": "15px", "margin-bottom": "15px"}),
+                        dbc.Button("Fastforward 50", id="fastforward-50", outline=True, style={
                                    "margin-right": "15px", "margin-bottom": "15px"}),
                         dbc.Button("  Next  ", id="next", outline=True, style={
                                    "margin-right": "15px", "margin-bottom": "15px"}),
                     ],
-                    style={"width": "100%"}
+                    style={"width": "100%", 'margin-left':'-10px'}
                 ),
             ]
         ),
     ],
-    style={"margin-top": "20px", "margin-bottom": "20px", "margin-right": "10px"}
+    style={"margin-left": "20px","margin-top": "20px", "margin-bottom": "20px", "margin-right": "10px"}
 )
 
 
@@ -379,13 +346,15 @@ annotated_data_card = dbc.Card(
                 html.Div(id='hidden-div2', style= {'display':'none'}),
                 html.Div(id='track_container', children=[html.Div([
                 html.Div(children=[
-                dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-                        dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
-                        align = 'center',),
-                dbc.Col([dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
-                        dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),],
-                        align = 'center'),
-                dbc.Col([dcc.RadioItems(
+                dbc.Col([
+                        dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
+                        dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                        dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                        ],
+                        align = 'center',),   
+                         
+                dbc.Col([
+                dcc.RadioItems(
                 options=[
                     {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
                 #value=str(list(dic_tracks.keys())[1]), 
@@ -681,12 +650,12 @@ def display_2(btn1, btn2, btn3, frame, value):
         button_id = 'No clicks yet'
         return  html.Div([
                 html.Div(children=[
-                dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-                        dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
-                        align = 'center',),
-                dbc.Col([dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
-                        dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),],
-                        align = 'center'),
+                dbc.Col([
+                        dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
+                        dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                        dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                        ],
+                        align = 'center',),            
                 dbc.Col([dcc.RadioItems(
                 options=[
                     {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
@@ -710,12 +679,12 @@ def display_2(btn1, btn2, btn3, frame, value):
     if button_id == "all_tracks_bt":
         return  html.Div([
                 html.Div(children=[
-                dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-                        dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
-                        align = 'center',),
-                dbc.Col([dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
-                        dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),],
-                        align = 'center'),
+                dbc.Col([
+                        dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
+                        dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                        dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                        ],
+                        align = 'center',),            
                 dbc.Col([dcc.RadioItems(
                 options=[
                     {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
@@ -738,16 +707,12 @@ def display_2(btn1, btn2, btn3, frame, value):
         viewable_row = df_detections[df_detections["frame"] == frame]
         return html.Div([
                         html.Div(children=[
-                            dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, 
-                                        style={"font-size": "12px","margin-bottom":"10px"}),
-                                    dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, 
-                                        style={"font-size": "12px","margin-bottom":"10px"},),],
-                                    align = 'center',),
-                            dbc.Col([dbc.Button("Delete Track", id = 'delete_bt',color="secondary",block = True, 
-                                        style={"font-size": "12px", "margin-bottom":"10px"}),
-                                    dbc.Button("Go to Start", id = 'gts_all_tracks', color="secondary", block = True, 
-                                        style={"font-size": "12px", "margin-bottom":"10px"},),],
-                                    align = 'center'),
+                           dbc.Col([
+                        dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
+                        dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                        dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                        ],
+                        align = 'center',), 
                             dbc.Col([dcc.RadioItems(
                                 options=[
                                     {'label': 'Track ID: ' + str(viewable_row.iloc[i]['track_id']), 
@@ -766,7 +731,27 @@ def display_2(btn1, btn2, btn3, frame, value):
     if button_id == "player_tracks_bt":
 
         if value is None:
-            return 'Select a Player to View Tracks'
+            return html.Div([
+                         html.Div(children=[
+                            dbc.Col([
+                                dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
+                                dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                                dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                                ],
+                                align = 'center',), 
+                            dbc.Col([dcc.RadioItems(
+                                options=[
+                                {'label': "Select Player To See Player Tracks", 
+                                'value': str(dic_tracks[1]['track_id'][0])}],
+
+                            id = "radio_all_tracks",)],
+                            align = 'center',
+                            style={'width': '100%', 
+                                    'height': '550px', 
+                                    'overflow': 'scroll', 
+                                    'padding': '10px 10px 10px 20px'}), 
+                                ],)
+                        ])
         
         else:
             trackList =[]
@@ -786,24 +771,27 @@ def display_2(btn1, btn2, btn3, frame, value):
             conn.close()
 
             if len(data) < 1:
-                return html.Div(children=[
-                                dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, 
-                                            style={"font-size": "12px","margin-bottom":"10px"}),
-                                        dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, 
-                                            style={"font-size": "12px","margin-bottom":"10px"},),],
-                                        align = 'center',),
-                                dbc.Col([dbc.Button("Delete Track", color="secondary",block = True, 
-                                            style={"font-size": "12px", "margin-bottom":"10px"}),
-                                        dbc.Button("Go to Start", id = 'gts_all_tracks', color="secondary", block = True, 
-                                            style={"font-size": "12px", "margin-bottom":"10px"},),],
-                                        align = 'center'),
-                                dcc.Markdown('No Tracks have been assigned to this player',
-                                style={'width': '100%', 
-                                            'font-size': '16px',
-                                            'height': '550px', 
-                                            'overflow': 'scroll', 
-                                            'padding': '10px 10px 10px 20px'}),
-                ])
+                return html.Div([
+                         html.Div(children=[
+                            dbc.Col([
+                                dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
+                                dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                                dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                                ],
+                                align = 'center',), 
+                            dbc.Col([dcc.RadioItems(
+                                options=[
+                                {'label': "No Tracks have been assigned to this player", 
+                                'value': str(dic_tracks[1]['track_id'][0])}],
+
+                            id = "radio_all_tracks",)],
+                            align = 'center',
+                            style={'width': '100%', 
+                                    'height': '550px', 
+                                    'overflow': 'scroll', 
+                                    'padding': '10px 10px 10px 20px'}), 
+                                ],)
+                        ])
             else:
                 
                 data1 = pd.DataFrame(data=data, columns=cols)
@@ -817,16 +805,12 @@ def display_2(btn1, btn2, btn3, frame, value):
                 trackList = sorted(set(trackList))
                 return html.Div([
                                 html.Div(children=[
-                                    dbc.Col([dbc.Button("Modify Track", color="secondary",block = True, 
-                                                style={"font-size": "12px","margin-bottom":"10px"}),
-                                            dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, 
-                                                style={"font-size": "12px","margin-bottom":"10px"},),],
-                                            align = 'center',),
-                                    dbc.Col([dbc.Button("Delete Track", color="secondary",block = True, 
-                                                style={"font-size": "12px", "margin-bottom":"10px"}),
-                                            dbc.Button("Go to Start", id = 'gts_all_tracks', color="secondary", block = True, 
-                                                style={"font-size": "12px", "margin-bottom":"10px"},),],
-                                            align = 'center'),
+                                    dbc.Col([
+                                        dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
+                                        dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                                        dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                                        ],
+                                        align = 'center',), 
                                     dbc.Col([dcc.RadioItems(
                                         options=[
                                             {'label': 'Track ID: ' + str(trackList[i]), 
@@ -843,6 +827,7 @@ def display_2(btn1, btn2, btn3, frame, value):
                         ])
     else:
         return "Select Tracks"
+        
 
 
 # Call back for video Player/Pause
@@ -883,10 +868,14 @@ def togglePlay(play, isPaused):
     Input('go_to_end','n_clicks'),
     Input('switches-input', 'value'),
     Input("hidden_div_j0", "children"),
+    Input('fastforward-10', 'n_clicks'),
+    Input('fastforward-50', 'n_clicks'),
+    Input('rewind-10', 'n_clicks'),
+    Input('rewind-50', 'n_clicks'),
     State('frame_interval', 'disabled'),
     State('radio_all_tracks', 'value'),
 )
-def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switches_value, hidden_div_j0, isPaused, value):
+def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switches_value, hidden_div_j0, fast10, fast50,rewind10, rewind50, isPaused, value):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     currentFrame = 0
 
@@ -904,6 +893,18 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
         if cbcontext == "next.n_clicks":
             if(currentFrame != maxFrames):
                 currentFrame += 1
+        if cbcontext == "fastforward-10.n_clicks":
+            if(currentFrame < maxFrames -10):
+                currentFrame += 10
+        if cbcontext == "fastforward-50.n_clicks":
+            if(currentFrame < maxFrames -50):
+                currentFrame += 50
+        if cbcontext == "rewind-10.n_clicks":
+            if(currentFrame > 9):
+                currentFrame += -10
+        if cbcontext == "rewind-50.n_clicks":
+            if(currentFrame > 49):
+                currentFrame += -50
         if cbcontext =="gts_all_tracks.n_clicks":
             if cbcontext == "frame-slider.value":
                 currentFrame = slider
