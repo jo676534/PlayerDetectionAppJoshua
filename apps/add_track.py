@@ -228,16 +228,20 @@ def initalizer(start_frame, final_frame):
                     html.Div(id='slider-output-container_add'),
                     # Pause/Player Buttons
                     dbc.ButtonGroup(
-                        [
+                        [   
+                            dbc.Button("Go back 50", id="rewind_50", outline=True, style={
+                                    "margin-right": "15px", "margin-bottom": "15px"}),
+                            dbc.Button("Go back 10", id="rewind_10", outline=True, style={
+                                    "margin-right": "15px", "margin-bottom": "15px"}),
                             dbc.Button("Previous", id="previous_add", outline=True, style={
                                     "margin-left": "50px", "margin-right": "15px", "margin-bottom": "15px"}),
-                            dbc.Button("Rewind", id="rewind_add", outline=True, style={
-                                    "margin-right": "15px", "margin-bottom": "15px"}),
                             dbc.Button("Play", id="playpause_add", outline=True,
                                     style={"margin-right": "15px", "margin-bottom": "15px"}),
-                            dbc.Button("Fastforward", id="fastforward_add", outline=True, style={
+                            dbc.Button("Next", id="next_add", outline=True, style={
                                     "margin-right": "15px", "margin-bottom": "15px"}),
-                            dbc.Button("  Next  ", id="next_add", outline=True, style={
+                            dbc.Button("Go forward 10", id="fastforward_10", outline=True, style={
+                                    "margin-right": "15px", "margin-bottom": "15px"}),
+                            dbc.Button("Go forward 50", id="fastforward_50", outline=True, style={
                                     "margin-right": "15px", "margin-bottom": "15px"}),
                         ],
                         style={"width": "100%"}
@@ -280,10 +284,14 @@ def togglePlay_add(play, isPaused):
     Input('frame-slider_add', 'value'),
     Input('previous_add', 'n_clicks'),
     Input('next_add', 'n_clicks'),
+    Input ('rewind_10', 'n_clicks'),
+    Input ('rewind_50', 'n_clicks'),
+    Input ('fastforward_10', 'n_clicks'),
+    Input ('fastforward_50', 'n_clicks'),
     State('frame_interval_add', 'disabled'),
     State('graph_box', 'relayoutData'),
     prevent_initial_call=True)
-def update_figure_add(interval, slider, previousBut, nextBut, isPaused, graph_relayout):
+def update_figure_add(interval, slider, previousBut, nextBut,rewind10, rewind50, fastforward10, fastforward50, isPaused, graph_relayout):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     currentFrame = 0
     
@@ -301,6 +309,18 @@ def update_figure_add(interval, slider, previousBut, nextBut, isPaused, graph_re
             if cbcontext == "next_add.n_clicks":
                 if(currentFrame != maxFrames):
                     currentFrame += 1
+            if cbcontext == "rewind_10.n_clicks":
+                if(currentFrame > 10):
+                    currentFrame += -10
+            if cbcontext == "rewind_50.n_clicks":
+                if(currentFrame > 50):
+                    currentFrame += -50
+            if cbcontext == "fastforward_10.n_clicks":
+                if(currentFrame < maxFrames-10):
+                    currentFrame += 10
+            if cbcontext == "fastforward_50.n_clicks":
+                if(currentFrame < maxFrames-50):
+                    currentFrame += 50
         if cbcontext == "frame-slider_add.value":
             currentFrame = slider
     
