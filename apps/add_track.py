@@ -410,9 +410,9 @@ def set_start_add(n_clicks, frame):
     Output("save_output", "children"),
     Input("button_save", "n_clicks"),
     Input("button_reset", "n_clicks"),
-    State("input_start", "value"),
-    State("input_final", "value"),
-    State("start_frame_add", "data"), # sf (represents the original start frame value, not the new one)
+    State("input_start", "value"), # start_frame (represents the start value for a subset selection of frames)
+    State("input_final", "value"), # final_frame 
+    State("start_frame_add", "data"), # sf (represents the original start frame value)
     State("final_frame_add", "data"), # ff
     State('player_id_add', 'data'),
     prevent_initial_call=True)
