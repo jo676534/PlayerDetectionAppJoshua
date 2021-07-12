@@ -65,3 +65,22 @@ def get_player_detections(game_id, player_id):
     conn.close()
 
     return(data, cols)
+
+# ----------------------------------------------------------------------------
+
+def get_initials(player_id):
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    cur = conn.cursor()
+    
+    # Query/Commit Here
+    cur.execute('''SELECT initials FROM players WHERE player_id={}'''.format(player_id))
+    initials = cur.fetchone()[0]
+    
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return initials
+
+
+# max = cur1.fetchone()[0]
