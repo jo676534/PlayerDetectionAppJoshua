@@ -738,13 +738,18 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
     #str(dic_tracks[i]['track_id'][0]
 
     # This first part uses the most recent track_state to determine which radio list should display when it needs to be refreshed
+    # hidden_div_j1 == video display callback
+    # radio_players_A == player buttons
+    # hidden_div_j2 == delete button
     if cbcontext == 'hidden_div_j1.children' or cbcontext == 'radio_players_A.value' or cbcontext == 'hidden_div_j2.children':
-        if track_state == 0 or track_state == 1:
+        if (track_state == 0 or track_state == 1) and (cbcontext == 'hidden_div_j2.children'):
             button_id = "all_tracks_bt"
-        elif track_state == 2:
+        elif (track_state == 2) and (cbcontext == 'hidden_div_j1.children' or cbcontext == 'hidden_div_j2.children'):
             button_id = "viewable_tracks_bt"
-        else:
+        elif (track_state == 3) and (cbcontext == 'radio_players_A.value' or cbcontext == 'hidden_div_j2.children'):
             button_id = "player_tracks_bt"
+        else:
+            raise PreventUpdate
     # Otherwise "normal" callbacks need to set the track_state value so it's remembered what was last clicked for when a refresh comes
     elif cbcontext == 'all_tracks_bt.n_clicks':
         track_state = 1
@@ -782,6 +787,11 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
     if button_id == "viewable_tracks_bt":
         df_detections = api_detections.get_game_detections(0)
         viewable_row = df_detections[df_detections["frame"] == frame]
+        print("\n\nViewable row list (pre sort):")
+        print(viewable_row)
+        viewable_row = viewable_row.sort_values(by=['track_id'])
+        print("\nViewable row list (post sort):")
+        print(viewable_row)
         return html.Div([
                         html.Div(children=[
                            dbc.Col([
@@ -996,8 +1006,9 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
                 currentFrame = slider
             else:  
                 for i in range (0, unique_tracks):
-                    if int(dic_tracks[i]['track_id'][0]) == int(value):
-                        currentFrame = min(dic_tracks[i]['frame'])
+                    if value:
+                        if int(dic_tracks[i]['track_id'][0]) == int(value):
+                            currentFrame = min(dic_tracks[i]['frame'])
         if cbcontext =="go_to_end.n_clicks":
             if cbcontext == "frame-slider.value":
                 currentFrame = slider
@@ -1106,26 +1117,29 @@ def update_output(value):
     State("radio_players_A", 'value'),
     prevent_initial_call=True)
 def update_player_tracks(assignBt, track_id, player_id):
-    global dic_tracks
-    global unique_tracks
-    global dic
+    if assignBt:
+        global dic_tracks
+        global unique_tracks
+        global dic
 
-    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-    
-    player_frames = api_detections.get_player_frames(0, player_id)
-    track_frames = api_detections.get_track_frames(0, track_id)
-    intersection = [val for val in track_frames if val in player_frames]
+        cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+        
+        player_frames = api_detections.get_player_frames(0, player_id)
+        track_frames = api_detections.get_track_frames(0, track_id)
+        intersection = [val for val in track_frames if val in player_frames]
 
-    if cbcontext == 'assign_track_bt.n_clicks':
-        if intersection: 
-            api_detections.delete_detection_list(0, track_id, intersection) # maybe check if it has an item in it first
-        api_detections.assign_track(0, player_id, track_id)
-    
-    # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-    dic = api_detections.get_frame_detections(0)
-    dic_tracks, unique_tracks = api_detections.get_tracks(0)
+        if cbcontext == 'assign_track_bt.n_clicks':
+            if intersection: 
+                api_detections.delete_detection_list(0, track_id, intersection) # maybe check if it has an item in it first
+            api_detections.assign_track(0, player_id, track_id)
+        
+        # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+        dic = api_detections.get_frame_detections(0)
+        dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
-    return None, "Track successfully assigned."
+        return None, "Track successfully assigned."
+    else:
+        return None, None
 
 # Callback for delete
 @app.callback(
