@@ -54,6 +54,12 @@ border-color: #00c2cb;
     margin-left: 20px;
 }
 
+.player_card_header
+{
+    font-size: 18px;
+    font-style: normal;
+}
+
 /* .button{
     color: #11246B;
     border-color: #00c2cb;
