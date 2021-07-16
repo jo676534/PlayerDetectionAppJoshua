@@ -139,41 +139,6 @@ def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, name=No
     )
 
 
-def read_input():
-    for i in range(maxFrames):
-        fp = open("./detections/f" + str(i) + ".txt", "r")  # grab new file
-        df = read_file(fp)
-        dic[i] = df
-
-
-def read_file(fp):  # returns complete dataframe
-    df = pd.DataFrame([], columns=['id', 'x0', 'y0', 'x1', 'y1'])
-    fp.read(16)  # get rid of dummy inputs
-    for line in fp:  # loop for the rest of the inputs
-        start, end = line.split("[")
-        nums, garbage = end.split("]")
-        garbage2, id_num = garbage.split(":")
-
-        x, y, w, h = nums.split()
-        x0 = float(x)
-        y0 = float(y)
-        x1 = x0 + float(w)
-        y1 = y0 + float(h)
-
-        df_temp = pd.DataFrame([[int(id_num), x0, y0, x1, y1]], columns=[
-                               'id', 'x0', 'y0', 'x1', 'y1'])
-        df = df.append(df_temp)
-    return df
-
-
-def updateSection(button_id):
-    global section
-    if button_id == "but7":
-        section = "A"
-    if button_id == "but8":
-        section = "B"
-
-
 # FUNCTION WITH RETURNED DASH COMPONENT #################################################################################################################
 
 # DASH COMPONENTS #######################################################################################################################################
@@ -208,7 +173,6 @@ b_row = df_players[df_players["team_id"] == 1]
 sectionA = html.Div([
     html.Div(children=[
     dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-             dbc.Button("Create a track", id = 'create_track_bt', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
              dbc.Spinner(html.Div(id="assign_track_output")),],
              align = 'center',),
     dbc.Col([dbc.RadioItems(
@@ -233,7 +197,6 @@ sectionA = html.Div([
 sectionB = html.Div([
     html.Div(children=[
     dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-             dbc.Button("Create a track", id = 'create_track', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
              dbc.Spinner(html.Div(id="assign_track_output")),],
              align = 'center',),
     dbc.Col([dbc.RadioItems(
@@ -245,7 +208,7 @@ sectionB = html.Div([
     )],
     align = 'center',
     style={'width': '250px', 
-           'height': '590px', 
+           'height': '670px', 
            'overflow': 'scroll', 
            'padding': '10px 10px 10px 20px'
           }), 
@@ -384,31 +347,35 @@ annotated_data_card = dbc.Card(
                 html.Div(id='hidden-div', style= {'display':'none'}),
                 html.Div(id='hidden-div2', style= {'display':'none'}),
                 html.Div(id='track_container', children=[html.Div([
-                html.Div(children=[
-                dbc.Col([
-                        dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
-                        dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
-                        dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                    html.Div(children=
+                        [
+                            dbc.Col(
+                                [
+                                    dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
+                                    dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                                    dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                                ],
+                                align = 'center',
+                            ),        
+                            dbc.Col(
+                                [
+                                    dbc.RadioItems(
+                                        options=[
+                                            {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
+                                        #value=str(list(dic_tracks.keys())[1]), 
+                                        id = "radio_all_tracks",
+                                        className= "radio_items",
+                                    )
+                                ],
+                                align = 'center',
+                                style={'width': '100%', 
+                                            'height': '437px', 
+                                            'overflow': 'scroll', 
+                                            'padding': '10px 10px 10px 20px'
+                                }), 
                         ],
-                        align = 'center',),   
-                         
-                dbc.Col([
-                dbc.RadioItems(
-                options=[
-                    {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
-                #value=str(list(dic_tracks.keys())[1]), 
-                id = "radio_all_tracks",
-                className= "radio_items",
-                )],
-                align = 'center',
-                style={'width': '100%', 
-                            'height': '437px', 
-                            'overflow': 'scroll', 
-                            'padding': '10px 10px 10px 20px'
-                    }), 
-    ],
-    )
-])])
+                    )
+                ])])
             ]
         ),
         dbc.CardFooter(
@@ -682,13 +649,11 @@ def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, stor
     Output("hidden_div_init_output", "children"),
     Input("hidden_div_init_input", "children"),)
 def initializer(useless_input):
-    print("Initializer Called")
     global dic
     global dic_tracks
     global unique_tracks
     dic = api_detections.get_frame_detections(0)
     dic_tracks, unique_tracks = api_detections.get_tracks(0)
-    print("Initializer Finished")
     return None
 
 # --------------------------------------------------
@@ -706,7 +671,11 @@ def display(btn1, btn2):
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-    updateSection(button_id)
+    global section
+    if button_id == "but7":
+        section = "A"
+    if button_id == "but8":
+        section = "B"
 
     if button_id == "but7":
         return sectionA

@@ -86,11 +86,9 @@ def get_tracks(game_id):
     cur.close()
 
     dic = {}
-
     ctr = 0
 
-
-    for track_id in range(maxTrack):
+    for track_id in range(maxTrack+1):
         # create a temporary cursor and execute the get request for the detections of this frame
         cur_temp = conn.cursor()
         cur_temp.execute('''SELECT * FROM detections WHERE game_id={0} AND track_id={1}'''.format(game_id, track_id))
