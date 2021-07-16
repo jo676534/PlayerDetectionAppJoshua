@@ -250,10 +250,11 @@ sectionB = html.Div([
 image_annotation_card = dbc.Card(
     id="imagebox",
     children=[
-        dbc.CardHeader(html.Div(
-            [
-                dbc.FormGroup(
-                            [
+        dbc.CardHeader(
+            html.Div(
+            [   dbc.Row( 
+                   children = [ 
+                       dbc.FormGroup(
                                 dbc.Checklist(
                                     options=[
                                         {"label": "Assigned Track Boxes", "value": 1}, #1 is assigned
@@ -261,14 +262,27 @@ image_annotation_card = dbc.Card(
                                     ],
                                     value=[1, 2],
                                     id="switches-input",
-                                    style ={'margin-left':'20px', 'margin-bottom':'-14px'},
+                                    style ={'margin-left':'20px'},
                                     switch=True,
                                     inline=True,
-                                ),
-                            ]
-                        ),
-            ]
-        )),
+                                ),              
+                    ),
+                        dbc.DropdownMenu(
+                            label="Select a Video Section",
+                            bs_size = "sm",
+                            children=[
+                                dbc.DropdownMenuItem("Section 1"),
+                                dbc.DropdownMenuItem("Section 2"),
+                                dbc.DropdownMenuItem("Section 3"),
+                            ],
+                            style = {"margin-left":"250px"},               
+                        ), 
+                    ]
+                )    
+            ],
+        ),
+        className= "player_card_header",
+        ),
         html.Div(id='hidden_div_j0', style= {'display':'none'}),
         dbc.CardBody(
             [
@@ -305,10 +319,15 @@ image_annotation_card = dbc.Card(
                 dbc.ButtonGroup(
                     [
                         dbc.Button(children=[html.Img
-                                                (src = 'https://github.com/dianabisbe/Images/blob/main/rw50.png?raw=true',
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/PreviousSection.png?raw=true',
                                                  style={'height':'30px'})],
-                                    id="rewind-50", outline=True, style={
+                                    id="previousSec", outline=True, style={
                                    "margin-left": "50px", "margin-right": "15px", "margin-bottom": "15px"},color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/rw50.png?raw=true',
+                                                 style={'height':'30px'})],  
+                                    id="rewind-50", outline=True, style={
+                                   "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
                         dbc.Button(children=[html.Img
                                                 (src = 'https://github.com/dianabisbe/Images/blob/main/rw10.png?raw=true',
                                                  style={'height':'30px'})],  
@@ -338,6 +357,11 @@ image_annotation_card = dbc.Card(
                                                 (src = 'https://github.com/dianabisbe/Images/blob/main/ff50.png?raw=true',
                                                  style={'height':'30px'})],
                                     id="fastforward-50", outline=True, style={
+                                   "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/NextSection.png?raw=true',
+                                                 style={'height':'30px'})],
+                                    id="nextSec", outline=True, style={
                                    "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
                     ],
                     style={"width": "100%", 'margin-left':'-10px'}
