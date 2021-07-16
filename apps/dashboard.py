@@ -91,26 +91,37 @@ df_players = api_player.get_players(0)
 # NON-DASH FUNCTIONS ##############################################################################################################################
 
 
-def add_editable_box(fig, track_id, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None):
+def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None):
+    # could put code here to determine colors
+    line_color = ""
+    header = ""
+    if player_id == -1:
+        line_color = "#c90000" # red (not assigned)
+        header = str(track_id)
+    else: 
+        line_color = "#0600b3" # blue (is assigned)
+        header = initials
+
+
     fig.add_shape(
         editable=True,
         x0=x0,
         y0=y0,
         x1=x1,
         y1=y1,
-        line_color=color,
+        line_color=line_color,
         opacity=opacity,
-        line_width=3,
+        line_width=2,
         name=name,
     )
-    fig.add_annotation(  # ((x0+x1)/2)
+    fig.add_annotation( # ((x0+x1)/2)
         x=((x0+x1)/2),
         y=y0-30,
-        text="{0}".format(track_id),
-        showarrow=False,  # True
+        text="{0}".format(header),
+        showarrow=False, # True
         font=dict(
-            family="Courier New, monospace",
-            size=9,
+            family="Roboto",  # "Courier New, monospace",
+            size=13,
             color="#ffffff"
         ),
         align="center",
@@ -123,44 +134,9 @@ def add_editable_box(fig, track_id, x0, y0, x1, y1, name=None, color=None, opaci
         bordercolor="#c7c7c7",
         borderwidth=1,  # 2
         borderpad=2,  # 4
-        bgcolor="#ff7f0e",
+        bgcolor="#000000", # "#ff7f0e"
         opacity=0.8
     )
-
-
-def read_input():
-    for i in range(maxFrames):
-        fp = open("./detections/f" + str(i) + ".txt", "r")  # grab new file
-        df = read_file(fp)
-        dic[i] = df
-
-
-def read_file(fp):  # returns complete dataframe
-    df = pd.DataFrame([], columns=['id', 'x0', 'y0', 'x1', 'y1'])
-    fp.read(16)  # get rid of dummy inputs
-    for line in fp:  # loop for the rest of the inputs
-        start, end = line.split("[")
-        nums, garbage = end.split("]")
-        garbage2, id_num = garbage.split(":")
-
-        x, y, w, h = nums.split()
-        x0 = float(x)
-        y0 = float(y)
-        x1 = x0 + float(w)
-        y1 = y0 + float(h)
-
-        df_temp = pd.DataFrame([[int(id_num), x0, y0, x1, y1]], columns=[
-                               'id', 'x0', 'y0', 'x1', 'y1'])
-        df = df.append(df_temp)
-    return df
-
-
-def updateSection(button_id):
-    global section
-    if button_id == "but7":
-        section = "A"
-    if button_id == "but8":
-        section = "B"
 
 
 # FUNCTION WITH RETURNED DASH COMPONENT #################################################################################################################
@@ -197,7 +173,7 @@ b_row = df_players[df_players["team_id"] == 1]
 sectionA = html.Div([
     html.Div(children=[
     dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-             dbc.Button("Create a track", id = 'create_track_bt', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
+             dbc.Spinner(html.Div(id="assign_track_output")),],
              align = 'center',),
     dbc.Col([dbc.RadioItems(
     options=[
@@ -221,7 +197,7 @@ sectionA = html.Div([
 sectionB = html.Div([
     html.Div(children=[
     dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-             dbc.Button("Create a track", id = 'create_track', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
+             dbc.Spinner(html.Div(id="assign_track_output")),],
              align = 'center',),
     dbc.Col([dbc.RadioItems(
     options=[
@@ -232,13 +208,12 @@ sectionB = html.Div([
     )],
     align = 'center',
     style={'width': '250px', 
-           'height': '590px', 
+           'height': '670px', 
            'overflow': 'scroll', 
            'padding': '10px 10px 10px 20px'
           }), 
     ],
     )
-
 ])
 
 
@@ -394,31 +369,35 @@ annotated_data_card = dbc.Card(
                 html.Div(id='hidden-div', style= {'display':'none'}),
                 html.Div(id='hidden-div2', style= {'display':'none'}),
                 html.Div(id='track_container', children=[html.Div([
-                html.Div(children=[
-                dbc.Col([
-                        dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
-                        dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
-                        dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                    html.Div(children=
+                        [
+                            dbc.Col(
+                                [
+                                    dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
+                                    dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                                    dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                                ],
+                                align = 'center',
+                            ),        
+                            dbc.Col(
+                                [
+                                    dbc.RadioItems(
+                                        options=[
+                                            {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
+                                        #value=str(list(dic_tracks.keys())[1]), 
+                                        id = "radio_all_tracks",
+                                        className= "radio_items",
+                                    )
+                                ],
+                                align = 'center',
+                                style={'width': '100%', 
+                                            'height': '437px', 
+                                            'overflow': 'scroll', 
+                                            'padding': '10px 10px 10px 20px'
+                                }), 
                         ],
-                        align = 'center',),   
-                         
-                dbc.Col([
-                dbc.RadioItems(
-                options=[
-                    {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
-                #value=str(list(dic_tracks.keys())[1]), 
-                id = "radio_all_tracks",
-                className= "radio_items",
-                )],
-                align = 'center',
-                style={'width': '100%', 
-                            'height': '437px', 
-                            'overflow': 'scroll', 
-                            'padding': '10px 10px 10px 20px'
-                    }), 
-    ],
-    )
-])])
+                    )
+                ])])
             ]
         ),
         dbc.CardFooter(
@@ -434,16 +413,15 @@ annotated_data_card = dbc.Card(
                     [
                         dbc.ButtonGroup(
                             [
-                                dbc.Button("Set Start Frame", id="set_start", style = {'font-size': '12px'}),
-                                dbc.Button("Set Final Frame", id="set_final", style = {'font-size': '12px'}),
-                                dbc.Button("Add Track", id="add_track", style = {'font-size': '12px'})
+                                dbc.Button("Set Start", id="set_start", style = {'font-size': '12px'}),
+                                dbc.Button("Set Final", id="set_final", style = {'font-size': '12px'}),
+                                dbc.Button("Add Track", id="add_track", style = {'font-size': '12px'}),
+                                dbc.Button("Delete Section", id="delete_section", style = {'font-size': '12px'})
                             ]
                         )
                     ]
                 ),
-                html.Div(id="add_track_output"),
-                html.Br(),
-                html.Div(id="useless_output")
+                dbc.Spinner(html.Div(id="add_track_output"))
             ]
         ),
     ],
@@ -466,7 +444,6 @@ annotated_data_card2 = dbc.Card(
         dbc.CardBody(
             [
                 html.Div(id='container'),
-                # dbc.Button("Regenerate Tracks", id="button_regen")
             ]
         ),
         dbc.CardFooter(
@@ -513,6 +490,8 @@ layout = html.Div(  # was app.layout
     prevent_initial_call=True)
 def manual_annotation(graph_relayout, frame, player_id):
     global dic
+    global dic_tracks
+    global unique_tracks
 
     if (not 'shapes' in graph_relayout):
         return "Please do not resize boxes, that is not supported", None
@@ -552,17 +531,23 @@ def manual_annotation(graph_relayout, frame, player_id):
                 track_id = temp_df['track_id']
                 break
         
+        # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+        # we do this rather than making an api call because it will likely be faster and cost less
         df = df.reset_index() # needed because the add box indexing can overlap, causing multiple entries to be deleted
-        df = df.drop(df[df['track_id'] == int(track_id)].index)
-        dic[frame] = df
+        df = df.drop('index', 1) # this creates a new index column with the old index values that we don't want so we discard it
+        df = df.drop(df[df['track_id'] == int(track_id)].index) # then we search for indexes with the proper track_id and drop them
+        dic[frame] = df # now we update the dictionary with the new, modified dataframe
 
         # works, just commented out for now
-        # api_detections.delete_detection(0, frame, track_id)
+        api_detections.delete_detection(0, frame, track_id)
 
+        dic_tracks, unique_tracks = api_detections.get_tracks(0)
+        
         return "Detection box deleted from frame {} and track {}".format(frame, track_id), None
 
     # ADD BOX ------------------------------------
     elif (new_num_boxes > old_num_boxes): 
+        print("ADD BOX CALLED")
         if (player_id is None):
             return "Need a player_id selected to add a box", None
         elif (old_num_boxes+1 == new_num_boxes): # good condition
@@ -575,12 +560,27 @@ def manual_annotation(graph_relayout, frame, player_id):
             if not err:
                 bounding_box = graph_relayout['shapes'][old_num_boxes]
 
-                df_temp = pd.DataFrame([[0, frame, bounding_box['x0'], bounding_box['y0'], bounding_box['x1'], bounding_box['y1'], -2, player_id]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id'])
+                x0 = bounding_box['x0']
+                y0 = bounding_box['y0']
+                x1 = bounding_box['x1']
+                y1 = bounding_box['y1']
+
+                if x0 > x1: x0, x1 = x1, x0
+                if y0 > y1: y0, y1 = y1, y0
+
+                track_id = -2 - int(player_id) # the smallest player_id is 0 and every player has a unique id, therefore manual track annotation ids can be consistently assigned through this simple formula
+
+                # manual update of dic for efficiency
+                initials = api_detections.get_player_initials(player_id)
+                df_temp = pd.DataFrame([[0, frame, x0, y0, x1, y1, track_id, player_id, initials]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id', 'initials'])
                 dic[frame] = dic[frame].append(df_temp)
 
                 # works, just commented out for now
-                # api_detections.add_detection(0, frame, box['x0'], box['y0'], box['x1'], box['y1'], -2, player_id)
+                api_detections.add_detection(0, frame, x0, y0, x1, y1, -2, player_id)
 
+                # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+                dic_tracks, unique_tracks = api_detections.get_tracks(0)
+                
                 return "Box successfully added (not db linked) [norm]", None
             else:
                 return "This player already has a detection assigned to them in this frame", None
@@ -612,7 +612,7 @@ def set_start_frame(n_clicks, frame):
     Output("dashboard_input_final", "value"),
     Input("set_final", "n_clicks"),
     State('frame-slider', 'value'))
-def set_start_frame(n_clicks, frame):
+def set_final_frame(n_clicks, frame):
     if n_clicks is not None:
         return frame
 
@@ -623,34 +623,60 @@ def set_start_frame(n_clicks, frame):
     Output("final_frame_add", "data"),
     Output('player_id_add', 'data'),
     Input("add_track", "n_clicks"),
+    Input("delete_section", "n_clicks"),
     State("dashboard_input_start", "value"),
     State("dashboard_input_final", "value"),
     State("start_frame_add", "data"),
     State("final_frame_add", "data"),
-    State("radio_players_A", 'value'))
-def add_track(n_clicks, start_frame, final_frame, storage1, storage2, player_id):
-    if n_clicks is not None:
-        if ((start_frame is None) or (final_frame is None)):
-            return ("Must have inputs for start and final frame.", start_frame, final_frame, player_id)
-        elif start_frame >= final_frame:
-            return ("Start frame must be less than final frame.", start_frame, final_frame, player_id)
-        elif player_id is None:
+    State("radio_players_A", 'value'),
+    State('radio_all_tracks', 'value'),
+    prevent_initial_call=True)
+def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, storage1, storage2, player_id, track_id):
+    global dic
+    global dic_tracks
+    global unique_tracks
+
+    # universal checks
+    if add_clicks is None and delete_clicks is None: # if this callback was accidently called or initialized
+        return None, start_frame, final_frame, player_id
+    if ((start_frame is None) or (final_frame is None)):
+        return ("Must have inputs for start and final frame.", start_frame, final_frame, player_id)
+    elif start_frame >= final_frame:
+        return ("Start frame must be less than final frame.", start_frame, final_frame, player_id)
+    
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    # Delete Section
+    if cbcontext == 'delete_section.n_clicks':
+        if track_id is None:
+            return ("Must have an intended track selected.", start_frame, final_frame, player_id)
+
+        api_detections.delete_detection_section(0, start_frame, final_frame, track_id) # don't check and just purge the section even if there isn't anything there or only partially there within the single api call (simpler and doesn't matter much)
+        
+        # UPDATE LOCATION //////////////////////////////////////////////////////////////////////////////////////////////////
+        dic = api_detections.get_frame_detections(0)
+        dic_tracks, unique_tracks = api_detections.get_tracks(0)
+
+        return ("Deleted selected dections from the track.", start_frame, final_frame, player_id)
+    # Add Track
+    elif cbcontext == 'add_track.n_clicks':
+        if player_id is None:
             return ("Must have an intended player selected.", start_frame, final_frame, player_id)
         else:
-            # now need some way to store the relevant values
-            # Want to eventually use dcc.store or something like that
             return (dbc.Button("Now Click Here", id="go_to_add_track", href='/apps/add_track'), start_frame, final_frame, player_id)
     else:
         return ("{}".format(storage1), start_frame, final_frame, player_id)
 
-# callback to regenerate the detections dataframe
+# simple callback that will only be called on page startup/refresh to create the necessary data structures
 @app.callback(
-    Output("useless_output", "children"),
-    Input("button_regen", "n_clicks"),)
-def add_track_return(n_clicks):
+    Output("hidden_div_init_output", "children"),
+    Input("hidden_div_init_input", "children"),)
+def initializer(useless_input):
     global dic
+    global dic_tracks
+    global unique_tracks
     dic = api_detections.get_frame_detections(0)
-    return "test {}".format(n_clicks)
+    dic_tracks, unique_tracks = api_detections.get_tracks(0)
+    return None
 
 # --------------------------------------------------
 
@@ -667,7 +693,11 @@ def display(btn1, btn2):
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-    updateSection(button_id)
+    global section
+    if button_id == "but7":
+        section = "A"
+    if button_id == "but8":
+        section = "B"
 
     if button_id == "but7":
         return sectionA
@@ -729,31 +759,26 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
     #str(dic_tracks[i]['track_id'][0]
 
-    print("\n\nCONTEXT")
-    print(cbcontext)
-    print("Intro STATE")
-    print(track_state)
-
+    # This first part uses the most recent track_state to determine which radio list should display when it needs to be refreshed
+    # hidden_div_j1 == video display callback
+    # radio_players_A == player buttons
+    # hidden_div_j2 == delete button
     if cbcontext == 'hidden_div_j1.children' or cbcontext == 'radio_players_A.value' or cbcontext == 'hidden_div_j2.children':
-        print("In the middle part")
-        if track_state == 0 or track_state == 1:
+        if (track_state == 0 or track_state == 1) and (cbcontext == 'hidden_div_j2.children'):
             button_id = "all_tracks_bt"
-        elif track_state == 2:
+        elif (track_state == 2) and (cbcontext == 'hidden_div_j1.children' or cbcontext == 'hidden_div_j2.children'):
             button_id = "viewable_tracks_bt"
-        else:
+        elif (track_state == 3) and (cbcontext == 'radio_players_A.value' or cbcontext == 'hidden_div_j2.children'):
             button_id = "player_tracks_bt"
+        else:
+            raise PreventUpdate
+    # Otherwise "normal" callbacks need to set the track_state value so it's remembered what was last clicked for when a refresh comes
     elif cbcontext == 'all_tracks_bt.n_clicks':
-        print("TS became 1")
         track_state = 1
     elif cbcontext == 'viewable_tracks_bt.n_clicks':
-        print("TS became 2")
         track_state = 2
     elif cbcontext == 'player_tracks_bt.n_clicks':
-        print("TS became 3")
         track_state = 3
-
-    print("Outro STATE")
-    print(track_state)
 
     if button_id == "all_tracks_bt":
         return  html.Div([
@@ -784,6 +809,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
     if button_id == "viewable_tracks_bt":
         df_detections = api_detections.get_game_detections(0)
         viewable_row = df_detections[df_detections["frame"] == frame]
+        viewable_row = viewable_row.sort_values(by=['track_id'])
         return html.Div([
                         html.Div(children=[
                            dbc.Col([
@@ -904,14 +930,14 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
                                         className= "radio_items",
                                     align = 'center',
                                     style={'width': '100%', 
-                                            'height': '550px', 
+                                            'height': '350px', 
                                             'overflow': 'scroll', 
                                             'padding': '10px 10px 10px 20px'}), 
                                 ],)
                         ])
     else:
         return "Select Tracks"
-        
+
 
 
 # Call back for video Player/Pause
@@ -998,8 +1024,9 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
                 currentFrame = slider
             else:  
                 for i in range (0, unique_tracks):
-                    if int(dic_tracks[i]['track_id'][0]) == int(value):
-                        currentFrame = min(dic_tracks[i]['frame'])
+                    if value:
+                        if int(dic_tracks[i]['track_id'][0]) == int(value):
+                            currentFrame = min(dic_tracks[i]['frame'])
         if cbcontext =="go_to_end.n_clicks":
             if cbcontext == "frame-slider.value":
                 currentFrame = slider
@@ -1056,8 +1083,10 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
             y0 = frame_df.iloc[i]['y0']
             x1 = frame_df.iloc[i]['x1']
             y1 = frame_df.iloc[i]['y1']
-            id_num = frame_df.iloc[i]['track_id']
-            add_editable_box(fig, id_num, x0, y0, x1, y1)
+            track_id = frame_df.iloc[i]['track_id']
+            player_id = frame_df.iloc[i]['player_id']
+            initials = frame_df.iloc[i]['initials']
+            add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1)
 
     elif (unassinged_is_checked and assigned_is_checked == 0):
         for i in range(len(frame_df)):
@@ -1068,8 +1097,10 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
                 y0 = frame_df.iloc[i]['y0']
                 x1 = frame_df.iloc[i]['x1']
                 y1 = frame_df.iloc[i]['y1']
-                id_num = frame_df.iloc[i]['track_id']
-                add_editable_box(fig, id_num, x0, y0, x1, y1)
+                track_id = frame_df.iloc[i]['track_id']
+                player_id = frame_df.iloc[i]['player_id']
+                initials = frame_df.iloc[i]['initials']
+                add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1)
 
     elif (assigned_is_checked and unassinged_is_checked == 0):
         for i in range(len(frame_df)):
@@ -1080,8 +1111,10 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
                 y0 = frame_df.iloc[i]['y0']
                 x1 = frame_df.iloc[i]['x1']
                 y1 = frame_df.iloc[i]['y1']
-                id_num = frame_df.iloc[i]['track_id']
-                add_editable_box(fig, id_num, x0, y0, x1, y1)       
+                track_id = frame_df.iloc[i]['track_id']
+                player_id = frame_df.iloc[i]['player_id']
+                initials = frame_df.iloc[i]['initials']
+                add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1)       
 
     # print(id_num, x0, y0, x1, y1)
     return (fig, currentFrame, currentFrame, None)
@@ -1096,39 +1129,35 @@ def update_output(value):
 # Callback for Assign Tracks
 @app.callback(
     Output('hidden-div', 'children'),
+    Output("assign_track_output", "children"),
     Input('assign_track_bt', 'n_clicks'),
     State('radio_all_tracks', 'value'),
-    State("radio_players_A", 'value')
-)
-def update_player_tracks(assignBt, trackIDValue, playerIDValue):
-    global dic_tracks
-    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    State("radio_players_A", 'value'),
+    prevent_initial_call=True)
+def update_player_tracks(assignBt, track_id, player_id):
+    if assignBt:
+        global dic_tracks
+        global unique_tracks
+        global dic
 
-    global dic
+        cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+        
+        player_frames = api_detections.get_player_frames(0, player_id)
+        track_frames = api_detections.get_track_frames(0, track_id)
+        intersection = [val for val in track_frames if val in player_frames]
 
-    # need to check here if the assignment has any overlap
-    # also need a way for all of these assignments to tell the user where the overlap is
+        if cbcontext == 'assign_track_bt.n_clicks':
+            if intersection: 
+                api_detections.delete_detection_list(0, track_id, intersection) # maybe check if it has an item in it first
+            api_detections.assign_track(0, player_id, track_id)
+        
+        # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+        dic = api_detections.get_frame_detections(0)
+        dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
-    # Theoretical way to do this:
-        # Make api call to determine the minimum and maximum parts of the track
-            # Could encounter issues with missing/deleted parts in the middle
-        # Then need to loop through to check if there are any detections already assigned to that player
-
-    if cbcontext == 'assign_track_bt.n_clicks':
-        conn = pg2.connect(database='soccer',
-            user='postgres',
-            host='localhost',  # localhost-------------------!
-            password='root')
-        cur = conn.cursor()
-        cur.execute('''UPDATE detections SET player_id = %s WHERE track_id = %s''', (playerIDValue, trackIDValue))
-        conn.commit()
-        cur.close()
-        conn.close()
-    
-    # Instead of updating the whole dictionary, update the assigned track for efficiency ------ change to make!
-    dic = api_detections.get_frame_detections(0)
-
-    return '  Test: "{}"'.format(playerIDValue) 
+        return None, "Track successfully assigned."
+    else:
+        return None, None
 
 # Callback for delete
 @app.callback(
@@ -1137,9 +1166,10 @@ def update_player_tracks(assignBt, trackIDValue, playerIDValue):
     Output('hidden_div_j3', 'children'),
     Input('delete_bt', 'n_clicks'),
     State('radio_all_tracks', 'value'),
-)
+    prevent_initial_call=True)
 def delete_track(delete_bt, track_id):
-
+    global dic_tracks
+    global unique_tracks
     global dic
 
     if track_id is None:
@@ -1147,18 +1177,10 @@ def delete_track(delete_bt, track_id):
 
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     if cbcontext == 'delete_bt.n_clicks':
-        print("It entered")
-        conn = pg2.connect(database='soccer',
-            user='postgres',
-            host='localhost',  # localhost-------------------!
-            password='root')
-        cur = conn.cursor()
-        cur.execute('''DELETE FROM detections WHERE track_id = %s''' % track_id)
-        conn.commit()
-        cur.close()
-        conn.close()
+        api_detections.delete_track(0, track_id)
 
-    # Instead of updating the whole dictionary, update the deleted track for efficiency ------ change to make!
+    # UPDATE LOCATION ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     dic = api_detections.get_frame_detections(0)
+    dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
     return (None, None, None)
