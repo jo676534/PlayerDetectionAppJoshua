@@ -25,7 +25,6 @@ from api import api_detections
 from api import api_team
 from api import api_player
 
-from .pysot.tools import josh_test
 from .pysot.tools import demo
 
 

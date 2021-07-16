@@ -199,16 +199,17 @@ sectionA = html.Div([
     dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
              dbc.Button("Create a track", id = 'create_track_bt', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
              align = 'center',),
-    dbc.Col([dcc.RadioItems(
+    dbc.Col([dbc.RadioItems(
     options=[
         {'label': str(a_row.iloc[i]["name"]), 'value': str(a_row.iloc[i]["player_id"])} for i in range(0, len(a_row))],
     #value=str(a_row.iloc[1]["player_id"]), 
     id = "radio_players_A",
+    className= "radio_items",
    
     )],
     align = 'center',
     style={'width': '250px', 
-           'height': '590px', 
+           'height': '670px', 
            'overflow': 'scroll', 
            'padding': '10px 10px 10px 20px'
           }), 
@@ -222,12 +223,12 @@ sectionB = html.Div([
     dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
              dbc.Button("Create a track", id = 'create_track', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),],
              align = 'center',),
-    dbc.Col([dcc.RadioItems(
+    dbc.Col([dbc.RadioItems(
     options=[
         {'label': str(b_row.iloc[i]["name"]), 'value': str(b_row.iloc[i]["player_id"])} for i in range(0, len(b_row))],
     #value=str(b_row.iloc[1]["name"]),  
     id = "radio_players_A",
-   
+    className= "radio_items",
     )],
     align = 'center',
     style={'width': '250px', 
@@ -259,7 +260,7 @@ image_annotation_card = dbc.Card(
                                     ],
                                     value=[1, 2],
                                     id="switches-input",
-                                    style ={'margin-left':'20px'},
+                                    style ={'margin-left':'20px', 'margin-bottom':'-14px'},
                                     switch=True,
                                     inline=True,
                                 ),
@@ -301,31 +302,52 @@ image_annotation_card = dbc.Card(
                     marks={round(i*maxFrames/16): '{}'.format(round(i*maxFrames/16))
                            for i in range(maxFrames)},
                 ),
-                html.Div(id='slider-output-container'),
+                html.Div(id='slider-output-container', className='current_frame'),
                 # Pause/Player Buttons
                 dbc.ButtonGroup(
                     [
-                        dbc.Button("Previous", id="previous", outline=True, style={
-                                   "margin-left": "50px", "margin-right": "15px", "margin-bottom": "15px"}),
-                        dbc.Button("Rewind 50", id="rewind-50", outline=True, style={
-                                   "margin-right": "15px", "margin-bottom": "15px"}),
-                        dbc.Button("Rewind 10", id="rewind-10", outline=True, style={
-                                   "margin-right": "15px", "margin-bottom": "15px"}),
-                        dbc.Button("Play", id="playpause", outline=True,
-                                   style={"margin-right": "15px", "margin-bottom": "15px"}),
-                        dbc.Button("Fastforward 10", id="fastforward-10", outline=True, style={
-                                   "margin-right": "15px", "margin-bottom": "15px"}),
-                        dbc.Button("Fastforward 50", id="fastforward-50", outline=True, style={
-                                   "margin-right": "15px", "margin-bottom": "15px"}),
-                        dbc.Button("  Next  ", id="next", outline=True, style={
-                                   "margin-right": "15px", "margin-bottom": "15px"}),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/rw50.png?raw=true',
+                                                 style={'height':'30px'})],
+                                    id="rewind-50", outline=True, style={
+                                   "margin-left": "50px", "margin-right": "15px", "margin-bottom": "15px"},color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/rw10.png?raw=true',
+                                                 style={'height':'30px'})],  
+                                    id="rewind-10", outline=True, style={
+                                   "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/Prev.png?raw=true',
+                                                 style={'height':'30px'})],
+                                    id="previous", outline=True, style={
+                                    "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/Play.png?raw=true',
+                                                 style={'height':'30px'})],
+                                   id="playpause", outline=True,
+                                   style={"margin-right": "15px", "margin-bottom": "15px"}, color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/Next.png?raw=true',
+                                                 style={'height':'30px'})],
+                                    id="next", outline=True, style={
+                                   "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/ff10.png?raw=true',
+                                                 style={'height':'30px'})], 
+                                    id="fastforward-10", outline=True, style={
+                                   "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/ff50.png?raw=true',
+                                                 style={'height':'30px'})],
+                                    id="fastforward-50", outline=True, style={
+                                   "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
                     ],
                     style={"width": "100%", 'margin-left':'-10px'}
                 ),
             ]
         ),
     ],
-    style={"margin-left": "20px","margin-top": "20px", "margin-bottom": "20px", "margin-right": "10px"}
+    style={"margin-left": "5px","margin-top": "20px", "margin-bottom": "20px", "margin-right": "10px"}
 )
 
 
@@ -357,16 +379,16 @@ annotated_data_card = dbc.Card(
                         align = 'center',),   
                          
                 dbc.Col([
-                dcc.RadioItems(
+                dbc.RadioItems(
                 options=[
                     {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
                 #value=str(list(dic_tracks.keys())[1]), 
                 id = "radio_all_tracks",
-            
+                className= "radio_items",
                 )],
                 align = 'center',
                 style={'width': '100%', 
-                            'height': '350px', 
+                            'height': '437px', 
                             'overflow': 'scroll', 
                             'padding': '10px 10px 10px 20px'
                     }), 
@@ -377,20 +399,20 @@ annotated_data_card = dbc.Card(
         ),
         dbc.CardFooter(
             [
-                html.H6("Add Track Section"),
+                html.H6("Add Track Section", className = "add_track_section_header"),
                 html.Div(
                     [
-                        dbc.Input(id="dashboard_input_start", placeholder="Start", type="number", min=0, step=1), # value
-                        dbc.Input(id="dashboard_input_final", placeholder="Final", type="number", min=0, step=1), 
+                        dbc.Input(id="dashboard_input_start", placeholder="Start", type="number", min=0, step=1, className= "dashboard_input"), # value
+                        dbc.Input(id="dashboard_input_final", placeholder="Final", type="number", min=0, step=1, className= "dashboard_input"), 
                     ]
                 ),
                 html.Div(
                     [
                         dbc.ButtonGroup(
                             [
-                                dbc.Button("Set Start Frame", id="set_start"),
-                                dbc.Button("Set Final Frame", id="set_final"),
-                                dbc.Button("Add Track", id="add_track")
+                                dbc.Button("Set Start Frame", id="set_start", style = {'font-size': '12px'}),
+                                dbc.Button("Set Final Frame", id="set_final", style = {'font-size': '12px'}),
+                                dbc.Button("Add Track", id="add_track", style = {'font-size': '12px'})
                             ]
                         )
                     ]
@@ -413,9 +435,9 @@ annotated_data_card2 = dbc.Card(
         dbc.CardHeader(html.Div(
             [
                 dbc.Button("Team A", id="but7", outline=True, style={
-                       "margin-right": "4px", "font-size": "12px"}),
+                       "margin-left": "45px", "font-size": "12px"}),
                 dbc.Button("Team B", id="but8", outline=True,
-                           style={"font-size": "12px"}),
+                           style={"margin-left": "15px","font-size": "12px"}),
             ])),
         dbc.CardBody(
             [
@@ -663,16 +685,16 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
                         dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
                         ],
                         align = 'center',),            
-                dbc.Col([dcc.RadioItems(
+                dbc.Col([dbc.RadioItems(
                 options=[
                     {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
                 #value=str(list(dic_tracks.keys())[1]), 
                 id = "radio_all_tracks",
-            
+                className= "radio_items",
                 )],
                 align = 'center',
                 style={'width': '100%', 
-                            'height': '350px', 
+                            'height': '437px', 
                             'overflow': 'scroll', 
                             'padding': '10px 10px 10px 20px'
                     }), 
@@ -718,16 +740,16 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
                         dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
                         ],
                         align = 'center',),            
-                dbc.Col([dcc.RadioItems(
+                dbc.Col([dbc.RadioItems(
                 options=[
                     {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
                 #value=str(list(dic_tracks.keys())[1]), 
                 id = "radio_all_tracks",
-            
+                className= "radio_items",
                 )],
                 align = 'center',
                 style={'width': '100%', 
-                            'height': '350px', 
+                            'height': '437px', 
                             'overflow': 'scroll', 
                             'padding': '10px 10px 10px 20px'
                     }), 
@@ -746,16 +768,17 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
                         dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
                         ],
                         align = 'center',), 
-                            dbc.Col([dcc.RadioItems(
+                            dbc.Col([dbc.RadioItems(
                                 options=[
                                     {'label': 'Track ID: ' + str(viewable_row.iloc[i]['track_id']), 
                                     'value': str(viewable_row.iloc[i]['track_id'])} for i in range(0, len(viewable_row))],
                                 # labelStyle = {'textAlign':'center'},
                                 #value=str(viewable_row.iloc[frame]['track_id']), 
                                 id = "radio_all_tracks",)],
+                                className= "radio_items",
                             align = 'center',
                             style={'width': '100%', 
-                                    'height': '350px', 
+                                    'height': '437px', 
                                     'overflow': 'scroll', 
                                     'padding': '10px 10px 10px 20px'}), 
                         ],)
@@ -767,20 +790,21 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
             return html.Div([
                          html.Div(children=[
                             dbc.Col([
-                                dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
-                                dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
-                                dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                                dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},disabled= True),
+                                dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},disabled= True),
+                                dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}, disabled= True),
                                 ],
                                 align = 'center',), 
-                            dbc.Col([dcc.RadioItems(
+                            dbc.Col([dbc.RadioItems(
                                 options=[
-                                {'label': "Select Player To See Player Tracks", 
+                                {'label': "Select a Player", 
                                 'value': str(dic_tracks[1]['track_id'][0])}],
 
                             id = "radio_all_tracks",)],
+                            className= "radio_items",
                             align = 'center',
                             style={'width': '100%', 
-                                    'height': '350px', 
+                                    'height': '437px', 
                                     'overflow': 'scroll', 
                                     'padding': '10px 10px 10px 20px'}), 
                                 ],)
@@ -808,20 +832,21 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
                 return html.Div([
                          html.Div(children=[
                             dbc.Col([
-                                dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
-                                dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
-                                dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                                dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"}, disabled= True),
+                                dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},disabled= True),
+                                dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}, disabled= True),
                                 ],
                                 align = 'center',), 
-                            dbc.Col([dcc.RadioItems(
+                            dbc.Col([dbc.RadioItems(
                                 options=[
-                                {'label': "No Tracks have been assigned to this player", 
+                                {'label': "No Assigned Tracks", 
                                 'value': str(dic_tracks[1]['track_id'][0])}],
 
                             id = "radio_all_tracks",)],
+                            className= "radio_items",
                             align = 'center',
                             style={'width': '100%', 
-                                    'height': '550px', 
+                                    'height': '437px', 
                                     'overflow': 'scroll', 
                                     'padding': '10px 10px 10px 20px'}), 
                                 ],)
@@ -845,13 +870,14 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
                                         dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
                                         ],
                                         align = 'center',), 
-                                    dbc.Col([dcc.RadioItems(
+                                    dbc.Col([dbc.RadioItems(
                                         options=[
                                             {'label': 'Track ID: ' + str(trackList[i]), 
                                             'value': str(trackList[i])} for i in range( len(trackList))],
                                         # labelStyle = {'textAlign':'center'},
                                         #value=str(viewable_row.iloc[frame]['track_id']), 
                                         id = "radio_all_tracks",)],
+                                        className= "radio_items",
                                     align = 'center',
                                     style={'width': '100%', 
                                             'height': '550px', 
@@ -873,12 +899,14 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
 )
 def togglePlay(play, isPaused):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-    text = 'Play'
+    text = html.Img(src = 'https://github.com/dianabisbe/Images/blob/main/Play.png?raw=true',
+                              style={'height':'30px'})
 
     if cbcontext == "playpause.n_clicks":
         if isPaused == True:
             isPaused = False
-            text = 'Pause'
+            text = html.Img(src = 'https://github.com/dianabisbe/Images/blob/main/Pause.png?raw=true',
+                            style={'height':'30px'})
         elif isPaused == False:
             isPaused = True
         else:
@@ -1039,7 +1067,7 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
     dash.dependencies.Output('slider-output-container', 'children'),
     [dash.dependencies.Input('frame_interval', 'n_intervals')])
 def update_output(value):
-    return '  Current Frame "{}"'.format(value)
+    return '  Current Frame Number: {}'.format(value)
 
 # Callback for Assign Tracks
 @app.callback(

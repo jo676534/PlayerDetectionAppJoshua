@@ -1,0 +1,74 @@
+body {
+    font-family: Helvetica
+}
+h1, h2, h3, h4, h5,h6{
+    color: #00c2cb;
+   
+}
+.add_track_section_header{
+    color: #00c2cb;
+    font-weight: bolder;
+}
+
+.dashboard_input{
+   border-color: #00c2cb;
+   background-color: aliceblue;
+   font-style: italic;
+   font-size: 12px;
+   margin-bottom: 10px;
+}
+
+.radio_items{
+    font-size : 16px;
+}
+
+#radio_players_A
+  .custom-control-input:checked
+  ~ .custom-control-label::before {
+  background-color: #00c2cb;
+  border-color: #00c2cb;
+}
+
+#radio_all_tracks
+  .custom-control-input:checked
+  ~ .custom-control-label::before {
+  background-color: #00c2cb;
+  border-color: #00c2cb;
+}
+
+.links{
+    color: #00c2cb;
+}
+
+#switches-input
+.custom-control-input:checked
+~ .custom-control-label::before {
+background-color: #00c2cb;
+border-color: #00c2cb;
+}
+
+.current_frame{
+    font-size: 18px;
+    color: #000e44;
+    font-weight: bolder;
+    margin-left: 20px;
+}
+
+/* .button{
+    color: #11246B;
+    border-color: #00c2cb;
+   background-color: #00c2cb;
+
+} */
+
+/* .player_button{
+    background-color: rgba(0, 255, 255, 0);
+} */
+
+/* .card {
+    background-color: #555353a1;
+} */
+
+
+
+
