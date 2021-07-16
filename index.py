@@ -36,8 +36,10 @@ navbar = dbc.NavbarSimple(
     ],
     brand="General NavBar",
     brand_href="#",
-    color="#6A6A6A",
+    color="#000e44",
     dark=True,
+    id = "nav_bar",
+    className= "nav_bar_style",
     brand_style={"margin-left": "-160px"},
 )
 
