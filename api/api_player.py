@@ -36,6 +36,7 @@ def get_players(game_id): # will need significant rework to find the players for
 # ----------------------------------------------------------------------------
 
 # assigning a track to a player
+# USE the one in api_detections instead
 def assign_track(game_id, track_id, player_id):
     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
     cur = conn.cursor()

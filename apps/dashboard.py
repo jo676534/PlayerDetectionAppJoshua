@@ -91,13 +91,17 @@ df_players = api_player.get_players(0)
 # NON-DASH FUNCTIONS ##############################################################################################################################
 
 
-def add_editable_box(fig, track_id, player_id, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None):
+def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None):
     # could put code here to determine colors
     line_color = ""
+    header = ""
     if player_id == -1:
         line_color = "#c90000" # red (not assigned)
+        header = str(track_id)
     else: 
         line_color = "#0600b3" # blue (is assigned)
+        header = initials
+
 
     fig.add_shape(
         editable=True,
@@ -113,7 +117,7 @@ def add_editable_box(fig, track_id, player_id, x0, y0, x1, y1, name=None, color=
     fig.add_annotation( # ((x0+x1)/2)
         x=((x0+x1)/2),
         y=y0-30,
-        text="{0}".format(track_id),
+        text="{0}".format(header),
         showarrow=False, # True
         font=dict(
             family="Roboto",  # "Courier New, monospace",
@@ -275,7 +279,8 @@ image_annotation_card = dbc.Card(
                         ),
             ]
         )),
-        html.Div(id='hidden_div_init', style= {'display':'none'}),
+        html.Div(id='hidden_div_init_input', style= {'display':'none'}),
+        html.Div(id='hidden_div_init_output', style= {'display':'none'}),
         html.Div(id='hidden_div_j0', style= {'display':'none'}),
         html.Div(id='hidden_div_j1', style= {'display':'none'}),
         html.Div(id='hidden_div_j2', style= {'display':'none'}),
@@ -522,15 +527,16 @@ def manual_annotation(graph_relayout, frame, player_id):
         df = df.drop(df[df['track_id'] == int(track_id)].index) # then we search for indexes with the proper track_id and drop them
         dic[frame] = df # now we update the dictionary with the new, modified dataframe
 
-        dic_tracks, unique_tracks = api_detections.get_tracks(0)
-
         # works, just commented out for now
-        # api_detections.delete_detection(0, frame, track_id)
+        api_detections.delete_detection(0, frame, track_id)
+
+        dic_tracks, unique_tracks = api_detections.get_tracks(0)
         
         return "Detection box deleted from frame {} and track {}".format(frame, track_id), None
 
     # ADD BOX ------------------------------------
     elif (new_num_boxes > old_num_boxes): 
+        print("ADD BOX CALLED")
         if (player_id is None):
             return "Need a player_id selected to add a box", None
         elif (old_num_boxes+1 == new_num_boxes): # good condition
@@ -552,15 +558,17 @@ def manual_annotation(graph_relayout, frame, player_id):
                 if y0 > y1: y0, y1 = y1, y0
 
                 track_id = -2 - int(player_id) # the smallest player_id is 0 and every player has a unique id, therefore manual track annotation ids can be consistently assigned through this simple formula
-                
-                # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-                df_temp = pd.DataFrame([[0, frame, x0, y0, x1, y1, track_id, player_id]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id'])
+
+                # manual update of dic for efficiency
+                initials = api_detections.get_player_initials(player_id)
+                df_temp = pd.DataFrame([[0, frame, x0, y0, x1, y1, track_id, player_id, initials]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id', 'initials'])
                 dic[frame] = dic[frame].append(df_temp)
 
-                dic_tracks, unique_tracks = api_detections.get_tracks(0)
-
                 # works, just commented out for now
-                # api_detections.add_detection(0, frame, x0, y0, x1, y1, -2, player_id)
+                api_detections.add_detection(0, frame, x0, y0, x1, y1, -2, player_id)
+
+                # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+                dic_tracks, unique_tracks = api_detections.get_tracks(0)
                 
                 return "Box successfully added (not db linked) [norm]", None
             else:
@@ -612,7 +620,7 @@ def set_final_frame(n_clicks, frame):
     State("radio_players_A", 'value'),
     State('radio_all_tracks', 'value'),
     prevent_initial_call=True)
-def add_track(add_clicks, delete_clicks, start_frame, final_frame, storage1, storage2, player_id, track_id):
+def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, storage1, storage2, player_id, track_id):
     global dic
     global dic_tracks
     global unique_tracks
@@ -647,16 +655,18 @@ def add_track(add_clicks, delete_clicks, start_frame, final_frame, storage1, sto
     else:
         return ("{}".format(storage1), start_frame, final_frame, player_id)
 
-# simple callback that will only be called on page startup to create the necessary data structures
+# simple callback that will only be called on page startup/refresh to create the necessary data structures
 @app.callback(
-    Output("hidden_div_init", "children"),
-    Input("start_frame_add", "data"),)
+    Output("hidden_div_init_output", "children"),
+    Input("hidden_div_init_input", "children"),)
 def initializer(useless_input):
+    print("Initializer Called")
     global dic
     global dic_tracks
     global unique_tracks
     dic = api_detections.get_frame_detections(0)
     dic_tracks, unique_tracks = api_detections.get_tracks(0)
+    print("Initializer Finished")
     return None
 
 # --------------------------------------------------
@@ -904,7 +914,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
                         ])
     else:
         return "Select Tracks"
-        
+
 
 
 # Call back for video Player/Pause
@@ -1049,7 +1059,8 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
             y1 = frame_df.iloc[i]['y1']
             track_id = frame_df.iloc[i]['track_id']
             player_id = frame_df.iloc[i]['player_id']
-            add_editable_box(fig, track_id, player_id, x0, y0, x1, y1)
+            initials = frame_df.iloc[i]['initials']
+            add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1)
 
     elif (unassinged_is_checked and assigned_is_checked == 0):
         for i in range(len(frame_df)):
@@ -1062,7 +1073,8 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
                 y1 = frame_df.iloc[i]['y1']
                 track_id = frame_df.iloc[i]['track_id']
                 player_id = frame_df.iloc[i]['player_id']
-                add_editable_box(fig, track_id, player_id, x0, y0, x1, y1)
+                initials = frame_df.iloc[i]['initials']
+                add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1)
 
     elif (assigned_is_checked and unassinged_is_checked == 0):
         for i in range(len(frame_df)):
@@ -1075,7 +1087,8 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
                 y1 = frame_df.iloc[i]['y1']
                 track_id = frame_df.iloc[i]['track_id']
                 player_id = frame_df.iloc[i]['player_id']
-                add_editable_box(fig, track_id, player_id, x0, y0, x1, y1)       
+                initials = frame_df.iloc[i]['initials']
+                add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1)       
 
     # print(id_num, x0, y0, x1, y1)
     return (fig, currentFrame, currentFrame, None)
@@ -1101,31 +1114,14 @@ def update_player_tracks(assignBt, track_id, player_id):
     global dic
 
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-
-    print("\nAssign track called")
-
-    # need to check here if the assignment has any overlap
-    # also need a way for all of these assignments to tell the user where the overlap is
-
-    # Theoretical way to do this:
-        # Make api call to determine the minimum and maximum parts of the track
-            # Could encounter issues with missing/deleted parts in the middle
-        # Then need to loop through to check if there are any detections already assigned to that player
-
-    # alternate idea:
-        # get two lists of frames
-            # first frames from all current assignments to the player (easyish api call)
-            # second frames from the attempted new assignment
-        # next get the intersection of the tracks
-            # if the intersection is empty: valid assignment
-            # if the intersection has items: invalid assignment
-
-    max_frame, min_frame = api_detections.min_max_track_frame(0, track_id)
-
-    print("\nTrack ID: {}, Player ID: {}".format(track_id, player_id))
-    print("Max: {}, Min: {}".format(max_frame, min_frame))
+    
+    player_frames = api_detections.get_player_frames(0, player_id)
+    track_frames = api_detections.get_track_frames(0, track_id)
+    intersection = [val for val in track_frames if val in player_frames]
 
     if cbcontext == 'assign_track_bt.n_clicks':
+        if intersection: 
+            api_detections.delete_detection_list(0, track_id, intersection) # maybe check if it has an item in it first
         api_detections.assign_track(0, player_id, track_id)
     
     # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////

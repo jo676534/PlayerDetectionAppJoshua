@@ -38,12 +38,14 @@ frames.sort(key=lambda x: int(x[5:-4]))
 maxFrames = 0
 state = 0 # 0 is not submitted yet, 1 is submitted 
 state_save = 0 # 0 is not run, 1 is run, 2 is run and saved, 99 is currently running and disables functionality
+initials = ''
 
 dic = {}
 
 # NORMAL FUNCTIONS #############################################################################################################################
 
-def add_editable_box(fig, id_num, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None):
+def add_editable_box(fig, track_id, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None):
+    global initials
     fig.add_shape(
         editable=True,
         x0=x0,
@@ -58,7 +60,7 @@ def add_editable_box(fig, id_num, x0, y0, x1, y1, name=None, color=None, opacity
     fig.add_annotation( #((x0+x1)/2)
         x=((x0+x1)/2),
         y=y0-30,
-        text="{0}".format(id_num),
+        text="{0}".format(initials),
         showarrow=False, #True
         font=dict(
             family="Courier New, monospace",
@@ -174,9 +176,6 @@ layout = html.Div(
     Input("final_frame_add", "data"),
     Input('player_id_add', 'data'))
 def initalizer(start_frame, final_frame, player_id):
-    print("INITIALIZER CALLED w/SF: {}".format(start_frame))
-    print("chosen player_id: {}".format(player_id))
-
     # set up the fig and inital variables
     global frames
     frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))] 
@@ -190,9 +189,22 @@ def initalizer(start_frame, final_frame, player_id):
     dic = api_detections.get_partial_frame_detections(0, start_frame, final_frame)
     print(len(dic))
 
-    fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")
+    global initials
+    initials = api_detections.get_player_initials(player_id)
+
+    fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")  # OLD
     fig.update_layout(
-        margin=dict(l=0, r=0, b=0, t=0, pad=4),
+        xaxis= {
+            'showgrid': False, # thin lines in the background
+            'zeroline': False, # thick line at x=0
+            'visible': False,  # numbers below
+        },
+        yaxis= {
+            'showgrid': False, # thin lines in the background
+            'zeroline': False, # thick line at x=0
+            'visible': False,  # numbers below
+        },
+        margin=dict(l=0, r=0, b=0, t=0, pad=0),
         dragmode="drawrect",
     )
 
@@ -333,7 +345,17 @@ def update_figure_add(interval, slider, previousBut, nextBut,rewind10, rewind50,
     
     fig = px.imshow(io.imread(pathIn+frames[currentFrame]), binary_backend="jpg") # OLD # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
     fig.update_layout(
-        margin=dict(l=0, r=0, b=0, t=0, pad=4),
+        xaxis= {
+            'showgrid': False, # thin lines in the background
+            'zeroline': False, # thick line at x=0
+            'visible': False,  # numbers below
+        },
+        yaxis= {
+            'showgrid': False, # thin lines in the background
+            'zeroline': False, # thick line at x=0
+            'visible': False,  # numbers below
+        },
+        margin=dict(l=0, r=0, b=0, t=0, pad=0),
         dragmode="drawrect",
     )
     
@@ -461,15 +483,24 @@ def save_detection(save_clicks, reset_clicks, start_frame, final_frame, sf, ff, 
     # STATES FOR ACTUAL INPUT
     # Good State: user input nothing and wants the whole clip
     if (start_frame is None) and (final_frame is None):
-        # need to check for player track overlap
-        temp_frame = sf
-        while temp_frame <= ff:
-            if (int(player_id) in dic[temp_frame].player_id):
-                return "This player already has a track assigned to them within this selection of frames."
-            temp_frame += 1
-        
         state = 2
-        #api_detections.save_track(0, detections_df, frame_value, -1)
+        # need to check for player track overlap
+        # save the detection track first (but not assigned the player quite yet)
+        track_id = api_detections.unique_track_id(0)
+        api_detections.save_track(0, detections_df, sf, track_id, -1)
+
+        # then get the three arrays for the intersection of the track and player
+        player_frames = api_detections.get_player_frames(0, player_id)
+        track_frames = api_detections.get_track_frames(0, track_id)
+        intersection = [val for val in track_frames if val in player_frames]
+
+        # now delete the detections of the track where there is intersection
+        if intersection:
+            api_detections.delete_detection_list(0, track_id, intersection)
+
+        # finally change the player_id to the proper player_id
+        api_detections.assign_track(0, player_id, track_id)
+        
         return "Track saved. Now click quit to return."
     # Bad State: user input one but not the other
     elif (start_frame is None) or (final_frame is None): 
@@ -479,19 +510,46 @@ def save_detection(save_clicks, reset_clicks, start_frame, final_frame, sf, ff, 
         return "Start frame has to be less than final frame"
     # Good State: user input but and we need to use them
     else:
-        # need to check for player track overlap
-        temp_frame = start_frame+sf
-        while temp_frame <= final_frame+sf:
-            if (int(player_id) in dic[temp_frame].player_id):
-                return "This player already has a track assigned to them within this selection of frames."
-            temp_frame += 1
-
         state = 2
-        detections_df = detections_df[start_frame:final_frame+1] # need to cut the df for the frame outline
-        #api_detections.save_track(0, detections_df, sf+start_frame, -1)
+        # need to check for player track overlap
+        # need to cut the df for the frame outline
+        detections_df = detections_df[start_frame:final_frame+1] 
+
+        # new form of overlap detection
+        # save the detection track first (but not assigned the player quite yet)
+        track_id = api_detections.unique_track_id(0)
+        api_detections.save_track(0, detections_df, sf, track_id, -1)
+
+        # then get the three arrays for the intersection of the track and player
+        player_frames = api_detections.get_player_frames(0, player_id)
+        track_frames = api_detections.get_track_frames(0, track_id)
+        intersection = [val for val in track_frames if val in player_frames]
+
+        # now delete the detections of the track where there is intersection
+        api_detections.delete_detection_list(0, track_id, intersection)
+
+        # finally change the player_id to the proper player_id
+        api_detections.assign_track(0, player_id, track_id)
+        
         return "Track saved. Now click quit to return."
 # End save_detection
 
+
+        
+        # original form of overlap detection
+        # temp_frame = sf
+        # while temp_frame <= ff:
+        #     if (int(player_id) in dic[temp_frame].player_id):
+        #         return "This player already has a track assigned to them within this selection of frames."
+        #     temp_frame += 1
+        
+
+
+        # temp_frame = start_frame+sf
+        # while temp_frame <= final_frame+sf:
+        #     if (int(player_id) in dic[temp_frame].player_id):
+        #         return "This player already has a track assigned to them within this selection of frames."
+        #     temp_frame += 1
 
 # "Useless" Callbacks ########################################################
 
