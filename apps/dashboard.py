@@ -77,11 +77,10 @@ all_tracks_counter = 0
 viewable_tracks_counter = 0
 player_tracks = ["17", "12"]  # Hardcoded until "assign track" is working
 
+track_state = 0
+
 dic = api_detections.get_frame_detections(0)
 dic_tracks, unique_tracks = api_detections.get_tracks(0)
-
-# fetch the detections ----------------
-df_detections = api_detections.get_game_detections(0)
 
 # fetch the teams ------------------
 df_teams = api_team.get_teams(0)
@@ -284,6 +283,9 @@ image_annotation_card = dbc.Card(
         className= "player_card_header",
         ),
         html.Div(id='hidden_div_j0', style= {'display':'none'}),
+        html.Div(id='hidden_div_j1', style= {'display':'none'}),
+        html.Div(id='hidden_div_j2', style= {'display':'none'}),
+        html.Div(id='hidden_div_j3', style= {'display':'none'}),
         dbc.CardBody(
             [
                 html.Div(id="manual_annotation_output"),
@@ -587,11 +589,11 @@ def manual_annotation(graph_relayout, frame, player_id):
         elif (old_num_boxes+1 < new_num_boxes):
             return "Bad Output: Too many drawn", None
         else:
-            return "Unknown ERROR", None
+            return "Unknown ERROR 1", None
 
     # ERROR --------------------------------------
     else:
-        return "Unknown ERROR", None
+        return "Unknown ERROR 2", None
 
 # Callbacks for the Add Track Portion ==================================================================
 
@@ -683,17 +685,19 @@ def display(btn1, btn2):
               Input("all_tracks_bt", 'n_clicks'),
               Input("viewable_tracks_bt", 'n_clicks'),
               Input("player_tracks_bt", 'n_clicks'),
-              State("frame_interval", 'n_intervals'),
-              State("radio_players_A", 'value'))
-def display_2(btn1, btn2, btn3, frame, value):
+              Input('hidden_div_j1', 'children'),
+              Input("radio_players_A", 'value'),
+              Input('hidden_div_j2', 'children'),
+              State("frame_interval", 'n_intervals'),)
+def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
     ctx = dash.callback_context
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
 
     global dic_tracks
     global unique_tracks
+    global track_state # 0 is no state, 1 is all, 2 is view, 3 is player
 
     dic_tracks, unique_tracks = api_detections.get_tracks(0)
-
-    #print("THIS IS BEING CALLED")
 
     if not ctx.triggered:
         button_id = 'No clicks yet'
@@ -724,6 +728,32 @@ def display_2(btn1, btn2, btn3, frame, value):
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
     #str(dic_tracks[i]['track_id'][0]
+
+    print("\n\nCONTEXT")
+    print(cbcontext)
+    print("Intro STATE")
+    print(track_state)
+
+    if cbcontext == 'hidden_div_j1.children' or cbcontext == 'radio_players_A.value' or cbcontext == 'hidden_div_j2.children':
+        print("In the middle part")
+        if track_state == 0 or track_state == 1:
+            button_id = "all_tracks_bt"
+        elif track_state == 2:
+            button_id = "viewable_tracks_bt"
+        else:
+            button_id = "player_tracks_bt"
+    elif cbcontext == 'all_tracks_bt.n_clicks':
+        print("TS became 1")
+        track_state = 1
+    elif cbcontext == 'viewable_tracks_bt.n_clicks':
+        print("TS became 2")
+        track_state = 2
+    elif cbcontext == 'player_tracks_bt.n_clicks':
+        print("TS became 3")
+        track_state = 3
+
+    print("Outro STATE")
+    print(track_state)
 
     if button_id == "all_tracks_bt":
         return  html.Div([
@@ -822,6 +852,7 @@ def display_2(btn1, btn2, btn3, frame, value):
             conn.close()
 
             if len(data) < 1:
+
                 return html.Div([
                          html.Div(children=[
                             dbc.Col([
@@ -915,6 +946,7 @@ def togglePlay(play, isPaused):
     Output('graph', 'figure'),
     Output('frame_interval', 'n_intervals'),
     Output('frame-slider', 'value'),
+    Output('hidden_div_j1', 'children'),
     Input('frame_interval', 'n_intervals'),
     Input('frame-slider', 'value'),
     Input('previous', 'n_clicks'),
@@ -923,6 +955,7 @@ def togglePlay(play, isPaused):
     Input('go_to_end','n_clicks'),
     Input('switches-input', 'value'),
     Input("hidden_div_j0", "children"),
+    Input("hidden_div_j3", "children"),
     Input('fastforward-10', 'n_clicks'),
     Input('fastforward-50', 'n_clicks'),
     Input('rewind-10', 'n_clicks'),
@@ -930,7 +963,7 @@ def togglePlay(play, isPaused):
     State('frame_interval', 'disabled'),
     State('radio_all_tracks', 'value'),
 )
-def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switches_value, hidden_div_j0, fast10, fast50,rewind10, rewind50, isPaused, value):
+def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switches_value, hidden_div_j0, hidden_div_j3, fast10, fast50,rewind10, rewind50, isPaused, value):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     currentFrame = 0
 
@@ -1051,7 +1084,7 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
                 add_editable_box(fig, id_num, x0, y0, x1, y1)       
 
     # print(id_num, x0, y0, x1, y1)
-    return (fig, currentFrame, currentFrame)
+    return (fig, currentFrame, currentFrame, None)
 
 # Callback for Slider
 @app.callback(
@@ -1100,6 +1133,8 @@ def update_player_tracks(assignBt, trackIDValue, playerIDValue):
 # Callback for delete
 @app.callback(
     Output('hidden-div2', 'children'),
+    Output('hidden_div_j2', 'children'),
+    Output('hidden_div_j3', 'children'),
     Input('delete_bt', 'n_clicks'),
     State('radio_all_tracks', 'value'),
 )
@@ -1108,7 +1143,7 @@ def delete_track(delete_bt, track_id):
     global dic
 
     if track_id is None:
-        return track_id
+        return (None, None, None)
 
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     if cbcontext == 'delete_bt.n_clicks':
@@ -1125,3 +1160,5 @@ def delete_track(delete_bt, track_id):
 
     # Instead of updating the whole dictionary, update the deleted track for efficiency ------ change to make!
     dic = api_detections.get_frame_detections(0)
+
+    return (None, None, None)
