@@ -787,11 +787,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
     if button_id == "viewable_tracks_bt":
         df_detections = api_detections.get_game_detections(0)
         viewable_row = df_detections[df_detections["frame"] == frame]
-        print("\n\nViewable row list (pre sort):")
-        print(viewable_row)
         viewable_row = viewable_row.sort_values(by=['track_id'])
-        print("\nViewable row list (post sort):")
-        print(viewable_row)
         return html.Div([
                         html.Div(children=[
                            dbc.Col([
