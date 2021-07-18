@@ -294,7 +294,7 @@ def assign_track(game_id, player_id, track_id):
 def delete_track(game_id, track_id):
     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
     cur = conn.cursor()
-    cur.execute('''DELETE FROM detections WHERE track_id = %s and game_id = %s''' % track_id, game_id)
+    cur.execute('''DELETE FROM detections WHERE track_id = %s and game_id = %s''', (track_id, game_id))
     conn.commit()
     cur.close()
     conn.close()

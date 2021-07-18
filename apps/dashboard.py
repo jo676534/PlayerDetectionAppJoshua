@@ -240,7 +240,7 @@ image_annotation_card = dbc.Card(
                                     switch=True,
                                     inline=True,
                                 ),              
-                    ),
+                        ),
                         dbc.DropdownMenu(
                             label="Select a Video Section",
                             bs_size = "sm",
@@ -1184,3 +1184,5 @@ def delete_track(delete_bt, track_id):
     dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
     return (None, None, None)
+
+# UCF CRCV
