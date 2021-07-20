@@ -184,24 +184,28 @@ image_annotation_card = dbc.Card(
                                     switch=True,
                                     inline=True,
                                 ),              
-                        ),
-                        dbc.DropdownMenu(
-                            label="Select a Video Section",
-                            bs_size = "sm",
-                            children=[
-                                dbc.DropdownMenuItem("Section 1"),
-                                dbc.DropdownMenuItem("Section 2"),
-                                dbc.DropdownMenuItem("Section 3"),
-                            ],
-                            style = {"margin-left":"250px"},               
-                        ), 
-                    ]
-                )    
-            ],
+                    ),
+                        html.Div(
+                        [
+                            dcc.Dropdown(
+                                id = 'area_dropdown',
+                                options=[
+                                    {'label': 'Section 1', 'value': '1'},
+                                    {'label': 'Section 2', 'value': '2'},
+                                    {'label': 'Section 3', 'value': '3'}
+                                ],
+                                searchable=False,
+                                placeholder="Select a video section",
+                            ),
+                            html.Div(id="dd-output-container"),
+                        ],
+                        style={"width": "20%", 'margin-left':'200px', 'font-size': '14px'},  
+                )])    
+            ],style = {"margin-bottom":"-15px"}
         ),
         className= "player_card_header",
         ),
-        html.Div(id='hidden_div_j0', style= {'display':'none'}), 
+        html.Div(id='hidden_div_j0', style= {'display':'none'},),
         html.Div(id='hidden_div_j1', style= {'display':'none'}),
         html.Div(id='hidden_div_j2', style= {'display':'none'}),
         html.Div(id='hidden_div_j3', style= {'display':'none'}),
@@ -301,7 +305,9 @@ image_annotation_card = dbc.Card(
 
 annotated_data_card = dbc.Card(
     [
-        dbc.CardHeader(html.Div(
+        dbc.CardHeader(
+            dbc.Col(
+            html.Div(
             [
                 dbc.Button("All Tracks", id="all_tracks_bt", outline=True, style={
                        "margin-right": "4px", "font-size": "12px"}),
@@ -309,7 +315,7 @@ annotated_data_card = dbc.Card(
                     "margin-right": "4px", "font-size": "12px"}),
                 dbc.Button("Player Tracks", id="player_tracks_bt",
                            outline=True, style={"font-size": "12px"}),
-            ])),
+            ]))),
         dbc.CardBody(
             [ 
                 html.Div(id='hidden-div', style= {'display':'none'}),
@@ -734,12 +740,14 @@ def display(btn1, btn2):
 def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
     ctx = dash.callback_context
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-
+    unassinged_is_checked = False
+    assigned_is_checked = False
     global dic_tracks
     global unique_tracks
     global track_state # 0 is no state, 1 is all, 2 is view, 3 is player
 
     dic_tracks, unique_tracks = api_detections.get_tracks(0)
+
 
     if not ctx.triggered:
         button_id = 'No clicks yet'
@@ -791,6 +799,28 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
         track_state = 2
     elif cbcontext == 'player_tracks_bt.n_clicks':
         track_state = 3
+
+    # if cbcontext == 'switches_input.n_clicks':
+    #     print("First if")
+    #     if track_state == 2: 
+    #         print("Second if")
+    #         if (len(switches_value)==2):
+    #             unassinged_is_checked = True
+    #             assigned_is_checked = True
+
+    #         if (len(switches_value)==1):
+    #             if (switches_value[0]==1):
+    #                 unassinged_is_checked = False
+    #                 assigned_is_checked = True
+    #             if (switches_value[0]==2):
+    #                 unassinged_is_checked = True
+    #                 assigned_is_checked = False 
+            
+    #         if (len(switches_value)==0):
+    #             unassinged_is_checked = False
+    #             assigned_is_checked = False
+
+    #         button_id = "viewable_tracks_bt"
 
     if button_id == "all_tracks_bt":
         return  html.Div([
