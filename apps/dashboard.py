@@ -616,19 +616,23 @@ def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, stor
 # simple callback that will only be called on page startup/refresh to create the necessary data structures
 @app.callback(
     Output("hidden_div_init_output", "children"),
-    Input("hidden_div_init_input", "children"),)
-def initializer(useless_input):
+    Input("hidden_div_init_input", "children"),
+    State("game_id", "data"))
+def initializer(useless_input, game_id):
     global dic
     global dic_tracks
     global unique_tracks
     global df_teams
     global df_players
 
-    dic = api_detections.get_frame_detections(0)
-    dic_tracks, unique_tracks = api_detections.get_tracks(0)
+    if not game_id: 
+        game_id = 0
 
-    df_teams = api_team.get_teams(0)
-    df_players = api_player.get_players(0)
+    dic = api_detections.get_frame_detections(game_id)
+    dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
+
+    df_teams = api_team.get_teams(game_id)
+    df_players = api_player.get_players(game_id)
 
     return None
 
