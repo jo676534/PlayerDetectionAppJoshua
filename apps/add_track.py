@@ -88,7 +88,7 @@ right_side = dbc.Card(
         dbc.CardHeader(
             [
                 html.H2("Bounding Box Submit Area"),
-                html.Div(id="test_output")
+                html.Div(id="which_player")
             ]
         ),
         dbc.CardBody(
@@ -146,7 +146,8 @@ end_buttons = dbc.Card(
                 dbc.Button("Quit", id="button_quit_1", href='/apps/dashboard')
             ]
         ),
-        html.Div(id="save_output")
+        html.Div(id="save_output"),
+        html.Div(id="hidden_div_reset"),
     ])
 
 # Layout
@@ -186,7 +187,6 @@ def initalizer(start_frame, final_frame, player_id):
 
     global dic
     dic = api_detections.get_partial_frame_detections(0, start_frame, final_frame)
-    print(len(dic))
 
     global initials
     initials = api_detections.get_player_initials(player_id)
@@ -292,6 +292,20 @@ def togglePlay_add(play, isPaused):
     return (isPaused, text)
 
 
+@app.callback(
+    Output("which_player", "children"),
+    Input('player_id_add', 'data'),
+    Input("game_id", "data"),
+    )
+def which_player(player_id, game_id):
+    df = api_player.get_player(game_id, player_id)
+
+    name = df.iloc[0]["name"]
+    jersey = df.iloc[0]["jersey"]
+
+    return "Intended player is {} with jersey #{}".format(name, jersey)
+
+
 # Video Display Callback
 @app.callback(
     Output('graph_box', 'figure'),
@@ -306,13 +320,14 @@ def togglePlay_add(play, isPaused):
     Input ('rewind_50', 'n_clicks'),
     Input ('fastforward_10', 'n_clicks'),
     Input ('fastforward_50', 'n_clicks'),
+    Input("hidden_div_reset", "children"),
     State('frame_interval_add', 'disabled'),
     State('graph_box', 'relayoutData'),
     prevent_initial_call=True)
-def update_figure_add(interval, slider, previousBut, nextBut,rewind10, rewind50, fastforward10, fastforward50, isPaused, graph_relayout):
+def update_figure_add(interval, slider, previousBut, nextBut,rewind10, rewind50, fastforward10, fastforward50, hidden_div, isPaused, graph_relayout):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     currentFrame = 0
-    
+
     # check the state to stop the user from scrolling if they haven't input a new track
     if state != 0:
         if isPaused == False:
@@ -339,6 +354,8 @@ def update_figure_add(interval, slider, previousBut, nextBut,rewind10, rewind50,
             if cbcontext == "fastforward_50.n_clicks":
                 if(currentFrame < maxFrames-50):
                     currentFrame += 50
+            if cbcontext == "hidden_div_reset.children":
+                currentFrame = 0
         if cbcontext == "frame-slider_add.value":
             currentFrame = slider
     
@@ -449,6 +466,7 @@ def set_start_add(n_clicks, frame):
 # Save Detection Callback
 @app.callback(
     Output("save_output", "children"),
+    Output("hidden_div_reset", "children"),
     Input("button_save", "n_clicks"),
     Input("button_reset", "n_clicks"),
     State("input_start", "value"), # start_frame (represents the start value for a subset selection of frames)
@@ -469,15 +487,15 @@ def save_detection(save_clicks, reset_clicks, start_frame, final_frame, sf, ff, 
     if cbcontext == "button_reset.n_clicks":
         detections_df = []
         state = 0
-        return "Reset Complete"
+        return "Reset Complete", None
 
     # Check states to make sure we're ready to take the input
     if state == 0 or state == 99:
-        return "The tracker needs to be run first"
+        return "The tracker needs to be run first", None
     elif state == 2:
-        return "Track already saved. Now click quit to return."
+        return "Track already saved. Now click quit to return.", None
     elif state != 1:
-        return "Unkown ERROR"
+        return "Unkown ERROR", None
 
     # STATES FOR ACTUAL INPUT
     # Good State: user input nothing and wants the whole clip
@@ -500,13 +518,13 @@ def save_detection(save_clicks, reset_clicks, start_frame, final_frame, sf, ff, 
         # finally change the player_id to the proper player_id
         api_detections.assign_track(0, player_id, track_id)
         
-        return "Track saved. Now click quit to return."
+        return "Track saved. Now click quit to return.", None
     # Bad State: user input one but not the other
     elif (start_frame is None) or (final_frame is None): 
-        return "Need either both inputs or neither"
+        return "Need either both inputs or neither", None
     # Bad State: start is greater than or equal to final
     elif (start_frame >= final_frame):
-        return "Start frame has to be less than final frame"
+        return "Start frame has to be less than final frame", None
     # Good State: user input but and we need to use them
     else:
         state = 2
@@ -530,7 +548,7 @@ def save_detection(save_clicks, reset_clicks, start_frame, final_frame, sf, ff, 
         # finally change the player_id to the proper player_id
         api_detections.assign_track(0, player_id, track_id)
         
-        return "Track saved. Now click quit to return."
+        return "Track saved. Now click quit to return.", None
 # End save_detection
 
 

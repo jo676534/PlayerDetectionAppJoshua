@@ -2,7 +2,7 @@ import dash
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.express as px
 import pandas as pd
 import pathlib
@@ -26,31 +26,71 @@ dropdown = dbc.DropdownMenu(
 )
 
 
-game_table = dash_table.DataTable(
-    id='datatable-paging',
-    columns=[{"name": i, "id": i} for i in df_game.columns],
-    page_current=0,
-    page_size=len(df_game),
+game_card = dbc.Card(
+    [
+        dbc.CardBody(
+            [
+                dash_table.DataTable(
+                    id='game_table', 
+                    columns=[{"name": i, "id": i} for i in df_game.columns],
+                    page_current=0,
+                    page_size=len(df_game),
+                ),
+            ]
+        )
+    ]
+)
+
+
+main_card = dbc.Card(
+    [
+        dbc.CardHeader(
+            
+        ),
+        dbc.CardBody(
+            [
+                dbc.Button(
+                    "Game Collapse",
+                    id="collapse_button",
+                    n_clicks=0,
+                ),
+                html.Br(),
+                html.Br(),
+                dbc.Collapse(
+                    game_card,
+                    id="game_collapse",
+                    is_open=False,
+                )
+            ]
+        )
+    ]
+)
+
+
+entry_card = dbc.Card(
+    [
+        dbc.CardBody(
+            [
+                dbc.Input(id="game_input", placeholder="Game ID", type="number", min=0, step=1, style={'width': '40%', 'display': 'inline-block', "margin-left": "0px", "margin-right": "15px",}),
+                dbc.Button("Select Game", id='select_game'),
+                html.Div(id="link_output"),
+            ]
+        )
+    ]
 )
 
 
 layout = html.Div([
-    html.H1('Home Page Placeholder'),
+    html.Br(),
+    html.H1('Sports Science AI Home Page', style={'textAlign': 'center'}),
     dbc.Container(
         [
-            # dbc.Row([
-            #     dbc.Input(id="game_input", placeholder="game id", type="integer", min=0, step=1, style={'width': '25%', 'display': 'inline-block', "margin-left": "0px", "margin-right": "15px",}),
-            #     dbc.Button("Select Game", id='generate_link'),
-            # ]),
             html.Div(id="link_location"),
             html.Br(),
             dbc.Row(
                 [
-                    dbc.Col(game_table, md=8),
-                    dbc.Col([
-                        dbc.Input(id="game_input", placeholder="game id", type="number", min=0, step=1, style={'width': '40%', 'display': 'inline-block', "margin-left": "0px", "margin-right": "15px",}),
-                        dbc.Button("Select Game", id='generate_link'),
-                    ])
+                    dbc.Col(main_card, md=8),
+                    dbc.Col(entry_card),
                 ],
             ),
         ],
@@ -58,25 +98,63 @@ layout = html.Div([
     ), 
 ])
 
-
+# callback to create the table
 @app.callback(
-    Output('datatable-paging', 'data'),
-    [Input('datatable-paging', "page_current"),
-     Input('datatable-paging', "page_size"),
-     Input('datatable-paging', 'sort_by')])
+    Output('game_table', 'data'),
+    Input('game_table', "page_current"),
+    Input('game_table', "page_size"),
+    Input('game_table', 'sort_by')
+    )
 def update_table(page_current,page_size,sort_by):
     return df_game.to_dict('records')
 
+# Collapse callback
+@app.callback(
+    Output("game_collapse", "is_open"),
+    Input("collapse_button", "n_clicks"),
+    State("game_collapse", "is_open"),
+    )
+def game_collapse(n_clicks, is_open):
+    if n_clicks:
+        return not is_open
+    return is_open
 
+# callback for the select game button
+@app.callback(
+    Output("link_output", "children"),
+    Output("game_id", "data"), # outputs to the game_id dcc.store on index page
+    Output("video_path", "data"), # outputs to the video link dcc.store on index
+    Input("select_game", "n_clicks"),
+    State("game_input", "value"),
+    prevent_initial_call=True)
+def select_game(n_clicks, game_id):
+    # use the game_id to grab the link to the video + process_state
+    # then use the process state to determine which link to generate
+    if n_clicks:
+        process_state = 0
+        output = None
+        error = 0
 
-# @app.callback(
-#     Output('disp_button', 'children'),
-#     [Input('sbutton{}'.format(name1), 'n_clicks') for name1 in filelist['Key']]
-# )
-# def update(*button_clicks):
-#     # here I'm assuming you just care which one was clicked most recently
-#     # so use dash.callback_context.triggered and ignore the n_clicks values
-#     return dash.callback_context.triggered[0]
+        if process_state == 0: # 0: PAGE - Initial Reveiew (Game freshly uploaded)
+            output = dbc.Button("Initial Review Link", id="link", href='/apps/initial_review')
+        elif process_state == 1: # 1: PROCESS - Converted to 15 fps
+            output = "Video currently being converted to 15fps."
+        elif process_state == 2: # 2: PAGE - Video Editor (Being edited)
+            output = dbc.Button("Video Editor Link", id="link", href='/apps/video_edit')
+        elif process_state == 3: # 3: PROCESS - Video being recompiled with removed frames (Then usually goes back to stage 2 unless no more editing needs to be done)
+            output = "Video still being recompiled."
+        elif process_state == 4: # 4: PROCESS - Detection algorithm being run
+            output = "Detection algorithm being run."
+        elif process_state == 5: # 5: PAGE - Dashboard (Track matching + Manual annotation + Add track)
+            output = dbc.Button("Dashboard Link", id="link", href='/apps/dashboard')
+        elif process_state == 6: # 6: PROCESS - Homography being run
+            output = "Homography being run"
+        elif process_state == 7: # 7: PAGE - Final review page
+            output = "Video processing completed."
+        else:
+            error = 1
+        
+        return output, game_id, "Path"
 
 
 # need to do the following:

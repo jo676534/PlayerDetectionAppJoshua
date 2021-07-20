@@ -35,6 +35,24 @@ def get_players(game_id): # will need significant rework to find the players for
 
 # ----------------------------------------------------------------------------
 
+def get_player(game_id, player_id): # will need significant rework to find the players for each specific specific team
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    cur = conn.cursor()
+    
+    cur.execute('''SELECT * FROM roster where game_id={} and player_id={}'''.format(game_id, player_id))
+    players_data = cur.fetchall()
+    
+    cur.close()
+    conn.close() 
+    
+    pcols = []
+    for elt in cur.description:
+        pcols.append(elt[0])
+
+    return pd.DataFrame(data=players_data, columns=pcols)
+
+# ----------------------------------------------------------------------------
+
 # assigning a track to a player
 # USE the one in api_detections instead
 def assign_track(game_id, track_id, player_id):

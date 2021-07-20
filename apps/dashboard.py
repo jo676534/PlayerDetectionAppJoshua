@@ -79,13 +79,13 @@ player_tracks = ["17", "12"]  # Hardcoded until "assign track" is working
 
 track_state = 0
 
-dic = api_detections.get_frame_detections(0)
-dic_tracks, unique_tracks = api_detections.get_tracks(0)
+dic = None # api_detections.get_frame_detections(0)
+dic_tracks, unique_tracks = None, None # api_detections.get_tracks(0)
 
 # fetch the teams ------------------
-df_teams = api_team.get_teams(0)
+df_teams = None # api_team.get_teams(0)
 # fetch the players ----------------
-df_players = api_player.get_players(0)
+df_players = None # api_player.get_players(0)
 
 
 # NON-DASH FUNCTIONS ##############################################################################################################################
@@ -143,6 +143,7 @@ def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, name=No
 
 # DASH COMPONENTS #######################################################################################################################################
 
+# will have to default figure to some kind of default image
 fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")  # OLD
 fig.update_layout(
     xaxis= {
@@ -159,63 +160,6 @@ fig.update_layout(
     dragmode="drawrect",
 )
 # fig = px.imshow(frames[0], binary_backend="jpg")  NEW
-
-# Button Sections for teams: ======================================================================================================================
-
-
-# Retrive value for each team
-a_row = df_players[df_players["team_id"] == 0]
-b_row = df_players[df_players["team_id"] == 1]
-
-
-# # Dash component for team A
-
-sectionA = html.Div([
-    html.Div(children=[
-    dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-             dbc.Spinner(html.Div(id="assign_track_output")),],
-             align = 'center',),
-    dbc.Col([dbc.RadioItems(
-    options=[
-        {'label': str(a_row.iloc[i]["name"]), 'value': str(a_row.iloc[i]["player_id"])} for i in range(0, len(a_row))],
-    #value=str(a_row.iloc[1]["player_id"]), 
-    id = "radio_players_A",
-    className= "radio_items",
-   
-    )],
-    align = 'center',
-    style={'width': '250px', 
-           'height': '670px', 
-           'overflow': 'scroll', 
-           'padding': '10px 10px 10px 20px'
-          }), 
-    ],
-    )
-])
-
-# # Dash component for team B
-sectionB = html.Div([
-    html.Div(children=[
-    dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-             dbc.Spinner(html.Div(id="assign_track_output")),],
-             align = 'center',),
-    dbc.Col([dbc.RadioItems(
-    options=[
-        {'label': str(b_row.iloc[i]["name"]), 'value': str(b_row.iloc[i]["player_id"])} for i in range(0, len(b_row))],
-    #value=str(b_row.iloc[1]["name"]),  
-    id = "radio_players_A",
-    className= "radio_items",
-    )],
-    align = 'center',
-    style={'width': '250px', 
-           'height': '670px', 
-           'overflow': 'scroll', 
-           'padding': '10px 10px 10px 20px'
-          }), 
-    ],
-    )
-])
-
 
 
 # Video Player Card ===============================================================================================================================
@@ -240,7 +184,7 @@ image_annotation_card = dbc.Card(
                                     switch=True,
                                     inline=True,
                                 ),              
-                    ),
+                        ),
                         dbc.DropdownMenu(
                             label="Select a Video Section",
                             bs_size = "sm",
@@ -257,21 +201,23 @@ image_annotation_card = dbc.Card(
         ),
         className= "player_card_header",
         ),
-        html.Div(id='hidden_div_j0', style= {'display':'none'}),
+        html.Div(id='hidden_div_j0', style= {'display':'none'}), 
         html.Div(id='hidden_div_j1', style= {'display':'none'}),
         html.Div(id='hidden_div_j2', style= {'display':'none'}),
         html.Div(id='hidden_div_j3', style= {'display':'none'}),
         dbc.CardBody(
             [
                 html.Div(id="manual_annotation_output"),
-                dcc.Interval(
-                    id='frame_interval',
-                    interval=500,
-                    disabled=True,
-                    n_intervals=0,      # number of times the interval has passed
-                    max_intervals=maxFrames
-                ),
-                dcc.Graph(
+                html.Div(id="interval", children=[ # needs to be properly initialized //////////////////////////////////////////////////////////////////////
+                    dcc.Interval(
+                        id='frame_interval',
+                        interval=500,
+                        disabled=True,
+                        n_intervals=0,      # number of times the interval has passed
+                        max_intervals=maxFrames # alternative way to do this = properly output the maxFrames to
+                    ),
+                ]),
+                dcc.Graph( # WILL HAVE TO INITIALIZE THIS AS WELL //////////////////////////////////////////////////////////////////////////////////////////
                     id="graph",
                     style={'width': '1000px', 'height': '600px'},
                     figure=fig,
@@ -282,7 +228,7 @@ image_annotation_card = dbc.Card(
         dbc.CardFooter(
             [
                 # Slider Component
-                dcc.Slider(
+                dcc.Slider( # need to have a default slider w/pointless values and then have it replaced later during initialization ///////////////////////
                     id='frame-slider',
                     min=0,
                     max=maxFrames,
@@ -373,9 +319,9 @@ annotated_data_card = dbc.Card(
                         [
                             dbc.Col(
                                 [
-                                    dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
-                                    dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
-                                    dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                                    dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"}, disabled=True),
+                                    dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"}, disabled=True),
+                                    dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}, disabled=True),
                                 ],
                                 align = 'center',
                             ),        
@@ -383,8 +329,9 @@ annotated_data_card = dbc.Card(
                                 [
                                     dbc.RadioItems(
                                         options=[
-                                            {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
-                                        #value=str(list(dic_tracks.keys())[1]), 
+                                            {'label': "Select a Track View", 
+                                            'value': str(1)}
+                                        ],
                                         id = "radio_all_tracks",
                                         className= "radio_items",
                                     )
@@ -669,13 +616,24 @@ def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, stor
 # simple callback that will only be called on page startup/refresh to create the necessary data structures
 @app.callback(
     Output("hidden_div_init_output", "children"),
-    Input("hidden_div_init_input", "children"),)
-def initializer(useless_input):
+    Input("hidden_div_init_input", "children"),
+    State("game_id", "data"))
+def initializer(useless_input, game_id):
     global dic
     global dic_tracks
     global unique_tracks
-    dic = api_detections.get_frame_detections(0)
-    dic_tracks, unique_tracks = api_detections.get_tracks(0)
+    global df_teams
+    global df_players
+
+    if not game_id: 
+        game_id = 0
+
+    dic = api_detections.get_frame_detections(game_id)
+    dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
+
+    df_teams = api_team.get_teams(game_id)
+    df_players = api_player.get_players(game_id)
+
     return None
 
 # --------------------------------------------------
@@ -686,10 +644,12 @@ def initializer(useless_input):
               Input("but8", 'n_clicks'))
 def display(btn1, btn2):
 
+    global df_players
     ctx = dash.callback_context
 
     if not ctx.triggered:
         button_id = 'No clicks yet'
+        df_players = api_player.get_players(0)
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
@@ -698,6 +658,58 @@ def display(btn1, btn2):
         section = "A"
     if button_id == "but8":
         section = "B"
+
+    a_row = df_players[df_players["team_id"] == 0]
+    b_row = df_players[df_players["team_id"] == 1]
+
+
+    # # Dash component for team A
+
+    sectionA = html.Div([
+        html.Div(children=[
+        dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
+                dbc.Spinner(html.Div(id="assign_track_output")),],
+                align = 'center',),
+        dbc.Col([dbc.RadioItems(
+        options=[
+            {'label': str(a_row.iloc[i]["name"]), 'value': str(a_row.iloc[i]["player_id"])} for i in range(0, len(a_row))],
+        #value=str(a_row.iloc[1]["player_id"]), 
+        id = "radio_players_A",
+        className= "radio_items",
+    
+        )],
+        align = 'center',
+        style={'width': '250px', 
+            'height': '670px', 
+            'overflow': 'scroll', 
+            'padding': '10px 10px 10px 20px'
+            }), 
+        ],
+        )
+    ])
+
+    # # Dash component for team B
+    sectionB = html.Div([
+        html.Div(children=[
+        dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
+                dbc.Spinner(html.Div(id="assign_track_output")),],
+                align = 'center',),
+        dbc.Col([dbc.RadioItems(
+        options=[
+            {'label': str(b_row.iloc[i]["name"]), 'value': str(b_row.iloc[i]["player_id"])} for i in range(0, len(b_row))],
+        #value=str(b_row.iloc[1]["name"]),  
+        id = "radio_players_A",
+        className= "radio_items",
+        )],
+        align = 'center',
+        style={'width': '250px', 
+            'height': '670px', 
+            'overflow': 'scroll', 
+            'padding': '10px 10px 10px 20px'
+            }), 
+        ],
+        )
+    ])
 
     if button_id == "but7":
         return sectionA
@@ -945,8 +957,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
     Output('frame_interval', 'disabled'),
     Output('playpause', 'children'),
     Input('playpause', 'n_clicks'),
-    State('frame_interval', 'disabled'),
-)
+    State('frame_interval', 'disabled'),)
 def togglePlay(play, isPaused):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     text = html.Img(src = 'https://github.com/dianabisbe/Images/blob/main/Play.png?raw=true',
@@ -987,13 +998,14 @@ def togglePlay(play, isPaused):
     Input('rewind-10', 'n_clicks'),
     Input('rewind-50', 'n_clicks'),
     State('frame_interval', 'disabled'),
-    State('radio_all_tracks', 'value'),
-)
+    State('radio_all_tracks', 'value'),)
 def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switches_value, hidden_div_j0, hidden_div_j3, fast10, fast50,rewind10, rewind50, isPaused, value):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     currentFrame = 0
 
     global dic
+    if not dic:
+        dic = api_detections.get_frame_detections(0)
 
     if isPaused == False:
         if interval is None:
@@ -1055,7 +1067,7 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
         dragmode="drawrect",
     )
     # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
-    frame_df = dic[currentFrame]
+    frame_df = dic[currentFrame] # api_detections.gfd(0, currentFrame) # 
     
     # print("\nCurrent Frame Bounding Boxes:")
     unassinged_is_checked = False
@@ -1184,3 +1196,5 @@ def delete_track(delete_bt, track_id):
     dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
     return (None, None, None)
+
+# UCF CRCV
