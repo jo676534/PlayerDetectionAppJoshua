@@ -208,17 +208,16 @@ image_annotation_card = dbc.Card(
         dbc.CardBody(
             [
                 html.Div(id="manual_annotation_output"),
-                html.Div(id="slider", children=[
-                    
+                html.Div(id="interval", children=[ # needs to be properly initialized //////////////////////////////////////////////////////////////////////
+                    dcc.Interval(
+                        id='frame_interval',
+                        interval=500,
+                        disabled=True,
+                        n_intervals=0,      # number of times the interval has passed
+                        max_intervals=maxFrames # alternative way to do this = properly output the maxFrames to
+                    ),
                 ]),
-                dcc.Interval(
-                    id='frame_interval',
-                    interval=500,
-                    disabled=True,
-                    n_intervals=0,      # number of times the interval has passed
-                    max_intervals=maxFrames
-                ),
-                dcc.Graph( # WILL HAVE TO INITIALIZE THIS AS WELL ///////////////////////////////////////////////////////////////////////////////////////////
+                dcc.Graph( # WILL HAVE TO INITIALIZE THIS AS WELL //////////////////////////////////////////////////////////////////////////////////////////
                     id="graph",
                     style={'width': '1000px', 'height': '600px'},
                     figure=fig,
@@ -229,7 +228,7 @@ image_annotation_card = dbc.Card(
         dbc.CardFooter(
             [
                 # Slider Component
-                dcc.Slider( # need to have a default slider w/pointless values and then have it replaced later during initialization ///////////////////// 
+                dcc.Slider( # need to have a default slider w/pointless values and then have it replaced later during initialization ///////////////////////
                     id='frame-slider',
                     min=0,
                     max=maxFrames,
