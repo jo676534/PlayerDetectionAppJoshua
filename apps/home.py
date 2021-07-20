@@ -123,34 +123,38 @@ def game_collapse(n_clicks, is_open):
 @app.callback(
     Output("link_output", "children"),
     Output("game_id", "data"), # outputs to the game_id dcc.store on index page
-    Output("video_link", "data"), # outputs to the video link dcc.store on index
+    Output("video_path", "data"), # outputs to the video link dcc.store on index
     Input("select_game", "n_clicks"),
     State("game_input", "value"),
     prevent_initial_call=True)
 def select_game(n_clicks, game_id):
-    abc = 1
     # use the game_id to grab the link to the video + process_state
     # then use the process state to determine which link to generate
-    process_state = 0
-    link = None
-    if process_state == 0: # 0: PAGE - Initial Reveiew (Game freshly uploaded)
-        link = dbc.Button("Now Click Here", id="link", href='/apps/initial_review')
-    elif process_state == 1: # 1: PROCESS - Converted to 15 fps
-        link = dbc.Button("Now Click Here", id="link", href='/apps/initial_review')
-    elif process_state == 2: # 2: PAGE - Video Editor (Being edited)
-        link = dbc.Button("Now Click Here", id="link", href='/apps/initial_review')
-    elif process_state == 3: # 3: PROCESS - Video being recompiled with removed frames (Then usually goes back to stage 2 unless no more editing needs to be done)
-        link = dbc.Button("Now Click Here", id="link", href='/apps/initial_review')
-    elif process_state == 4: # 4: PROCESS - Detection algorithm being run
-        link = dbc.Button("Now Click Here", id="link", href='/apps/initial_review')
-    elif process_state == 5: # 5: PAGE - Dashboard (Track matching + Manual annotation + Add track)
-        link = dbc.Button("Now Click Here", id="link", href='/apps/initial_review')
-    elif process_state == 6: # 6: PROCESS - Homography being run
-        link = dbc.Button("Now Click Here", id="link", href='/apps/initial_review')
-    elif process_state == 7: # 7: PAGE - Final review page
-        link = dbc.Button("Now Click Here", id="link", href='/apps/initial_review')
-    else:
-        error = 1
+    if n_clicks:
+        process_state = 0
+        output = None
+        error = 0
+
+        if process_state == 0: # 0: PAGE - Initial Reveiew (Game freshly uploaded)
+            output = dbc.Button("Initial Review Link", id="link", href='/apps/initial_review')
+        elif process_state == 1: # 1: PROCESS - Converted to 15 fps
+            output = "Video currently being converted to 15fps."
+        elif process_state == 2: # 2: PAGE - Video Editor (Being edited)
+            output = dbc.Button("Video Editor Link", id="link", href='/apps/video_edit')
+        elif process_state == 3: # 3: PROCESS - Video being recompiled with removed frames (Then usually goes back to stage 2 unless no more editing needs to be done)
+            output = "Video still being recompiled."
+        elif process_state == 4: # 4: PROCESS - Detection algorithm being run
+            output = "Detection algorithm being run."
+        elif process_state == 5: # 5: PAGE - Dashboard (Track matching + Manual annotation + Add track)
+            output = dbc.Button("Dashboard Link", id="link", href='/apps/dashboard')
+        elif process_state == 6: # 6: PROCESS - Homography being run
+            output = "Homography being run"
+        elif process_state == 7: # 7: PAGE - Final review page
+            output = "Video processing completed."
+        else:
+            error = 1
+        
+        return output, game_id, "Path"
 
 
 # need to do the following:

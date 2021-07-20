@@ -674,8 +674,19 @@ def initializer(useless_input):
     global dic
     global dic_tracks
     global unique_tracks
+    global df_teams
+    global df_players
+
     dic = api_detections.get_frame_detections(0)
     dic_tracks, unique_tracks = api_detections.get_tracks(0)
+
+    df_teams = api_team.get_teams(0)
+    df_players = api_player.get_players(0)
+
+    annotated_data_card = {
+        
+    }
+
     return None
 
 # --------------------------------------------------
@@ -945,8 +956,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
     Output('frame_interval', 'disabled'),
     Output('playpause', 'children'),
     Input('playpause', 'n_clicks'),
-    State('frame_interval', 'disabled'),
-)
+    State('frame_interval', 'disabled'),)
 def togglePlay(play, isPaused):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     text = html.Img(src = 'https://github.com/dianabisbe/Images/blob/main/Play.png?raw=true',
@@ -987,8 +997,7 @@ def togglePlay(play, isPaused):
     Input('rewind-10', 'n_clicks'),
     Input('rewind-50', 'n_clicks'),
     State('frame_interval', 'disabled'),
-    State('radio_all_tracks', 'value'),
-)
+    State('radio_all_tracks', 'value'),)
 def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switches_value, hidden_div_j0, hidden_div_j3, fast10, fast50,rewind10, rewind50, isPaused, value):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     currentFrame = 0
@@ -1055,7 +1064,7 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
         dragmode="drawrect",
     )
     # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
-    frame_df = dic[currentFrame]
+    frame_df = dic[currentFrame] # api_detections.gfd(0, currentFrame) # 
     
     # print("\nCurrent Frame Bounding Boxes:")
     unassinged_is_checked = False

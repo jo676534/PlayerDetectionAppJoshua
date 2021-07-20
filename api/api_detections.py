@@ -22,7 +22,7 @@ def get_game_detections(game_id):
     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
     cur = conn.cursor()
     
-    cur.execute('''SELECT * FROM detections''')
+    cur.execute('''SELECT * FROM detections where game_id = 0''')
     data = cur.fetchall()
     
     cur.close()
@@ -47,7 +47,7 @@ def get_frame_detections(game_id):
     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
     cur = conn.cursor()
     
-    cur.execute('''SELECT MAX(frame) FROM detections''')
+    cur.execute('''SELECT MAX(frame) FROM detections where game_id = 0''')
     maxFrame = cur.fetchone()[0]
     
     dic = {}
@@ -67,8 +67,48 @@ def get_frame_detections(game_id):
     
     cur.close()
     conn.close()
+
+    # game_id = 0 
+
+    # dic = {} 
+
+    # with con:
+    #     with con.cursor() as curs:
+    #             sql = f'SELECT * FROM detections WHERE game_id={game_id}'
+    #             curs.execute(sql)
+    #             rows = curs.fetchall()
+    #             rows.sort(key = lambda x: x[1])
+
+    #             cols = []
+    #             for elt in curs.description:
+    #                 cols.append(elt[0])
+
+    #             for i in rows: # i[1] is just frame number
+    #                 # print("Fetching frame data {} of {}".format(i, len(rows)))
+    #                 l = [[i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8]]]
+    #                 if i[1] in dic: 
+    #                     df = dic[i[1]]
+    #                     df2 = pd.DataFrame(data=l, columns=cols)
+    #                     dic[i[1]] = df.append(df2)
+    #                 else: 
+    #                     dic[i[1]] = pd.DataFrame(data=l, columns=cols) # [l]
     
     return dic
+
+
+def gfd(game_id, frame):
+    con = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+
+    with con:
+        with con.cursor() as curs:
+            curs.execute('''SELECT * FROM detections WHERE game_id=0 AND frame={0}'''.format(frame))
+            data = curs.fetchall()
+            
+            cols = []
+            for elt in curs.description:
+                cols.append(elt[0])
+            
+            return pd.DataFrame(data=data, columns=cols)
 
 # ----------------------------------------------------------------------------
 
@@ -90,6 +130,7 @@ def get_tracks(game_id):
 
     for track_id in range(maxTrack+1):
         # create a temporary cursor and execute the get request for the detections of this frame
+        print("Fetching track {} of {}".format(track_id, maxTrack))
         cur_temp = conn.cursor()
         cur_temp.execute('''SELECT * FROM detections WHERE game_id={0} AND track_id={1}'''.format(game_id, track_id))
         data = cur_temp.fetchall()
