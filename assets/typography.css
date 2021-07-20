@@ -66,6 +66,39 @@ border-color: #00c2cb;
     color:#000e44;
 }
 
+
+/* Slider Colors */
+.rc-slider-track {
+    background-color: #00c2cb;;
+  }
+  
+  .rc-slider-dot-active {  
+    border-color: #00c2cb;
+    border: solid 2px #00c2cb;
+  }
+  
+  .rc-slider-handle {
+    background-color: #00c2cb;
+    border-color: #00c2cb;
+  }
+  
+  .rc-slider-handle:hover {
+    border-color: #00c2cb;
+  }
+  
+  .rc-slider-handle-active:active {
+    border-color: #00c2cb;
+  }
+
+  #area_dropdown .VirtualizedSelectFocusedOption {
+    background-color: #00c1cbd3;
+    color: white;
+  }
+
+  #but7:hover {
+    color: #ffffff
+  }
+
 /* .button{
     color: #11246B;
     border-color: #00c2cb;

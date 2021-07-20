@@ -244,6 +244,7 @@ image_annotation_card = dbc.Card(
                         html.Div(
                         [
                             dcc.Dropdown(
+                                id = 'area_dropdown',
                                 options=[
                                     {'label': 'Section 1', 'value': '1'},
                                     {'label': 'Section 2', 'value': '2'},
@@ -1213,3 +1214,4 @@ def delete_track(delete_bt, track_id):
     dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
     return (None, None, None)
+
