@@ -29,6 +29,7 @@ from apps import add_track
 from api import api_detections
 from api import api_team
 from api import api_player
+from api import api_game
 
 # GET FRAMES FROM VIDEO OR STORAGE ############################################################################################################
 
@@ -75,7 +76,8 @@ maxFrames = len(frames)-1
 player_tracks_counter = 0
 all_tracks_counter = 0
 viewable_tracks_counter = 0
-player_tracks = ["17", "12"]  # Hardcoded until "assign track" is working
+
+# a_name, b_name = None, None 
 
 track_state = 0
 
@@ -320,6 +322,7 @@ annotated_data_card = dbc.Card(
             [ 
                 html.Div(id='hidden-div', style= {'display':'none'}),
                 html.Div(id='hidden-div2', style= {'display':'none'}),
+                html.Div(id="hidden_div_init_input", style= {'display':'none'}),
                 html.Div(id='track_container', children=[html.Div([
                     html.Div(children=
                         [
@@ -387,13 +390,16 @@ annotated_data_card = dbc.Card(
 
 annotated_data_card2 = dbc.Card(
     [
-        dbc.CardHeader(html.Div(
-            [
-                dbc.Button("Team A", id="but7", outline=True, style={
-                       "margin-left": "45px", "font-size": "12px"}),
-                dbc.Button("Team B", id="but8", outline=True,
-                           style={"margin-left": "15px","font-size": "12px"}),
-            ])),
+        dbc.CardHeader(
+            html.Div( 
+                id = "team_buttons",
+                children = 
+                    [
+                        dbc.Button("Team A", id="but7", outline=True, style={
+                            "margin-left": "45px", "font-size": "12px"}),
+                        dbc.Button("Team B", id="but8", outline=True,
+                                style={"margin-left": "15px","font-size": "12px"}),
+                    ])),
         dbc.CardBody(
             [
                 html.Div(id='container'),
@@ -638,7 +644,7 @@ def initializer(useless_input, game_id):
     dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
     df_teams = api_team.get_teams(game_id)
-    df_players = api_player.get_players(game_id)
+    df_players = api_player.get_players_roster(game_id)
 
     return None
 
@@ -647,15 +653,20 @@ def initializer(useless_input, game_id):
 # Call back that toggles between Team A and Team B
 @app.callback(Output('container', 'children'),
               Input("but7", 'n_clicks'),
-              Input("but8", 'n_clicks'))
-def display(btn1, btn2):
+              Input("but8", 'n_clicks'),
+              State("game_id", "data"))
+def display(btn1, btn2, game_id):
 
     global df_players
     ctx = dash.callback_context
 
+    if not game_id: 
+        game_id = 0
+
     if not ctx.triggered:
         button_id = 'No clicks yet'
-        df_players = api_player.get_players(0)
+        df_players =  api_player.get_players_roster(game_id)
+
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
@@ -665,9 +676,11 @@ def display(btn1, btn2):
     if button_id == "but8":
         section = "B"
 
+    # Players in team A
     a_row = df_players[df_players["team_id"] == 0]
+    # Players in team B
     b_row = df_players[df_players["team_id"] == 1]
-
+    
 
     # # Dash component for team A
 
@@ -678,7 +691,7 @@ def display(btn1, btn2):
                 align = 'center',),
         dbc.Col([dbc.RadioItems(
         options=[
-            {'label': str(a_row.iloc[i]["name"]), 'value': str(a_row.iloc[i]["player_id"])} for i in range(0, len(a_row))],
+            {'label': "("+ str(a_row.iloc[i]["jersey"]) + ") "+ str(a_row.iloc[i]["name"]), 'value': str(a_row.iloc[i]["player_id"])} for i in range(0, len(a_row))],
         #value=str(a_row.iloc[1]["player_id"]), 
         id = "radio_players_A",
         className= "radio_items",
@@ -702,7 +715,7 @@ def display(btn1, btn2):
                 align = 'center',),
         dbc.Col([dbc.RadioItems(
         options=[
-            {'label': str(b_row.iloc[i]["name"]), 'value': str(b_row.iloc[i]["player_id"])} for i in range(0, len(b_row))],
+            {'label': "("+ str(b_row.iloc[i]["jersey"]) + ") "+str(b_row.iloc[i]["name"]), 'value': str(b_row.iloc[i]["player_id"])} for i in range(0, len(b_row))],
         #value=str(b_row.iloc[1]["name"]),  
         id = "radio_players_A",
         className= "radio_items",
@@ -1226,5 +1239,24 @@ def delete_track(delete_bt, track_id):
     dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
     return (None, None, None)
+
+@app.callback(
+    Output('team_buttons', 'children'),
+    Input("hidden_div_init_input", "children"),
+    State("game_id", "data"))
+def init_team_buttons(hidden_div, game_id):
+
+    global a_name
+    global b_name
+
+    if not game_id: 
+        game_id = 0
+
+    a_name, b_name = api_game.get_team_names(game_id)
+
+    print ("Callback triggered")
+    return html.Div( children = [dbc.Button(str(a_name), id="but7", outline=True, style={ "font-size": "12px"}),
+           dbc.Button(str(b_name), id="but8", outline=True, style={"margin-left": "5px","font-size": "12px"})])
+
 
 # UCF CRCV
