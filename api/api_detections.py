@@ -36,11 +36,10 @@ def get_game_detections(game_id):
 
 # ----------------------------------------------------------------------------
 
-# name is testSoccer
+# database name is soccer
 # password is rootroot
 # username is postgres
-# port is 5432
-# host is test-database.cl6mqrzwrjrf.us-east-1.rds.amazonaws.com
+# host is database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com
 
 # Get All Detections From a Frame
 def get_frame_detections(game_id):
