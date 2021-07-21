@@ -32,9 +32,9 @@ game_card = dbc.Card(
             [
                 dash_table.DataTable(
                     id='game_table', 
-                    columns=[{"name": i, "id": i} for i in df_game.columns],
+                    columns= [{'name': 'Game ID', 'id': 'game_id'}, {'name': 'Team 1 Name', 'id': 'team1_name'}, {'name': 'Team 2 Name', 'id': 'team2_name'}, {'name': 'Date Played', 'id': 'day_played'}, {'name': 'Process State', 'id': 'process_state'}], # [{"name": i, "id": i} for i in df_game.columns], #['Game ID', 'Team 1 Name', 'Team 2 Name', 'Day Played', 'Process State'],# 
                     page_current=0,
-                    page_size=len(df_game),
+                    page_size=5,
                 ),
             ]
         )
@@ -105,7 +105,11 @@ layout = html.Div([
     Input('game_table', "page_size"),
     Input('game_table', 'sort_by')
     )
-def update_table(page_current,page_size,sort_by):
+def update_table(page_current,page_size,sort_by): # 'Game ID', 'Team 1 Name', 'Team 2 Name', 'Day Played', 'Process State'
+    global df_game
+    if 'user_id' in df_game:
+        df_game = df_game.drop(['user_id', 'team1_id', 'team2_id', 'day_uploaded', 'video_original', 'video_modified'], axis=1)
+    #print([{"name": i, "id": i} for i in df_game.columns])
     return df_game.to_dict('records')
 
 # Collapse callback
@@ -126,8 +130,9 @@ def game_collapse(n_clicks, is_open):
     Output("video_path", "data"), # outputs to the video link dcc.store on index
     Input("select_game", "n_clicks"),
     State("game_input", "value"),
+    State("game_id", "data"),
     prevent_initial_call=True)
-def select_game(n_clicks, game_id):
+def select_game(n_clicks, game_id, game_id_storage):
     # use the game_id to grab the link to the video + process_state
     # then use the process state to determine which link to generate
     if n_clicks:
@@ -155,6 +160,8 @@ def select_game(n_clicks, game_id):
             error = 1
         
         return output, game_id, "Path"
+    else:
+        return None, game_id_storage, None
 
 
 # need to do the following:

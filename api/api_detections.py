@@ -36,11 +36,10 @@ def get_game_detections(game_id):
 
 # ----------------------------------------------------------------------------
 
-# name is testSoccer
+# database name is soccer
 # password is rootroot
 # username is postgres
-# port is 5432
-# host is test-database.cl6mqrzwrjrf.us-east-1.rds.amazonaws.com
+# host is database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com
 
 # Get All Detections From a Frame
 def get_frame_detections(game_id):
@@ -130,7 +129,7 @@ def get_tracks(game_id):
 
     for track_id in range(maxTrack+1):
         # create a temporary cursor and execute the get request for the detections of this frame
-        print("Fetching track {} of {}".format(track_id, maxTrack))
+        # print("Fetching track {} of {}".format(track_id, maxTrack))
         cur_temp = conn.cursor()
         cur_temp.execute('''SELECT * FROM detections WHERE game_id={0} AND track_id={1}'''.format(game_id, track_id))
         data = cur_temp.fetchall()

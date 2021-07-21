@@ -320,6 +320,7 @@ annotated_data_card = dbc.Card(
             [ 
                 html.Div(id='hidden-div', style= {'display':'none'}),
                 html.Div(id='hidden-div2', style= {'display':'none'}),
+                html.Div(id="hidden_div_init_input", style= {'display':'none'}),
                 html.Div(id='track_container', children=[html.Div([
                     html.Div(children=
                         [
@@ -396,7 +397,29 @@ annotated_data_card2 = dbc.Card(
             ])),
         dbc.CardBody(
             [
-                html.Div(id='container'),
+                html.Div(id='container', children=
+                    [
+                        dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}, disabled=True),
+                                dbc.Spinner(html.Div(id="assign_track_output")),],
+                                align = 'center',),
+                        dbc.Col([dbc.RadioItems(
+                        options=
+                            [
+                                {'label': "Select a Team View", 
+                                'value': str(1)}
+                            ],
+                        id = "radio_players_A",
+                        className= "radio_items",
+                    
+                        )],
+                        align = 'center',
+                        style={'width': '250px', 
+                            'height': '670px', 
+                            'overflow': 'scroll', 
+                            'padding': '10px 10px 10px 20px'
+                            }), 
+                    ]
+                ),
             ]
         ),
         dbc.CardFooter(
@@ -621,7 +644,7 @@ def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, stor
 
 # simple callback that will only be called on page startup/refresh to create the necessary data structures
 @app.callback(
-    Output("hidden_div_init_output", "children"),
+    Output("hidden_div_init_input", "children"),
     Input("hidden_div_init_input", "children"),
     State("game_id", "data"))
 def initializer(useless_input, game_id):
