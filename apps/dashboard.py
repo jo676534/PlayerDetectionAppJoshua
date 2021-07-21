@@ -18,7 +18,7 @@ import psycopg2 as pg2
 import pandas as pd
 from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
-
+import math
 
 # FILE FUNCTION IMPORTS ----------------------------------------------------------------------------------------------------------------------
 
@@ -31,48 +31,26 @@ from api import api_team
 from api import api_player
 from api import api_game
 
-# GET FRAMES FROM VIDEO OR STORAGE ############################################################################################################
 
-########### NEW VID TO FRAMES###########
+filename = "C:/Users/markt/OneDrive/School Documents/Senior Design/videos/fullVid15.mp4"
+vidcap = cv2.VideoCapture(filename)
 
-# vidcap = cv2.VideoCapture('Sample Soccer Video.mp4')
-# frames = []
+fps = vidcap.get(cv2.CAP_PROP_FPS)
+frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
+vidcap.release() 
 
-# def getFrame(sec):
-#     vidcap.set(cv2.CAP_PROP_POS_MSEC, sec*1000)
-#     hasFrames, image = vidcap.read()
-#     if hasFrames:
-#         # Instead of writing to directory, save to an image array
-#         # cv2.imwrite(os.path.join(dirname,"image"+str(count) + ".jpg"), image)
-#         image2 = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-#         frames.append(image2)
-#     return hasFrames
-
-# sec = 0
-# frameRate = 0.02  # 30 frames per second?
-# count = 1
-# success = getFrame(sec)
-# while success:
-#     count = count + 1
-#     sec = sec + frameRate
-#     sec = round(sec, 2)
-#     success = getFrame(sec)
-
-########### END NEW VID TO FRAMES###########
-
-
-########### OLD VID TO FRAMES###########
-
-pathIn = './vid2img/'
-frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))]
-frames.sort(key=lambda x: int(x[5:-4]))
-
-########### END OLD VID TO FRAMES###########
+duration = frame_count/fps
+# print('fps = ' + str(fps))
+# print('number of frames = ' + str(frame_count))
+# print('duration (S) = ' + str(duration))
+resolution = (1280, 720)
+framesPerSection = 5000
+sections = math.ceil(frame_count / framesPerSection)
 
 
 # GLOBAL VARIABLES #############################################################################################################################
 
-maxFrames = len(frames)-1
+maxFrames = frame_count-1
 player_tracks_counter = 0
 all_tracks_counter = 0
 viewable_tracks_counter = 0
@@ -89,7 +67,12 @@ df_teams = None # api_team.get_teams(0)
 # fetch the players ----------------
 df_players = None # api_player.get_players(0)
 
-
+def getSections(sections):
+    sectionOptions = [
+        {'label': 'Section {}'.format(i+1), 'value': i}
+        for i in range(sections)
+    ]
+    return sectionOptions
 # NON-DASH FUNCTIONS ##############################################################################################################################
 
 
@@ -146,28 +129,38 @@ def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, name=No
 # DASH COMPONENTS #######################################################################################################################################
 
 # will have to default figure to some kind of default image
-fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")  # OLD
-fig.update_layout(
-    xaxis= {
-        'showgrid': False, # thin lines in the background
-        'zeroline': False, # thick line at x=0
-        'visible': False,  # numbers below
-    },
-    yaxis= {
-        'showgrid': False, # thin lines in the background
-        'zeroline': False, # thick line at x=0
-        'visible': False,  # numbers below
-    },
-    margin=dict(l=0, r=0, b=0, t=0, pad=0),
-    dragmode="drawrect",
-)
+# fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")  # OLD
+# fig.update_layout(
+#     xaxis= {
+#         'showgrid': False, # thin lines in the background
+#         'zeroline': False, # thick line at x=0
+#         'visible': False,  # numbers below
+#     },
+#     yaxis= {
+#         'showgrid': False, # thin lines in the background
+#         'zeroline': False, # thick line at x=0
+#         'visible': False,  # numbers below
+#     },
+#     margin=dict(l=0, r=0, b=0, t=0, pad=0),
+#     dragmode="drawrect",
+# )
 # fig = px.imshow(frames[0], binary_backend="jpg")  NEW
 
+def get_frame(current_frame):
+
+    vidcap = cv2.VideoCapture(filename)
+    vidcap.set(cv2.CAP_PROP_POS_FRAMES, current_frame)
+    hasFrames, image = vidcap.read()
+    if not hasFrames: return None 
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image  = cv2.resize(image, dsize=(resolution))
+    vidcap.release()
+    return image 
 
 # Video Player Card ===============================================================================================================================
 
 
-image_annotation_card = dbc.Card(
+image_annotation_card_DB = dbc.Card(
     id="imagebox",
     children=[
         dbc.CardHeader(
@@ -190,12 +183,8 @@ image_annotation_card = dbc.Card(
                         html.Div(
                         [
                             dcc.Dropdown(
-                                id = 'area_dropdown',
-                                options=[
-                                    {'label': 'Section 1', 'value': '1'},
-                                    {'label': 'Section 2', 'value': '2'},
-                                    {'label': 'Section 3', 'value': '3'}
-                                ],
+                                id = 'dropdown_DB',
+                                options=getSections(sections),
                                 searchable=False,
                                 placeholder="Select a video section",
                             ),
@@ -216,9 +205,8 @@ image_annotation_card = dbc.Card(
                 html.Div(id="manual_annotation_output"),
                 html.Div(id="interval", children=[ # needs to be properly initialized //////////////////////////////////////////////////////////////////////
                     dcc.Interval(
-                        id='frame_interval',
-                        interval=500,
-                        disabled=True,
+                        id='interval_DB',
+                        disabled=False,
                         n_intervals=0,      # number of times the interval has passed
                         max_intervals=maxFrames # alternative way to do this = properly output the maxFrames to
                     ),
@@ -226,7 +214,6 @@ image_annotation_card = dbc.Card(
                 dcc.Graph( # WILL HAVE TO INITIALIZE THIS AS WELL //////////////////////////////////////////////////////////////////////////////////////////
                     id="graph",
                     style={'width': '1000px', 'height': '600px'},
-                    figure=fig,
                     config={"modeBarButtonsToAdd": ["drawrect", "eraseshape"]},
                 )
             ]
@@ -235,13 +222,8 @@ image_annotation_card = dbc.Card(
             [
                 # Slider Component
                 dcc.Slider( # need to have a default slider w/pointless values and then have it replaced later during initialization ///////////////////////
-                    id='frame-slider',
-                    min=0,
-                    max=maxFrames,
-                    value=0,
+                    id='slider_DB',
                     step=1,
-                    marks={round(i*maxFrames/16): '{}'.format(round(i*maxFrames/16))
-                           for i in range(maxFrames)},
                 ),
                 html.Div(id='slider-output-container', className='current_frame'),
                 # Pause/Player Buttons
@@ -270,7 +252,7 @@ image_annotation_card = dbc.Card(
                         dbc.Button(children=[html.Img
                                                 (src = 'https://github.com/dianabisbe/Images/blob/main/Play.png?raw=true',
                                                  style={'height':'30px'})],
-                                   id="playpause", outline=True,
+                                   id="playpause_DB", outline=True,
                                    style={"margin-right": "15px", "margin-bottom": "15px"}, color="light"),
                         dbc.Button(children=[html.Img
                                                 (src = 'https://github.com/dianabisbe/Images/blob/main/Next.png?raw=true',
@@ -303,6 +285,11 @@ image_annotation_card = dbc.Card(
 
 
 # Track List Card =============================================================================================================================
+info_storage = html.Div([
+    dcc.Store(id='section_DB', storage_type='local', data=0),
+    dcc.Store(id='frame_DB', storage_type='local', data=0), 
+    dcc.Store(id='video_state_DB', storage_type='session', data=False),
+])
 
 
 annotated_data_card = dbc.Card(
@@ -447,7 +434,7 @@ layout = html.Div(  # was app.layout
             [
                 dbc.Row(
                     [
-                        dbc.Col(image_annotation_card, md=7.5),
+                        dbc.Col(image_annotation_card_DB, md=7.5),
                         dbc.Col(annotated_data_card, md=2.5),
                         dbc.Col(annotated_data_card2, md=2.5),
                     ],
@@ -771,7 +758,7 @@ def display(btn1, btn2, game_id):
               Input('hidden_div_j1', 'children'),
               Input("radio_players_A", 'value'),
               Input('hidden_div_j2', 'children'),
-              State("frame_interval", 'n_intervals'),)
+              State("interval_DB", 'n_intervals'),)
 def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
     ctx = dash.callback_context
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
@@ -1019,16 +1006,19 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
 
 # Call back for video Player/Pause
 @app.callback(
-    Output('frame_interval', 'disabled'),
-    Output('playpause', 'children'),
-    Input('playpause', 'n_clicks'),
-    State('frame_interval', 'disabled'),)
-def togglePlay(play, isPaused):
+    Output('video_state_DB', 'data'),
+    Output('interval_DB', 'disabled'),
+    Output('playpause_DB', 'children'),
+    Input('playpause_DB', 'n_clicks'),
+    State('video_state_DB', 'data'),
+    State('interval_DB', 'disabled'),)
+def togglePlay(play, isPaused, video_state):
+    video_state = not video_state 
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     text = html.Img(src = 'https://github.com/dianabisbe/Images/blob/main/Play.png?raw=true',
                               style={'height':'30px'})
 
-    if cbcontext == "playpause.n_clicks":
+    if cbcontext == "playpause_DB.n_clicks":
         if isPaused == True:
             isPaused = False
             text = html.Img(src = 'https://github.com/dianabisbe/Images/blob/main/Pause.png?raw=true',
@@ -1037,7 +1027,7 @@ def togglePlay(play, isPaused):
             isPaused = True
         else:
             raise PreventUpdate
-    return (isPaused, text)
+    return (video_state, isPaused, text)
 
 
 # Video Display Callback
@@ -1046,77 +1036,78 @@ def togglePlay(play, isPaused):
 # Callback for assign/unassign toggle
 @app.callback(
     Output('graph', 'figure'),
-    Output('frame_interval', 'n_intervals'),
-    Output('frame-slider', 'value'),
+    # Output('interval_DB', 'n_intervals'),
+    # Output('frame-slider', 'value'),
     Output('hidden_div_j1', 'children'),
-    Input('frame_interval', 'n_intervals'),
-    Input('frame-slider', 'value'),
-    Input('previous', 'n_clicks'),
-    Input('next', 'n_clicks'),
-    Input('gts_all_tracks', 'n_clicks'),
-    Input('go_to_end','n_clicks'),
+    # Input('interval_DB', 'n_intervals'),
+    # Input('frame-slider', 'value'),
+    # Input('previous', 'n_clicks'),
+    # Input('next', 'n_clicks'),
+    # Input('gts_all_tracks', 'n_clicks'),
+    # Input('go_to_end','n_clicks'),
     Input('switches-input', 'value'),
     Input("hidden_div_j0", "children"),
     Input("hidden_div_j3", "children"),
-    Input('fastforward-10', 'n_clicks'),
-    Input('fastforward-50', 'n_clicks'),
-    Input('rewind-10', 'n_clicks'),
-    Input('rewind-50', 'n_clicks'),
-    State('frame_interval', 'disabled'),
+    # Input('fastforward-10', 'n_clicks'),
+    # Input('fastforward-50', 'n_clicks'),
+    # Input('rewind-10', 'n_clicks'),
+    # Input('rewind-50', 'n_clicks'),
+    # State('interval_DB', 'disabled'),
+    Input('frame_DB', 'data'),
+    State('section_DB', 'data'),
+    State('frame_DB', 'data'),
     State('radio_all_tracks', 'value'),)
-def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switches_value, hidden_div_j0, hidden_div_j3, fast10, fast50,rewind10, rewind50, isPaused, value):
+def update_figure(switches_value, hidden_div_j0, hidden_div_j3, current_frame, section, frame_data, value):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-    currentFrame = 0
 
     global dic
     if not dic:
         dic = api_detections.get_frame_detections(0)
 
-    if isPaused == False:
-        if interval is None:
-            interval = 0
-        currentFrame = interval
-    elif isPaused == True:
-        currentFrame = interval
-        if cbcontext == "previous.n_clicks":
-            if(currentFrame != 0):
-                currentFrame += -1
-        if cbcontext == "next.n_clicks":
-            if(currentFrame != maxFrames):
-                currentFrame += 1
-        if cbcontext == "fastforward-10.n_clicks":
-            if(currentFrame < maxFrames -10):
-                currentFrame += 10
-        if cbcontext == "fastforward-50.n_clicks":
-            if(currentFrame < maxFrames -50):
-                currentFrame += 50
-        if cbcontext == "rewind-10.n_clicks":
-            if(currentFrame > 9):
-                currentFrame += -10
-        if cbcontext == "rewind-50.n_clicks":
-            if(currentFrame > 49):
-                currentFrame += -50
-        if cbcontext =="gts_all_tracks.n_clicks":
-            if cbcontext == "frame-slider.value":
-                currentFrame = slider
-            else:  
-                for i in range (0, unique_tracks):
-                    if value:
-                        if int(dic_tracks[i]['track_id'][0]) == int(value):
-                            currentFrame = min(dic_tracks[i]['frame'])
-        if cbcontext =="go_to_end.n_clicks":
-            if cbcontext == "frame-slider.value":
-                currentFrame = slider
-            else:
-                for i in range (0, unique_tracks):
-                    if int(dic_tracks[i]['track_id'][0]) == int(value):
-                        currentFrame = max(dic_tracks[i]['frame'])
-    if cbcontext == "frame-slider.value":
-        currentFrame = slider
+    # if isPaused == False:
+    #     if interval is None:
+    #         interval = 0
+    #     currentFrame = interval
+    # elif isPaused == True:
+    #     currentFrame = interval
+    #     if cbcontext == "previous.n_clicks":
+    #         if(currentFrame != 0):
+    #             currentFrame += -1
+    #     if cbcontext == "next.n_clicks":
+    #         if(currentFrame != maxFrames):
+    #             currentFrame += 1
+    #     if cbcontext == "fastforward-10.n_clicks":
+    #         if(currentFrame < maxFrames -10):
+    #             currentFrame += 10
+    #     if cbcontext == "fastforward-50.n_clicks":
+    #         if(currentFrame < maxFrames -50):
+    #             currentFrame += 50
+    #     if cbcontext == "rewind-10.n_clicks":
+    #         if(currentFrame > 9):
+    #             currentFrame += -10
+    #     if cbcontext == "rewind-50.n_clicks":
+    #         if(currentFrame > 49):
+    #             currentFrame += -50
+    #     if cbcontext =="gts_all_tracks.n_clicks":
+    #         if cbcontext == "frame-slider.value":
+    #             currentFrame = slider
+    #         else:  
+    #             for i in range (0, unique_tracks):
+    #                 if value:
+    #                     if int(dic_tracks[i]['track_id'][0]) == int(value):
+    #                         currentFrame = min(dic_tracks[i]['frame'])
+    #     if cbcontext =="go_to_end.n_clicks":
+    #         if cbcontext == "frame-slider.value":
+    #             currentFrame = slider
+    #         else:
+    #             for i in range (0, unique_tracks):
+    #                 if int(dic_tracks[i]['track_id'][0]) == int(value):
+    #                     currentFrame = max(dic_tracks[i]['frame'])
+    # if cbcontext == "frame-slider.value":
+    #     currentFrame = slider
     # print(currentFrame)
 
-    fig = px.imshow(
-        io.imread(pathIn+frames[currentFrame]), binary_backend="jpg")  # OLD
+    fig = px.imshow(get_frame(current_frame), binary_backend="jpg")
     fig.update_layout(
         xaxis= {
             'showgrid': False, # thin lines in the background
@@ -1132,7 +1123,7 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
         dragmode="drawrect",
     )
     # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
-    frame_df = dic[currentFrame] # api_detections.gfd(0, currentFrame) # 
+    frame_df = dic[current_frame] # api_detections.gfd(0, currentFrame) # 
     
     # print("\nCurrent Frame Bounding Boxes:")
     unassinged_is_checked = False
@@ -1194,12 +1185,12 @@ def update_figure(interval, slider, previousBut, nextBut, gtsBut ,gteBut, switch
                 add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1)       
 
     # print(id_num, x0, y0, x1, y1)
-    return (fig, currentFrame, currentFrame, None)
+    return (fig, None)
 
 # Callback for Slider
 @app.callback(
     dash.dependencies.Output('slider-output-container', 'children'),
-    [dash.dependencies.Input('frame_interval', 'n_intervals')])
+    [dash.dependencies.Input('interval_DB', 'n_intervals')])
 def update_output(value):
     return '  Current Frame Number: {}'.format(value)
 
@@ -1280,5 +1271,60 @@ def init_team_buttons(hidden_div, game_id):
     return html.Div( children = [dbc.Button(str(a_name), id="but7", outline=True, style={ "font-size": "12px"}),
            dbc.Button(str(b_name), id="but8", outline=True, style={"margin-left": "5px","font-size": "12px"})])
 
+@app.callback(
+    Output('frame_DB', 'data'),
+    Output('slider_DB', 'value'),
+    Input('interval_DB', 'n_intervals'),
+    Input('slider_DB', 'value'),
+    Input('section_DB', 'data'),
+    State('slider_DB', 'min'),
+    State('frame_DB', 'data'),
+)
+def update_frame(interval, slider, section, slider_min, data):
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    print(cbcontext)
+    if cbcontext == 'interval.n_intervals': data += 1; return data, data
+    elif cbcontext == 'section.data': return slider_min, slider_min
+    else: data = slider; return slider, slider
 
+@app.callback(
+    Output("slider_DB", 'min'),
+    Output("slider_DB", 'max'),
+    Output("slider_DB", 'marks'),
+    Output('section_DB', 'data'),
+    Input('dropdown_DB', 'value'),
+    State('section_DB', 'data')
+)
+def initialize_section_and_slider(sectionValue, data):
+    minFrame = (sectionValue * framesPerSection) + 1
+    if (sectionValue+1) != sections:
+        maxFrame = (sectionValue+1) * framesPerSection
+    else:
+        maxFrame = (frame_count % framesPerSection) + (minFrame-1)
+
+
+    diff = round((maxFrame - minFrame)/20)
+    marks = [(minFrame-1)+x*diff for x in range(21)]
+    if marks[0] % framesPerSection == 0:
+        marks[0] += 1
+    sliderMarks = {}
+    for i in marks:
+        sliderMarks[f'{i}'] = f'{i}'
+
+    data = sectionValue 
+    return minFrame, maxFrame, sliderMarks, data
+
+@app.callback(Output('dropdown_DB', 'value'),
+                Input('section_DB', 'modified_timestamp'),
+                State('section_DB', 'data'),
+                State('frame_DB', 'data'),
+                State('video_state_DB', 'data'),
+)
+def initial(section_ts, sectiondata, framedata, video_state):
+    # if section_ts is None:
+        # raise PreventUpdate
+    sectiondata = sectiondata or 0
+    framedata = framedata or 0
+    video_state = False 
+    return sectiondata
 # UCF CRCV
