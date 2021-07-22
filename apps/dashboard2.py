@@ -195,37 +195,37 @@ video_card_DB = dbc.Card(
                         dbc.Button(children=[html.Img
                                                 (src = 'https://github.com/dianabisbe/Images/blob/main/rw50.png?raw=true',
                                                  style={'height':'30px'})],  
-                                    id="rewind-50", outline=True, style={
+                                    id="rewind-50_DB", outline=True, style={
                                    "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
                         dbc.Button(children=[html.Img
                                                 (src = 'https://github.com/dianabisbe/Images/blob/main/rw10.png?raw=true',
                                                  style={'height':'30px'})],  
-                                    id="rewind-10", outline=True, style={
+                                    id="rewind-10_DB", outline=True, style={
                                    "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
                         dbc.Button(children=[html.Img
                                                 (src = 'https://github.com/dianabisbe/Images/blob/main/Prev.png?raw=true',
                                                  style={'height':'30px'})],
-                                    id="previous", outline=True, style={
+                                    id="previous_DB", outline=True, style={
                                     "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
                         dbc.Button(children=[html.Img
                                                 (src = 'https://github.com/dianabisbe/Images/blob/main/Play.png?raw=true',
                                                  style={'height':'30px'})],
-                                   id="playpause", outline=True,
+                                   id="playpause_DB", outline=True,
                                    style={"margin-right": "15px", "margin-bottom": "15px"}, color="light"),
                         dbc.Button(children=[html.Img
                                                 (src = 'https://github.com/dianabisbe/Images/blob/main/Next.png?raw=true',
                                                  style={'height':'30px'})],
-                                    id="next", outline=True, style={
+                                    id="next_DB", outline=True, style={
                                    "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
                         dbc.Button(children=[html.Img
                                                 (src = 'https://github.com/dianabisbe/Images/blob/main/ff10.png?raw=true',
                                                  style={'height':'30px'})], 
-                                    id="fastforward-10", outline=True, style={
+                                    id="fastforward-10_DB", outline=True, style={
                                    "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
                         dbc.Button(children=[html.Img
                                                 (src = 'https://github.com/dianabisbe/Images/blob/main/ff50.png?raw=true',
                                                  style={'height':'30px'})],
-                                    id="fastforward-50", outline=True, style={
+                                    id="fastforward-50_DB", outline=True, style={
                                    "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
                         dbc.Button(children=[html.Img
                                                 (src = 'https://github.com/dianabisbe/Images/blob/main/NextSection.png?raw=true',
@@ -1162,9 +1162,9 @@ def update_player(switches_value, hiddenj0, hiddenj3, current_frame, section, fr
 
 @app.callback(
     Output('video_state_DB', 'data'),
-    Output('playpause', 'children'),
+    Output('playpause_DB', 'children'),
     Output('interval_DB', 'disabled'),
-    Input('playpause', 'n_clicks'),
+    Input('playpause_DB', 'n_clicks'),
     State('video_state_DB', 'data'),
     State('interval_DB', 'disabled'),
 )
@@ -1182,18 +1182,59 @@ def player_state(play_button, video_state, interval_state):
 @app.callback(
     Output('frame_DB', 'data'),
     Output('slider_DB', 'value'),
+    Input('previous_DB', 'n_clicks'),
+    Input('next_DB', 'n_clicks'),
+    Input('fastforward-10_DB', 'n_clicks'),
+    Input('fastforward-50_DB', 'n_clicks'),
+    Input('rewind-10_DB', 'n_clicks'),
+    Input('rewind-50_DB', 'n_clicks'),
     Input('interval_DB', 'n_intervals'),
     Input('slider_DB', 'value'),
     Input('section_DB', 'data'),
     State('slider_DB', 'min'),
+    State('slider_DB', 'max'),
     State('frame_DB', 'data'),
+    State('radio_all_tracks', 'value'),
+
 )
-def update_frame(interval, slider, section, slider_min, data):
+def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider, section, slider_min, slider_max, data, radioValue):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     print(cbcontext)
-    if cbcontext == 'interval_DB.n_intervals': data += 1; return data, data
+    if cbcontext == "previous_DB.n_clicks":
+        data = data - 1 if data != slider_min else data 
+        return data, data 
+    elif cbcontext == "next_DB.n_clicks":
+        data = data + 1 if data != slider_max else data 
+        return data, data 
+    elif cbcontext == "fastforward-10_DB.n_clicks":
+        data = data + 10 if data < (slider_max - 10) else data 
+        return data, data 
+    elif cbcontext == "fastforward-50_DB.n_clicks":
+        data = data + 50 if data < (slider_max - 50) else data 
+        return data, data 
+    elif cbcontext == "rewind-10_DB.n_clicks":
+        data = data - 10 if data > (slider_min + 9) else data 
+        return data, data 
+    elif cbcontext == "rewind-50_DB.n_clicks":
+        data = data - 50 if data > (slider_min + 49) else data 
+        return data, data 
+    elif cbcontext =="gts_all_tracks.n_clicks":
+        for i in range (0, unique_tracks):
+            if radioValue:
+                if int(dic_tracks[i]['track_id'][0]) == int(radioValue):
+                    data = min(dic_tracks[i]['frame'])
+                    return data, data 
+    elif cbcontext =="go_to_end.n_clicks":
+        for i in range (0, unique_tracks):
+            if radioValue:
+                if int(dic_tracks[i]['track_id'][0]) == int(radioValue):
+                    data = max(dic_tracks[i]['frame'])
+                    return data, data 
+    elif cbcontext == 'interval_DB.n_intervals': data += 1; return data, data
     elif cbcontext == 'section_DB.data': return slider_min, slider_min
     else: data = slider; return slider, slider
+
+
 
 @app.callback(
     Output("slider_DB", 'min'),
