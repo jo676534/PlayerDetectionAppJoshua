@@ -704,7 +704,7 @@ def display(btn1, btn2, game_id):
               Input('hidden_div_j1', 'children'),
               Input("radio_players_A", 'value'),
               Input('hidden_div_j2', 'children'),
-              State("interval_DB", 'n_intervals'),)
+              State("frame_DB", 'data'),)
 def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
     ctx = dash.callback_context
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
@@ -714,8 +714,8 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame):
     global unique_tracks
     global track_state # 0 is no state, 1 is all, 2 is view, 3 is player
 
-    dic_tracks, unique_tracks = api_detections.get_tracks(0)
-
+    if not dic_tracks:
+        dic_tracks, unique_tracks = api_detections.get_tracks(0)
 
     if not ctx.triggered:
         button_id = 'No clicks yet'
@@ -1134,18 +1134,18 @@ def get_frame(current_frame):
 def update_player(switches_value, hiddenj0, hiddenj3, current_frame, section, frame_data):
     fig = px.imshow(get_frame(current_frame), binary_backend="jpg")
     fig.update_layout(
-    xaxis= {
-        'showgrid': False, # thin lines in the background
-        'zeroline': False, # thick line at x=0
-        'visible': False,  # numbers below
-    },
-    yaxis= {
-        'showgrid': False, # thin lines in the background
-        'zeroline': False, # thick line at x=0
-        'visible': False,  # numbers below
-    },
-    margin=dict(l=0, r=0, b=0, t=0, pad=0),
-    dragmode="drawrect",
+        xaxis= {
+            'showgrid': False, # thin lines in the background
+            'zeroline': False, # thick line at x=0
+            'visible': False,  # numbers below
+        },
+        yaxis= {
+            'showgrid': False, # thin lines in the background
+            'zeroline': False, # thick line at x=0
+            'visible': False,  # numbers below
+        },
+        margin=dict(l=0, r=0, b=0, t=0, pad=0),
+        dragmode="drawrect",
     )
     draw_tracks(fig, current_frame, switches_value)
 
