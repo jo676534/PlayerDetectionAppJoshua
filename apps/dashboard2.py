@@ -6,7 +6,7 @@ import dash  # (version 1.12.0) pip install dash
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
-import dash_player
+# import dash_player
 from dash.dependencies import Input, Output, State
 import os
 from os.path import isfile, join
@@ -20,7 +20,7 @@ from app import app
 import time
 import math
 import asyncio
-import boto3
+# import boto3
 
 from app import app
 from apps import add_track
@@ -31,7 +31,7 @@ from api import api_game
 
 
 
-filename = "C:/Users/markt/OneDrive/School Documents/Senior Design/videos/sampleSoccerTrim15.mp4"
+filename = "./Videos/game_0.mp4"
 vidcap = cv2.VideoCapture(filename)
 
 # OpenCV2 version 2 used "CV_CAP_PROP_FPS"
@@ -393,6 +393,7 @@ layout = html.Div(  # was app.layout
 )
 
 
+# manual annotation callback
 @app.callback(
     Output("manual_annotation_output", "children"),
     Output("hidden_div_j0", "children"),
@@ -507,6 +508,8 @@ def manual_annotation(graph_relayout, frame, player_id):
     else:
         return "Unknown ERROR 2", None
 
+
+# set start frame
 @app.callback(
     Output("dashboard_input_start", "value"),
     Input("set_start", "n_clicks"),
@@ -516,6 +519,8 @@ def set_start_frame(n_clicks, frame):
     if n_clicks is not None:
         return frame
 
+
+# set final frame
 @app.callback(
     Output("dashboard_input_final", "value"),
     Input("set_final", "n_clicks"),
@@ -523,6 +528,7 @@ def set_start_frame(n_clicks, frame):
 def set_final_frame(n_clicks, frame):
     if n_clicks is not None:
         return frame
+
 
 # callback for add track button
 @app.callback(
@@ -597,6 +603,7 @@ def initializer(useless_input, game_id):
     df_players = api_player.get_players_roster(game_id)
 
     return None
+
 
 # Call back that toggles between Team A and Team B
 @app.callback(Output('container', 'children'),
@@ -982,6 +989,7 @@ def update_player_tracks(assignBt, track_id, player_id):
     else:
         return None, None
 
+
 # Callback for delete
 @app.callback(
     Output('hidden-div2', 'children'),
@@ -1008,6 +1016,7 @@ def delete_track(delete_bt, track_id):
 
     return (None, None, None)
 
+
 @app.callback(
     Output('team_buttons', 'children'),
     Input("hidden_div_init_input", "children"),
@@ -1025,6 +1034,7 @@ def init_team_buttons(hidden_div, game_id):
     print ("Callback triggered")
     return html.Div( children = [dbc.Button(str(a_name), id="but7", outline=True, style={ "font-size": "12px"}),
            dbc.Button(str(b_name), id="but8", outline=True, style={"margin-left": "5px","font-size": "12px"})])
+
 
 def draw_tracks(fig, currentFrame, switches_value):
 
@@ -1096,23 +1106,6 @@ def draw_tracks(fig, currentFrame, switches_value):
     return fig 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def get_frame(current_frame):
 
     vidcap = cv2.VideoCapture(filename)
@@ -1137,8 +1130,7 @@ def get_frame(current_frame):
 
     Input('frame_DB', 'data'),
     State('section_DB', 'data'),
-    State('frame_DB', 'data'),
-)
+    State('frame_DB', 'data'),)
 def update_player(switches_value, hiddenj0, hiddenj3, current_frame, section, frame_data):
     fig = px.imshow(get_frame(current_frame), binary_backend="jpg")
     fig.update_layout(
