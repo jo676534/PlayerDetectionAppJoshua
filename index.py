@@ -12,9 +12,10 @@ from app import server
 from apps import home
 from apps import initial_review
 from apps import video_edit
-from apps import dashboard
+# from apps import dashboard
 from apps import add_track
 from apps import final_review
+from apps import dashboard2
 
 
 
@@ -44,7 +45,7 @@ navbar = dbc.NavbarSimple(
 )
 
 info_storage = html.Div([
-    dcc.Store(id="game_id", storage_type='session'),
+    dcc.Store(id="game_id", storage_type='session', data=0),
     dcc.Store(id="video_path", storage_type='session'),
     dcc.Store(id='start_frame_add', storage_type='session'),
     dcc.Store(id='final_frame_add', storage_type='session'),
@@ -69,7 +70,7 @@ def display_page(pathname):
     if pathname == '/apps/video_edit':
         return video_edit.layout
     if pathname == '/apps/dashboard':
-        return dashboard.layout
+        return dashboard2.layout
     if pathname == '/apps/add_track':
         return add_track.layout
     if pathname == '/apps/final_review':
