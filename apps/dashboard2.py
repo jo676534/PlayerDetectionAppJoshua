@@ -113,7 +113,7 @@ def getSections(sections):
 
 info_storage_DB = html.Div([
     dcc.Store(id='section_DB', storage_type='local', data=0),
-    dcc.Store(id='frame_DB', storage_type='local', data=0), 
+    dcc.Store(id='frame_DB', storage_type='local', data=1), 
     dcc.Store(id='video_state_DB', storage_type='session', data=False),
 ])
 
@@ -1132,7 +1132,7 @@ def get_frame(current_frame):
     State('section_DB', 'data'),
     State('frame_DB', 'data'),)
 def update_player(switches_value, hiddenj0, hiddenj3, current_frame, section, frame_data):
-    fig = px.imshow(get_frame(current_frame), binary_backend="jpg")
+    fig = px.imshow(get_frame(current_frame-1), binary_backend="jpg") # should subtract 1 b/c the video's frames are zero indexed while the slider is 1 indexed 
     fig.update_layout(
         xaxis= {
             'showgrid': False, # thin lines in the background
@@ -1183,14 +1183,15 @@ def player_state(play_button, video_state, interval_state):
     Input('interval_DB', 'n_intervals'),
     Input('slider_DB', 'value'),
     Input('section_DB', 'data'),
+    Input('gts_all_tracks', 'n_clicks'),
+    Input('go_to_end', 'n_clicks'),
     State('slider_DB', 'min'),
     State('slider_DB', 'max'),
     State('frame_DB', 'data'),
-    State('radio_all_tracks', 'value'),
-
-)
-def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider, section, slider_min, slider_max, data, radioValue):
+    State('radio_all_tracks', 'value'),)
+def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider, section, gts, gte, slider_min, slider_max, data, radioValue):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    print("\n\nUpdate frame called. Context:")
     print(cbcontext)
     if cbcontext == "previous_DB.n_clicks":
         data = data - 1 if data != slider_min else data 
@@ -1199,29 +1200,37 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
         data = data + 1 if data != slider_max else data 
         return data, data 
     elif cbcontext == "fastforward-10_DB.n_clicks":
-        data = data + 10 if data < (slider_max - 10) else data 
+        data = data + 10 if data < (slider_max - 10) else slider_max
         return data, data 
     elif cbcontext == "fastforward-50_DB.n_clicks":
-        data = data + 50 if data < (slider_max - 50) else data 
+        data = data + 50 if data < (slider_max - 50) else slider_max
         return data, data 
     elif cbcontext == "rewind-10_DB.n_clicks":
-        data = data - 10 if data > (slider_min + 9) else data 
+        data = data - 10 if data > (slider_min + 9) else slider_min
         return data, data 
     elif cbcontext == "rewind-50_DB.n_clicks":
-        data = data - 50 if data > (slider_min + 49) else data 
+        data = data - 50 if data > (slider_min + 49) else slider_min
         return data, data 
     elif cbcontext =="gts_all_tracks.n_clicks":
+        print("Inside GTS")
         for i in range (0, unique_tracks):
             if radioValue:
+                print(f"When i={i} we have track={dic_tracks[i]['track_id'][0]} compared to radio value={radioValue}")
                 if int(dic_tracks[i]['track_id'][0]) == int(radioValue):
+                    print("BINGO")
                     data = min(dic_tracks[i]['frame'])
+                    print(data)
                     return data, data 
+            else:
+                raise PreventUpdate
     elif cbcontext =="go_to_end.n_clicks":
         for i in range (0, unique_tracks):
             if radioValue:
                 if int(dic_tracks[i]['track_id'][0]) == int(radioValue):
                     data = max(dic_tracks[i]['frame'])
-                    return data, data 
+                    return data, data
+            else:
+                raise PreventUpdate 
     elif cbcontext == 'interval_DB.n_intervals': data += 1; return data, data
     elif cbcontext == 'section_DB.data': return slider_min, slider_min
     else: data = slider; return slider, slider
