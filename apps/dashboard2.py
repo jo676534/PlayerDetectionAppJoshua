@@ -1191,8 +1191,7 @@ def player_state(play_button, video_state, interval_state):
     State('radio_all_tracks', 'value'),)
 def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider, section, gts, gte, slider_min, slider_max, data, radioValue):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-    print("\n\nUpdate frame called. Context:")
-    print(cbcontext)
+
     if cbcontext == "previous_DB.n_clicks":
         data = data - 1 if data != slider_min else data 
         return data, data 
@@ -1212,14 +1211,10 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
         data = data - 50 if data > (slider_min + 49) else slider_min
         return data, data 
     elif cbcontext =="gts_all_tracks.n_clicks":
-        print("Inside GTS")
         for i in range (0, unique_tracks):
             if radioValue:
-                print(f"When i={i} we have track={dic_tracks[i]['track_id'][0]} compared to radio value={radioValue}")
                 if int(dic_tracks[i]['track_id'][0]) == int(radioValue):
-                    print("BINGO")
                     data = min(dic_tracks[i]['frame'])
-                    print(data)
                     return data, data 
             else:
                 raise PreventUpdate
