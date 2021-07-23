@@ -1,4 +1,5 @@
 # INSTALL LIBRARIES ---------------------------------------------------------------------------------------------------------------------------
+from dash_bootstrap_components._components.Spinner import Spinner
 import pandas as pd
 import plotly.express as px  # (version 4.7.0)
 import plotly.graph_objects as go
@@ -268,6 +269,7 @@ track_card = dbc.Card(
                                     dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"}, disabled=True),
                                     dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"}, disabled=True),
                                     dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}, disabled=True),
+                                    dbc.Spinner(html.Div(id="delete_output")),
                                 ],
                                 align = 'center',
                             ),        
@@ -424,26 +426,30 @@ def manual_annotation(graph_relayout, frame, player_id, game_id):
         graph_len = len(graph_relayout['shapes'])
         
         # Iterate through the known values
-        for index, temp_df in df.iterrows():
-            x0_a = temp_df['x0']
-            y0_a = temp_df['y0']
-            x1_a = temp_df['x1']
-            y1_a = temp_df['y1']
-            
-            if i != graph_len:
-                x0_b = graph_relayout['shapes'][i]['x0']
-                y0_b = graph_relayout['shapes'][i]['y0']
-                x1_b = graph_relayout['shapes'][i]['x1']
-                y1_b = graph_relayout['shapes'][i]['y1']
-            else:
-                skip = 1
+        
+        if len(df) != 1: # if len(df) is 1 then the graph length is zero and graph relayout will have no values to match with
+            for index, temp_df in df.iterrows():
+                x0_a = temp_df['x0']
+                y0_a = temp_df['y0']
+                x1_a = temp_df['x1']
+                y1_a = temp_df['y1']
+                
+                if i != graph_len:
+                    x0_b = graph_relayout['shapes'][i]['x0']
+                    y0_b = graph_relayout['shapes'][i]['y0']
+                    x1_b = graph_relayout['shapes'][i]['x1']
+                    y1_b = graph_relayout['shapes'][i]['y1']
+                else:
+                    skip = 1
 
-            i += 1
+                i += 1
 
-            # Determine if this is the missing value
-            if (x0_a != x0_b or y0_a != y0_b or x1_a != x1_b or y1_a != y1_b or skip == 1):
-                track_id = temp_df['track_id']
-                break
+                # Determine if this is the missing value
+                if (x0_a != x0_b or y0_a != y0_b or x1_a != x1_b or y1_a != y1_b or skip == 1):
+                    track_id = temp_df['track_id']
+                    break
+        else:
+            track_id = df.iloc[0]['track_id']
         
         # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
         # we do this rather than making an api call because it will likely be faster and cost less
@@ -490,7 +496,7 @@ def manual_annotation(graph_relayout, frame, player_id, game_id):
                 dic[frame] = dic[frame].append(df_temp)
 
                 # works, just commented out for now
-                api_detections.add_detection(game_id, frame, x0, y0, x1, y1, -2, player_id)
+                api_detections.add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials)
 
                 # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
                 dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
@@ -728,6 +734,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                         dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
                         dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
                         dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                        dbc.Spinner(html.Div(id="delete_output")),
                         ],
                         align = 'center',),            
                 dbc.Col([dbc.RadioItems(
@@ -800,6 +807,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                         dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
                         dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
                         dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                        dbc.Spinner(html.Div(id="delete_output")),
                         ],
                         align = 'center',),            
                 dbc.Col([dbc.RadioItems(
@@ -829,6 +837,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                         dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
                         dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
                         dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                        dbc.Spinner(html.Div(id="delete_output")),
                         ],
                         align = 'center',), 
                             dbc.Col([dbc.RadioItems(
@@ -856,6 +865,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                                 dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},disabled= True),
                                 dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},disabled= True),
                                 dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}, disabled= True),
+                                dbc.Spinner(html.Div(id="delete_output")),
                                 ],
                                 align = 'center',), 
                             dbc.Col([dbc.RadioItems(
@@ -898,6 +908,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                                 dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"}, disabled= True),
                                 dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},disabled= True),
                                 dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}, disabled= True),
+                                dbc.Spinner(html.Div(id="delete_output")),
                                 ],
                                 align = 'center',), 
                             dbc.Col([dbc.RadioItems(
@@ -931,6 +942,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                                         dbc.Button("Go to Start", id = 'gts_all_tracks',color="secondary", block = True, style={"font-size": "12px", "margin-bottom":"10px"},),
                                         dbc.Button("Go to End", id = 'go_to_end', color="secondary", block = True, style={"font-size": "12px","margin-bottom":"10px"},),
                                         dbc.Button("Delete Track",id = 'delete_bt', color="secondary",block = True, style={"font-size": "12px", "margin-bottom":"10px"}),
+                                        dbc.Spinner(html.Div(id="delete_output")),
                                         ],
                                         align = 'center',), 
                                     dbc.Col([dbc.RadioItems(
@@ -999,6 +1011,7 @@ def update_player_tracks(assignBt, track_id, player_id, game_id):
     Output('hidden-div2', 'children'),
     Output('hidden_div_j2', 'children'),
     Output('hidden_div_j3', 'children'),
+    Output("delete_output", "children"),
     Input('delete_bt', 'n_clicks'),
     State('radio_all_tracks', 'value'),
     State("game_id", "data"),
@@ -1008,8 +1021,11 @@ def delete_track(delete_bt, track_id, game_id):
     global unique_tracks
     global dic
 
+    if not delete_bt:
+        return (None, None, None, None)
+
     if track_id is None:
-        return (None, None, None)
+        return (None, None, None, "Select a track first.")
 
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     if cbcontext == 'delete_bt.n_clicks':
@@ -1019,7 +1035,7 @@ def delete_track(delete_bt, track_id, game_id):
     dic = api_detections.get_frame_detections(game_id)
     dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
-    return (None, None, None)
+    return (None, None, None, "Track successfully deleted.")
 
 
 @app.callback(
