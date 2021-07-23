@@ -11,12 +11,10 @@ from app import server
 # Connect apps here
 from apps import home
 from apps import initial_review
-# from apps import video_edit
-from apps import video_edit2
-# from apps import dashboard
+from apps import video_edit
+from apps import dashboard
 from apps import add_track
 from apps import final_review
-from apps import dashboard2
 
 
 
@@ -69,9 +67,9 @@ def display_page(pathname):
     if pathname == '/apps/initial_review':
         return initial_review.layout
     if pathname == '/apps/video_edit':
-        return video_edit2.layout
+        return video_edit.layout
     if pathname == '/apps/dashboard':
-        return dashboard2.layout
+        return dashboard.layout
     if pathname == '/apps/add_track':
         return add_track.layout
     if pathname == '/apps/final_review':
