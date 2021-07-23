@@ -589,6 +589,7 @@ def save_detection(save_clicks, reset_clicks, start_input, final_input, start_fr
         # need to check for player track overlap
         # need to cut the df for the frame outline
 
+        # test
         detections_df = detections_df[start_input-start_frame:final_input-final_frame+1] 
         # new form of overlap detection
         # save the detection track first (but not assigned the player quite yet)
