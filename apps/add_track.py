@@ -1,5 +1,3 @@
-# INSTALL LIBRARIES ---------------------------------------------------------------------------------------------------------------------------
-
 from typing import final
 import pandas as pd
 import plotly.express as px  # (version 4.7.0)
@@ -18,7 +16,7 @@ import numpy as np
 import pandas as pd
 from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
-
+import math 
 from app import app
 
 from api import api_detections
@@ -27,21 +25,36 @@ from api import api_player
 
 from .pysot.tools import demo
 
+filename = "./Videos/game_0.mp4"
+vidcap = cv2.VideoCapture(filename)
 
-# GLOBAL VARIABLES #############################################################################################################################
+# OpenCV2 version 2 used "CV_CAP_PROP_FPS"
+fps = vidcap.get(cv2.CAP_PROP_FPS)
 
-pathIn = './vid2img/'
-frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))] 
-frames.sort(key=lambda x: int(x[5:-4]))
 
-maxFrames = 0
+
+
+# NEED BOTH FRAMES FROM STORE
+
+
+
+frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
+vidcap.release() 
+
+duration = frame_count/fps
+resolution = (1280, 720)
+
+framesPerSection = 5000
+maxFrames = frame_count-1
 state = 0 # 0 is not submitted yet, 1 is submitted 
 state_save = 0 # 0 is not run, 1 is run, 2 is run and saved, 99 is currently running and disables functionality
 initials = ''
+start = 0 
+end = 0 
+
 
 dic = {}
 
-# NORMAL FUNCTIONS #############################################################################################################################
 
 def add_editable_box(fig, track_id, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None):
     global initials
@@ -80,9 +93,14 @@ def add_editable_box(fig, track_id, x0, y0, x1, y1, name=None, color=None, opaci
         opacity=0.8
     )
 
-# DASH COMPONENTS ##############################################################################################################################
 
-# Card for the user interactions on the right side
+
+info_storage_add = html.Div([
+    dcc.Store(id='frame_add', storage_type='local', data=1), 
+    dcc.Store(id='video_state_add', storage_type='session', data=False),
+])
+
+
 right_side = dbc.Card(
     [
         dbc.CardHeader(
@@ -136,7 +154,7 @@ right_side = dbc.Card(
     ],
     style={"margin-top": "20px", "margin-bottom": "20px", "margin-right": "10px"})
 
-# Card for final buttons
+
 end_buttons = dbc.Card(
     [
         dbc.ButtonGroup(
@@ -150,7 +168,86 @@ end_buttons = dbc.Card(
         html.Div(id="hidden_div_reset"),
     ])
 
-# Layout
+
+video_card_add = dbc.Card(
+    id="imagebox",
+    children=[
+        dbc.CardHeader(
+        className= "player_card_header",
+        ),
+        dbc.CardBody(
+            [
+                html.Div(id="manual_annotation_output"),
+                html.Div(children=[ # needs to be properly initialized //////////////////////////////////////////////////////////////////////
+                    dcc.Interval(
+                        id='interval_add',
+                        disabled=False,
+                        n_intervals=0,      # number of times the interval has passed
+                        max_intervals=maxFrames # alternative way to do this = properly output the maxFrames to
+                    ),
+                ]),
+                dcc.Graph( # WILL HAVE TO INITIALIZE THIS AS WELL //////////////////////////////////////////////////////////////////////////////////////////
+                    id="canvas_add",
+                    style={'width': '1000px', 'height': '600px'},
+                    config={"modeBarButtonsToAdd": ["drawrect", "eraseshape"]},
+                )
+            ]
+        ),
+        dbc.CardFooter(
+            [
+                # Slider Component
+                dcc.Slider( # need to have a default slider w/pointless values and then have it replaced later during initialization ///////////////////////
+                    id='slider_add',
+                    step=1,
+
+                ),
+                html.Div(id='frame_display_add', className='current_frame'),
+                # Pause/Player Buttons
+                dbc.ButtonGroup(
+                    [
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/rw50.png?raw=true',
+                                                 style={'height':'30px'})],  
+                                    id="rewind-50_add", outline=True, style={
+                                   "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/rw10.png?raw=true',
+                                                 style={'height':'30px'})],  
+                                    id="rewind-10_add", outline=True, style={
+                                   "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/Prev.png?raw=true',
+                                                 style={'height':'30px'})],
+                                    id="previous_add", outline=True, style={
+                                    "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/Play.png?raw=true',
+                                                 style={'height':'30px'})],
+                                   id="playpause_add", outline=True,
+                                   style={"margin-right": "15px", "margin-bottom": "15px"}, color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/Next.png?raw=true',
+                                                 style={'height':'30px'})],
+                                    id="next_add", outline=True, style={
+                                   "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/ff10.png?raw=true',
+                                                 style={'height':'30px'})], 
+                                    id="fastforward-10_add", outline=True, style={
+                                   "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
+                        dbc.Button(children=[html.Img
+                                                (src = 'https://github.com/dianabisbe/Images/blob/main/ff50.png?raw=true',
+                                                 style={'height':'30px'})],
+                                    id="fastforward-50_add", outline=True, style={
+                                   "margin-right": "15px", "margin-bottom": "15px"}, color="light"),
+                    ],
+                    style={"width": "100%", 'margin-left':'-10px'}
+                ),
+            ]
+        ),
+    ],
+    style={"margin-left": "5px","margin-top": "20px", "margin-bottom": "20px", "margin-right": "10px"}
+)
 layout = html.Div(
     [
         #navbar,
@@ -158,251 +255,22 @@ layout = html.Div(
             [
                 dbc.Row(
                     [
-                        dbc.Col(id="video_card", md=7.5),
+                        dbc.Col(video_card_add, md=7.5),
                         dbc.Col(children=[right_side, end_buttons], md=5),
                     ],
                 ),
             ],
             fluid=True,
         ),
+        info_storage_add
     ])
-
-# CALLBACKS START HERE #########################################################################################################################
-
-# Initialization Callback (should create the image annotation card)
-@app.callback(
-    Output("video_card", "children"),
-    Input("start_frame_add", "data"),
-    Input("final_frame_add", "data"),
-    Input('player_id_add', 'data'))
-def initalizer(start_frame, final_frame, player_id):
-    # set up the fig and inital variables
-    global frames
-    frames = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))] 
-    frames.sort(key=lambda x: int(x[5:-4]))
-    frames = frames[start_frame:final_frame+1]
-
-    global maxFrames
-    maxFrames = len(frames)-1 # need to fix
-
-    global dic
-    dic = api_detections.get_partial_frame_detections(0, start_frame, final_frame)
-
-    global initials
-    initials = api_detections.get_player_initials(player_id)
-
-    fig = px.imshow(io.imread(pathIn+frames[0]), binary_backend="jpg")  # OLD
-    fig.update_layout(
-        xaxis= {
-            'showgrid': False, # thin lines in the background
-            'zeroline': False, # thick line at x=0
-            'visible': False,  # numbers below
-        },
-        yaxis= {
-            'showgrid': False, # thin lines in the background
-            'zeroline': False, # thick line at x=0
-            'visible': False,  # numbers below
-        },
-        margin=dict(l=0, r=0, b=0, t=0, pad=0),
-        dragmode="drawrect",
-    )
-
-    # and then the big one
-    return dbc.Card(
-        id="imagebox_add",
-        children=[
-            dbc.CardHeader(
-                html.H2("Annotation Area")
-            ),
-            dbc.CardBody(
-                [
-                    dcc.Interval(
-                        id='frame_interval_add',
-                        interval=500,
-                        disabled=True,
-                        n_intervals=0,      # number of times the interval has passed
-                        max_intervals=maxFrames
-                    ),
-                    dcc.Graph(
-                        id="graph_box",
-                        style={'width':'1000px', 'height':'600px'},
-                        figure=fig,
-                        config={"modeBarButtonsToAdd": ["drawrect", "eraseshape"]},
-                    )
-                ]
-            ),
-            dbc.CardFooter(
-                [
-                    # Slider Component
-                    dcc.Slider(
-                        id='frame-slider_add',
-                        min=0,
-                        max=maxFrames,
-                        value=0,
-                        step=1,
-                        marks={round(i*maxFrames/4): '{}'.format(round(i*maxFrames/4))
-                            for i in range(maxFrames)},
-                    ),
-                    html.Div(id='slider-output-container_add'),
-                    # Pause/Player Buttons
-                    dbc.ButtonGroup(
-                        [   
-                            dbc.Button("Go back 50", id="rewind_50", outline=True, style={
-                                    "margin-right": "15px", "margin-bottom": "15px"}),
-                            dbc.Button("Go back 10", id="rewind_10", outline=True, style={
-                                    "margin-right": "15px", "margin-bottom": "15px"}),
-                            dbc.Button("Previous", id="previous_add", outline=True, style={
-                                    "margin-left": "50px", "margin-right": "15px", "margin-bottom": "15px"}),
-                            dbc.Button("Play", id="playpause_add", outline=True,
-                                    style={"margin-right": "15px", "margin-bottom": "15px"}),
-                            dbc.Button("Next", id="next_add", outline=True, style={
-                                    "margin-right": "15px", "margin-bottom": "15px"}),
-                            dbc.Button("Go forward 10", id="fastforward_10", outline=True, style={
-                                    "margin-right": "15px", "margin-bottom": "15px"}),
-                            dbc.Button("Go forward 50", id="fastforward_50", outline=True, style={
-                                    "margin-right": "15px", "margin-bottom": "15px"}),
-                        ],
-                        style={"width": "100%"}
-                    ),
-                ]
-            ),
-        ],
-        style={"margin-top": "20px", "margin-bottom": "20px"}
-    )
-
-
-# Call back for video Player/Pause
-@app.callback(
-    Output('frame_interval_add', 'disabled'),
-    Output('playpause_add', 'children'),
-    Input('playpause_add', 'n_clicks'),
-    State('frame_interval_add', 'disabled'),)
-def togglePlay_add(play, isPaused):
-    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-    text = 'Play'
-
-    if cbcontext == "playpause_add.n_clicks":
-        if isPaused == False or state == 0:
-            isPaused = True
-        elif isPaused == True:
-            isPaused = False
-            text = 'Pause'
-        else:
-            raise PreventUpdate
-    return (isPaused, text)
-
-
-@app.callback(
-    Output("which_player", "children"),
-    Input('player_id_add', 'data'),
-    Input("game_id", "data"),
-    )
-def which_player(player_id, game_id):
-    df = api_player.get_player(game_id, player_id)
-
-    name = df.iloc[0]["name"]
-    jersey = df.iloc[0]["jersey"]
-
-    return "Intended player is {} with jersey #{}".format(name, jersey)
-
-
-# Video Display Callback
-@app.callback(
-    Output('graph_box', 'figure'),
-    Output('frame_interval_add', 'n_intervals'),
-    Output('frame-slider_add', 'value'),
-    Output('graph_box', 'relayoutData'),
-    Input('frame_interval_add', 'n_intervals'),
-    Input('frame-slider_add', 'value'),
-    Input('previous_add', 'n_clicks'),
-    Input('next_add', 'n_clicks'),
-    Input ('rewind_10', 'n_clicks'),
-    Input ('rewind_50', 'n_clicks'),
-    Input ('fastforward_10', 'n_clicks'),
-    Input ('fastforward_50', 'n_clicks'),
-    Input("hidden_div_reset", "children"),
-    State('frame_interval_add', 'disabled'),
-    State('graph_box', 'relayoutData'),
-    prevent_initial_call=True)
-def update_figure_add(interval, slider, previousBut, nextBut,rewind10, rewind50, fastforward10, fastforward50, hidden_div, isPaused, graph_relayout):
-    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-    currentFrame = 0
-
-    # check the state to stop the user from scrolling if they haven't input a new track
-    if state != 0:
-        if isPaused == False:
-            if interval is None:
-                interval = 0
-            currentFrame = interval
-        elif isPaused == True:
-            currentFrame = interval
-            if cbcontext == "previous_add.n_clicks":
-                if(currentFrame != 0):
-                    currentFrame += -1
-            if cbcontext == "next_add.n_clicks":
-                if(currentFrame != maxFrames):
-                    currentFrame += 1
-            if cbcontext == "rewind_10.n_clicks":
-                if(currentFrame > 10):
-                    currentFrame += -10
-            if cbcontext == "rewind_50.n_clicks":
-                if(currentFrame > 50):
-                    currentFrame += -50
-            if cbcontext == "fastforward_10.n_clicks":
-                if(currentFrame < maxFrames-10):
-                    currentFrame += 10
-            if cbcontext == "fastforward_50.n_clicks":
-                if(currentFrame < maxFrames-50):
-                    currentFrame += 50
-            if cbcontext == "hidden_div_reset.children":
-                currentFrame = 0
-        if cbcontext == "frame-slider_add.value":
-            currentFrame = slider
-    
-    fig = px.imshow(io.imread(pathIn+frames[currentFrame]), binary_backend="jpg") # OLD # fig = px.imshow(frames[currentFrame], binary_backend="jpg") # NEW
-    fig.update_layout(
-        xaxis= {
-            'showgrid': False, # thin lines in the background
-            'zeroline': False, # thick line at x=0
-            'visible': False,  # numbers below
-        },
-        yaxis= {
-            'showgrid': False, # thin lines in the background
-            'zeroline': False, # thick line at x=0
-            'visible': False,  # numbers below
-        },
-        margin=dict(l=0, r=0, b=0, t=0, pad=0),
-        dragmode="drawrect",
-    )
-    
-    # Need a new bit of code here to draw the singular new bounding box after it has been set up
-    if state != 0: # draw the new bounding box
-        x0 = detections_df.iloc[currentFrame]['x0']
-        y0 = detections_df.iloc[currentFrame]['y0']
-        x1 = detections_df.iloc[currentFrame]['x1']
-        y1 = detections_df.iloc[currentFrame]['y1']
-        track_id = detections_df.iloc[currentFrame]['track_id']
-        add_editable_box(fig, track_id, x0, y0, x1, y1)
-
-    # print("%%% Graph Relayout Length: {} %%%".format(len(graph_relayout['shapes'])))
-    return (fig, currentFrame, currentFrame, {'shapes': []}) 
-# the empty graph_relayout may cause problems later down the line when we actually want to draw the bounding box
-# solution would be to pass the actual graph_relayout depending on the context/state
-
-
-# Callback for Slider
-@app.callback(
-    dash.dependencies.Output('slider-output-container_add', 'children'),
-    [dash.dependencies.Input('frame_interval_add', 'n_intervals')])
-def update_output_add(value):
-    return 'Current Frame "{}"'.format(value)
 
 
 # Callback for the submit button
 @app.callback(
     Output('button_output', 'children'),
     Input('next_page', 'n_clicks'),
-    State('graph_box', 'relayoutData'),
+    State('canvas_add', 'relayoutData'),
     State("start_frame_add", "data"),
     State("final_frame_add", "data"),
     prevent_initial_call=True)
@@ -438,14 +306,177 @@ def submit_box(n_clicks, graph_relayout, start_frame, final_frame):
         return "The tracking algorithm has now finished, you can review the output in the video player."
     else:
         return "There are too many bounding boxes"
-# end submit_box
+
+
+
+
+
+
+
+def get_frame(current_frame):
+
+    vidcap = cv2.VideoCapture(filename)
+    vidcap.set(cv2.CAP_PROP_POS_FRAMES, current_frame)
+    hasFrames, image = vidcap.read()
+    if not hasFrames: return None 
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image  = cv2.resize(image, dsize=(resolution))
+    vidcap.release()
+    return image 
+
+
+@app.callback(
+    Output('canvas_add', 'figure'),
+    Input('frame_add', 'data'),
+    State('frame_add', 'data'),
+    State('start_frame_add', 'data'),
+    State("input_start", "value"),
+    State("input_final", "value"),
+    )
+def update_player(current_frame, frame_data, start_frame, start_input, end_input):
+    fig = px.imshow(get_frame(current_frame-1), binary_backend="jpg") # should subtract 1 b/c the video's frames are zero indexed while the slider is 1 indexed 
+    fig.update_layout(
+        xaxis= {
+            'showgrid': False, # thin lines in the background
+            'zeroline': False, # thick line at x=0
+            'visible': False,  # numbers below
+        },
+        yaxis= {
+            'showgrid': False, # thin lines in the background
+            'zeroline': False, # thick line at x=0
+            'visible': False,  # numbers below
+        },
+        margin=dict(l=0, r=0, b=0, t=0, pad=0),
+        dragmode="drawrect",
+    )
+
+    # Need a new bit of code here to draw the singular new bounding box after it has been set up
+    if state != 0: # draw the new bounding box
+        x0 = detections_df.iloc[current_frame - start_frame]['x0'] 
+        y0 = detections_df.iloc[current_frame - start_frame]['y0']
+        x1 = detections_df.iloc[current_frame - start_frame]['x1']
+        y1 = detections_df.iloc[current_frame - start_frame]['y1']
+        track_id = detections_df.iloc[current_frame - start_frame]['track_id']
+        add_editable_box(fig, track_id, x0, y0, x1, y1)
+    return fig
+
+
+@app.callback(
+    Output('video_state_add', 'data'),
+    Output('playpause_add', 'children'),
+    Output('interval_add', 'disabled'),
+    Input('playpause_add', 'n_clicks'),
+    State('video_state_add', 'data'),
+    State('interval_add', 'disabled'),
+)
+def player_state(play_button, video_state, interval_state):
+    string = 'Pause' if interval_state else 'Play'
+    text = html.Img(src = f'https://github.com/dianabisbe/Images/blob/main/{string}.png?raw=true',
+                              style={'height':'30px'})
+    
+
+    video_state = not video_state 
+    interval_state = not interval_state
+    return video_state, text, interval_state
+
+
+
+
+@app.callback(
+    Output('frame_add', 'data'),
+    Output('slider_add', 'value'),
+    Input('previous_add', 'n_clicks'),
+    Input('next_add', 'n_clicks'),
+    Input('fastforward-10_add', 'n_clicks'),
+    Input('fastforward-50_add', 'n_clicks'),
+    Input('rewind-10_add', 'n_clicks'),
+    Input('rewind-50_add', 'n_clicks'),
+    Input('interval_add', 'n_intervals'),
+    Input('slider_add', 'value'),
+    Input("hidden_div_reset", "children"),
+    Input('slider_add', 'min'),
+    Input('slider_add', 'max'),
+    State('frame_add', 'data'),
+    State('start_frame_add', 'data'),
+)
+def update_frame(previous_add, next_add, ff10, ff50, rw10, rw50, interval, slider, hidden_div, slider_min, slider_max, data, start_frame):
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+
+    # check the state to stop the user from scrolling if they haven't input a new track
+    if state == 2: 
+        raise PreventUpdate
+    print(cbcontext)
+    if cbcontext == "previous_add.n_clicks":
+        data = data - 1 if data != slider_min else data 
+        return data, data 
+    elif cbcontext == "next_add.n_clicks":
+        data = data + 1 if data != slider_max else data 
+        return data, data 
+    elif cbcontext == "fastforward-10_add.n_clicks":
+        data = data + 10 if data < (slider_max - 10) else slider_max
+        return data, data 
+    elif cbcontext == "fastforward-50_add.n_clicks":
+        data = data + 50 if data < (slider_max - 50) else slider_max
+        return data, data 
+    elif cbcontext == "rewind-10_add.n_clicks":
+        data = data - 10 if data > (slider_min + 9) else slider_min
+        return data, data 
+    elif cbcontext == "rewind-50_add.n_clicks":
+        data = data - 50 if data > (slider_min + 49) else slider_min
+        return data, data 
+    elif cbcontext == 'interval_add.n_intervals': 
+        data = data + 1 if data < slider_max else slider_max
+        return data, data
+    elif cbcontext == "hidden_div_reset.children":
+        data = 0 #??????
+        return data, data
+    elif cbcontext == 'slider_add.min':
+        data = start_frame
+        return start_frame, start_frame    
+    else: data = slider; return slider, slider
+
+
+
+# initializes the states 
+@app.callback(    
+    Output("slider_add", 'min'),
+    Output("slider_add", 'max'),
+    Output("slider_add", 'marks'),
+    Input('start_frame_add', 'data'),
+    Input('final_frame_add', 'data'),
+    Input('player_id_add', 'data'),
+    State('frame_add', 'data'),
+    State('video_state_add', 'data'),
+)
+
+def initial(startNum, endNum, player_id, framedata, video_state):
+    global start
+    global end 
+    global dic
+    global initials
+
+    start, end = startNum, endNum
+    framedata = startNum or 0
+    video_state = False 
+
+    diff = round((endNum - startNum)/20)
+    marks = [(startNum-1)+x*diff for x in range(21)]
+    sliderMarks = {}
+    for i in marks:
+        sliderMarks[f'{i}'] = f'{i}'
+
+    dic = api_detections.get_partial_frame_detections(0, startNum, endNum)
+    initials = api_detections.get_player_initials(player_id)
+
+    return start, end, sliderMarks
+
 
 
 # Set start frame callback
 @app.callback(
     Output("input_start", "value"),
     Input("set_start_add", "n_clicks"),
-    State("frame-slider_add", "value"),
+    State("slider_add", "value"),
     prevent_initial_call=True)
 def set_start_add(n_clicks, frame):
     if n_clicks is not None:
@@ -456,11 +487,37 @@ def set_start_add(n_clicks, frame):
 @app.callback(
     Output("input_final", "value"),
     Input("set_final_add", "n_clicks"),
-    State("frame-slider_add", "value"),
+    State("slider_add", "value"),
     prevent_initial_call=True)
 def set_start_add(n_clicks, frame):
     if n_clicks is not None:
         return frame
+
+
+
+
+@app.callback(
+    Output("which_player", "children"),
+    Input('player_id_add', 'data'),
+    Input("game_id", "data"),
+    )
+def which_player(player_id, game_id):
+    df = api_player.get_player(game_id, player_id)
+
+    name = df.iloc[0]["name"]
+    jersey = df.iloc[0]["jersey"]
+
+    return "Intended player is {} with jersey #{}".format(name, jersey)
+
+@app.callback(
+    Output('frame_display_add', 'children'),
+    Input('frame_add', 'data')
+    )
+def update_output(value):
+    return (f'  Current Frame Number: {value}')
+
+    
+
 
 
 # Save Detection Callback
@@ -474,8 +531,9 @@ def set_start_add(n_clicks, frame):
     State("start_frame_add", "data"), # sf (represents the original start frame value)
     State("final_frame_add", "data"), # ff
     State('player_id_add', 'data'),
+    State('frame_add', 'data'),
     prevent_initial_call=True)
-def save_detection(save_clicks, reset_clicks, start_frame, final_frame, sf, ff, player_id):
+def save_detection(save_clicks, reset_clicks, start_input, final_input, start_frame, final_frame, player_id, current_frame):
     # STATES TO PRECEED CHECKING THE INPUT
     global state
     global detections_df
@@ -495,16 +553,16 @@ def save_detection(save_clicks, reset_clicks, start_frame, final_frame, sf, ff, 
     elif state == 2:
         return "Track already saved. Now click quit to return.", None
     elif state != 1:
-        return "Unkown ERROR", None
+        return "Unknown ERROR", None
 
     # STATES FOR ACTUAL INPUT
     # Good State: user input nothing and wants the whole clip
-    if (start_frame is None) and (final_frame is None):
+    if (start_input is None) and (final_input is None):
         state = 2
         # need to check for player track overlap
         # save the detection track first (but not assigned the player quite yet)
         track_id = api_detections.unique_track_id(0)
-        api_detections.save_track(0, detections_df, sf, track_id, -1)
+        api_detections.save_track(0, detections_df, start_frame, track_id, -1)
 
         # then get the three arrays for the intersection of the track and player
         player_frames = api_detections.get_player_frames(0, player_id)
@@ -520,22 +578,23 @@ def save_detection(save_clicks, reset_clicks, start_frame, final_frame, sf, ff, 
         
         return "Track saved. Now click quit to return.", None
     # Bad State: user input one but not the other
-    elif (start_frame is None) or (final_frame is None): 
+    elif (start_input is None) or (final_input is None): 
         return "Need either both inputs or neither", None
     # Bad State: start is greater than or equal to final
-    elif (start_frame >= final_frame):
+    elif (start_input >= final_input):
         return "Start frame has to be less than final frame", None
     # Good State: user input but and we need to use them
     else:
         state = 2
         # need to check for player track overlap
         # need to cut the df for the frame outline
-        detections_df = detections_df[start_frame:final_frame+1] 
 
+        # test
+        detections_df = detections_df[start_input-start_frame:final_input-final_frame+1] 
         # new form of overlap detection
         # save the detection track first (but not assigned the player quite yet)
         track_id = api_detections.unique_track_id(0)
-        api_detections.save_track(0, detections_df, sf, track_id, -1)
+        api_detections.save_track(0, detections_df, start_frame, track_id, -1)
 
         # then get the three arrays for the intersection of the track and player
         player_frames = api_detections.get_player_frames(0, player_id)
@@ -549,65 +608,4 @@ def save_detection(save_clicks, reset_clicks, start_frame, final_frame, sf, ff, 
         api_detections.assign_track(0, player_id, track_id)
         
         return "Track saved. Now click quit to return.", None
-# End save_detection
 
-
-        
-        # original form of overlap detection
-        # temp_frame = sf
-        # while temp_frame <= ff:
-        #     if (int(player_id) in dic[temp_frame].player_id):
-        #         return "This player already has a track assigned to them within this selection of frames."
-        #     temp_frame += 1
-        
-
-
-        # temp_frame = start_frame+sf
-        # while temp_frame <= final_frame+sf:
-        #     if (int(player_id) in dic[temp_frame].player_id):
-        #         return "This player already has a track assigned to them within this selection of frames."
-        #     temp_frame += 1
-
-# "Useless" Callbacks ########################################################
-
-
-# Callback for the updated output
-@app.callback(
-    Output('output', 'children'),
-    Input('graph_box', 'relayoutData'),
-    prevent_initial_call=True)
-def update_output(graph_relayout): # graph_relayout is a dictionary
-    if graph_relayout is None: return '' # stops the error
-    
-    # print(graph_relayout)
-    # print("")
-
-    if (not 'shapes' in graph_relayout) or (len(graph_relayout['shapes']) == 0): # or shapes is empty 
-        return 'no shapes'
-    else:
-        output_string = "List of boxes: "
-        output_num = 0
-        for box in graph_relayout['shapes']:
-            output_num += 1
-            output_string += "\nBox #{}: ".format(output_num)
-            output_string += "X0: {}, ".format(box['x0'])
-            output_string += "Y0: {}, ".format(box['y0'])
-            output_string += "X1: {}, ".format(box['x1'])
-            output_string += "Y1: {}".format(box['y1'])
-            output_string += " ###### "
-        #return 'Number of boxes: {0}'.format(output_num)
-        return 'Number of boxes: {0} // Updated output: {1}'.format(output_num, output_string) # graph_relayout['shapes']
-# end update_output
-
-# Callback for state button
-@app.callback(
-    Output('state_output', 'children'),
-    Input('state_button', 'n_clicks'))
-def test_func(n_clicks):
-    global state
-    if state == 0:
-        #state = 1
-        return "State is 0"
-    else:
-        #state = 0
-        return "State is 1"
