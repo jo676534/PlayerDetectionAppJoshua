@@ -31,12 +31,7 @@ vidcap = cv2.VideoCapture(filename)
 # OpenCV2 version 2 used "CV_CAP_PROP_FPS"
 fps = vidcap.get(cv2.CAP_PROP_FPS)
 
-
-
-
 # NEED BOTH FRAMES FROM STORE
-
-
 
 frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
 vidcap.release() 
@@ -52,8 +47,11 @@ initials = ''
 start = 0 
 end = 0 
 
-
 dic = {}
+detections_df = []
+
+
+# Start of dash components ===================================================================================================================
 
 
 def add_editable_box(fig, track_id, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None):
@@ -94,11 +92,10 @@ def add_editable_box(fig, track_id, x0, y0, x1, y1, name=None, color=None, opaci
     )
 
 
-
 info_storage_add = html.Div([
     dcc.Store(id='frame_add', storage_type='local', data=1), 
     dcc.Store(id='video_state_add', storage_type='session', data=False),
-])
+    ])
 
 
 right_side = dbc.Card(
@@ -247,7 +244,9 @@ video_card_add = dbc.Card(
         ),
     ],
     style={"margin-left": "5px","margin-top": "20px", "margin-bottom": "20px", "margin-right": "10px"}
-)
+    )
+
+
 layout = html.Div(
     [
         #navbar,
@@ -266,7 +265,10 @@ layout = html.Div(
     ])
 
 
-# Callback for the submit button
+# Start of callbacks =========================================================================================================================
+
+
+# Callback for the start tracker button
 @app.callback(
     Output('button_output', 'children'),
     Input('next_page', 'n_clicks'),
@@ -308,13 +310,7 @@ def submit_box(n_clicks, graph_relayout, start_frame, final_frame):
         return "There are too many bounding boxes"
 
 
-
-
-
-
-
 def get_frame(current_frame):
-
     vidcap = cv2.VideoCapture(filename)
     vidcap.set(cv2.CAP_PROP_POS_FRAMES, current_frame)
     hasFrames, image = vidcap.read()
@@ -331,8 +327,7 @@ def get_frame(current_frame):
     State('frame_add', 'data'),
     State('start_frame_add', 'data'),
     State("input_start", "value"),
-    State("input_final", "value"),
-    )
+    State("input_final", "value"),)
 def update_player(current_frame, frame_data, start_frame, start_input, end_input):
     fig = px.imshow(get_frame(current_frame-1), binary_backend="jpg") # should subtract 1 b/c the video's frames are zero indexed while the slider is 1 indexed 
     fig.update_layout(
@@ -361,27 +356,24 @@ def update_player(current_frame, frame_data, start_frame, start_input, end_input
     return fig
 
 
+# Callback to update the play button visual state
 @app.callback(
     Output('video_state_add', 'data'),
     Output('playpause_add', 'children'),
     Output('interval_add', 'disabled'),
     Input('playpause_add', 'n_clicks'),
     State('video_state_add', 'data'),
-    State('interval_add', 'disabled'),
-)
+    State('interval_add', 'disabled'),)
 def player_state(play_button, video_state, interval_state):
     string = 'Pause' if interval_state else 'Play'
-    text = html.Img(src = f'https://github.com/dianabisbe/Images/blob/main/{string}.png?raw=true',
-                              style={'height':'30px'})
+    text = html.Img(src = f'https://github.com/dianabisbe/Images/blob/main/{string}.png?raw=true', style={'height':'30px'})
     
-
     video_state = not video_state 
     interval_state = not interval_state
     return video_state, text, interval_state
 
 
-
-
+# Update frame callback
 @app.callback(
     Output('frame_add', 'data'),
     Output('slider_add', 'value'),
@@ -397,47 +389,48 @@ def player_state(play_button, video_state, interval_state):
     Input('slider_add', 'min'),
     Input('slider_add', 'max'),
     State('frame_add', 'data'),
-    State('start_frame_add', 'data'),
-)
+    State('start_frame_add', 'data'),)
 def update_frame(previous_add, next_add, ff10, ff50, rw10, rw50, interval, slider, hidden_div, slider_min, slider_max, data, start_frame):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
 
     # check the state to stop the user from scrolling if they haven't input a new track
     if state == 2: 
         raise PreventUpdate
-    print(cbcontext)
-    if cbcontext == "previous_add.n_clicks":
-        data = data - 1 if data != slider_min else data 
-        return data, data 
-    elif cbcontext == "next_add.n_clicks":
-        data = data + 1 if data != slider_max else data 
-        return data, data 
-    elif cbcontext == "fastforward-10_add.n_clicks":
-        data = data + 10 if data < (slider_max - 10) else slider_max
-        return data, data 
-    elif cbcontext == "fastforward-50_add.n_clicks":
-        data = data + 50 if data < (slider_max - 50) else slider_max
-        return data, data 
-    elif cbcontext == "rewind-10_add.n_clicks":
-        data = data - 10 if data > (slider_min + 9) else slider_min
-        return data, data 
-    elif cbcontext == "rewind-50_add.n_clicks":
-        data = data - 50 if data > (slider_min + 49) else slider_min
-        return data, data 
-    elif cbcontext == 'interval_add.n_intervals': 
-        data = data + 1 if data < slider_max else slider_max
-        return data, data
-    elif cbcontext == "hidden_div_reset.children":
-        data = 0 #??????
-        return data, data
-    elif cbcontext == 'slider_add.min':
-        data = start_frame
-        return start_frame, start_frame    
-    else: data = slider; return slider, slider
+
+    if state != 0:
+        if cbcontext == "previous_add.n_clicks":
+            data = data - 1 if data != slider_min else data 
+            return data, data
+        elif cbcontext == "next_add.n_clicks":
+            data = data + 1 if data != slider_max else data 
+            return data, data
+        elif cbcontext == "fastforward-10_add.n_clicks":
+            data = data + 10 if data < (slider_max - 10) else slider_max
+            return data, data
+        elif cbcontext == "fastforward-50_add.n_clicks":
+            data = data + 50 if data < (slider_max - 50) else slider_max
+            return data, data
+        elif cbcontext == "rewind-10_add.n_clicks":
+            data = data - 10 if data > (slider_min + 9) else slider_min
+            return data, data
+        elif cbcontext == "rewind-50_add.n_clicks":
+            data = data - 50 if data > (slider_min + 49) else slider_min
+            return data, data
+        elif cbcontext == 'interval_add.n_intervals': 
+            data = data + 1 if data < slider_max else slider_max
+            return data, data
+        elif cbcontext == "hidden_div_reset.children":
+            data = slider_min
+            return data, data
+        elif cbcontext == 'slider_add.min':
+            data = start_frame
+            return start_frame, start_frame
+        else: data = slider; return slider, slider
+    else:
+        return slider_min, slider_min
 
 
-
-# initializes the states 
+# Callback to initialize the states and other variables 
 @app.callback(    
     Output("slider_add", 'min'),
     Output("slider_add", 'max'),
@@ -446,18 +439,21 @@ def update_frame(previous_add, next_add, ff10, ff50, rw10, rw50, interval, slide
     Input('final_frame_add', 'data'),
     Input('player_id_add', 'data'),
     State('frame_add', 'data'),
-    State('video_state_add', 'data'),
-)
-
+    State('video_state_add', 'data'),)
 def initial(startNum, endNum, player_id, framedata, video_state):
     global start
-    global end 
+    global end
     global dic
     global initials
+    global state
+    global detections_df
 
     start, end = startNum, endNum
     framedata = startNum or 0
     video_state = False 
+
+    state = 0
+    detections_df = []
 
     diff = round((endNum - startNum)/20)
     marks = [(startNum-1)+x*diff for x in range(21)]
@@ -469,7 +465,6 @@ def initial(startNum, endNum, player_id, framedata, video_state):
     initials = api_detections.get_player_initials(player_id)
 
     return start, end, sliderMarks
-
 
 
 # Set start frame callback
@@ -494,8 +489,7 @@ def set_start_add(n_clicks, frame):
         return frame
 
 
-
-
+# Player output callback
 @app.callback(
     Output("which_player", "children"),
     Input('player_id_add', 'data'),
@@ -503,12 +497,12 @@ def set_start_add(n_clicks, frame):
     )
 def which_player(player_id, game_id):
     df = api_player.get_player(game_id, player_id)
-
     name = df.iloc[0]["name"]
     jersey = df.iloc[0]["jersey"]
-
     return "Intended player is {} with jersey #{}".format(name, jersey)
 
+
+# Current frame display callback
 @app.callback(
     Output('frame_display_add', 'children'),
     Input('frame_add', 'data')
@@ -517,10 +511,7 @@ def update_output(value):
     return (f'  Current Frame Number: {value}')
 
     
-
-
-
-# Save Detection Callback
+# Save Detection & Reset Tracker Callback
 @app.callback(
     Output("save_output", "children"),
     Output("hidden_div_reset", "children"),
@@ -608,4 +599,3 @@ def save_detection(save_clicks, reset_clicks, start_input, final_input, start_fr
         api_detections.assign_track(0, player_id, track_id)
         
         return "Track saved. Now click quit to return.", None
-

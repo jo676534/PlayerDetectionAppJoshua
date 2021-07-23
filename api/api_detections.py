@@ -233,17 +233,17 @@ def delete_detection_list(game_id, track_id, arr):
 
 # ----------------------------------------------------------------------------
 
-def add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id):
+def add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials):
     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
     
-    cur1 = conn.cursor()
-    cur1.execute('''SELECT initials FROM player WHERE player_id={0}'''.format(player_id))
-    initials = cur1.fetchone()[0]
-    cur1.close()
+    # cur1 = conn.cursor()
+    # cur1.execute('''SELECT initials FROM player WHERE player_id={0}'''.format(player_id))
+    # initials = cur1.fetchone()[0]
+    # cur1.close()
     
-    print("A")
-    print(initials)
-    initials = str(initials)
+    # print("A")
+    # print(initials)
+    # initials = str(initials)
 
     cur = conn.cursor()
     # cur.execute('''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id, initials) VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8})'''.format(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials))

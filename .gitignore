@@ -8,3 +8,4 @@ api/.ipynb_checkpoints
 *.pyc
 apps/old_video_edit.py
 apps/pysot/
+*.mp4
