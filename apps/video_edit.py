@@ -389,19 +389,18 @@ def update_player(current_frame, section, frame_data):
     Input('interval_VE', 'n_intervals'),
     Input('slider_VE', 'value'),
     Input('section_VE', 'data'),
-
     Input('jumpStart', 'n_clicks'),
     Input('jumpEnd', 'n_clicks'),
     State('startingFrame', 'value'),
     State('endingFrame', 'value'),
-
     State('slider_VE', 'min'),
     State('slider_VE', 'max'),
     State('frame_VE', 'data'),
+    State('frame_VE', 'modified_timestamp'),
 )
-def update_frame(previous_VE, next_VE, ff10, ff50, rw10, rw50, interval, slider, section, startBut, endBut, start, end, slider_min, slider_max, data, ):
+def update_frame(previous_VE, next_VE, ff10, ff50, rw10, rw50, interval, slider, section, startBut, endBut, start, end, slider_min, slider_max, data, ts ):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-    print(cbcontext)
+
     if cbcontext == "previous_VE.n_clicks":
         data = data - 1 if data != slider_min else data
         return data, data
@@ -432,7 +431,10 @@ def update_frame(previous_VE, next_VE, ff10, ff50, rw10, rw50, interval, slider,
         data = data + 1 if data < slider_max else slider_max
         return data, data
     elif cbcontext == 'section_VE.data':
-        return slider_min, slider_min
+        if ts is not None:
+            return data, data
+        else:
+            return slider_min, slider_min
     else:
         data = slider
         return slider, slider

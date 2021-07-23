@@ -1194,8 +1194,10 @@ def player_state(play_button, video_state, interval_state):
     State('slider_DB', 'min'),
     State('slider_DB', 'max'),
     State('frame_DB', 'data'),
-    State('radio_all_tracks', 'value'),)
-def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider, section, gts, gte, slider_min, slider_max, data, radioValue):
+    State('radio_all_tracks', 'value'),
+    State('frame_DB', 'modified_timestamp'),
+)
+def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider, section, gts, gte, slider_min, slider_max, data, radioValue, ts):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
 
     if cbcontext == "previous_DB.n_clicks":
@@ -1233,10 +1235,12 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
             else:
                 raise PreventUpdate 
     elif cbcontext == 'interval_DB.n_intervals': data += 1; return data, data
-    elif cbcontext == 'section_DB.data': return slider_min, slider_min
+    elif cbcontext == 'section_DB.data': 
+        if ts is not None:
+            return data, data
+        else:
+            return slider_min, slider_min
     else: data = slider; return slider, slider
-
-
 
 @app.callback(
     Output("slider_DB", 'min'),
