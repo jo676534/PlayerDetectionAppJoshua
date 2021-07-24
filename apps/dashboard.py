@@ -1254,18 +1254,66 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
 
 
 
+# @app.callback(
+#     Output("slider_DB", 'min'),
+#     Output("slider_DB", 'max'),
+#     Output("slider_DB", 'marks'),
+#     Output('section_DB', 'data'), # info storage section number
+#     Output('dropdown_DB', 'value'),
+#     Input('dropdown_DB', 'value'), # dropdown value
+#     Input("previousSec", "n_clicks"),
+#     Input("nextSec", "n_clicks"),
+#     State('section_DB', 'data')) # info storage section number
+# def initialize_section_and_slider(sectionValue, prev, next, data):
+#     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+#     print(cbcontext)
+
+#     # case where we looped back through the callback and want to stop
+#     if (cbcontext == "dropdown_DB.value") and (sectionValue == data): 
+#         raise PreventUpdate
+
+#     # case where we are clicking next section
+#     if cbcontext == "nextSec.n_clicks":
+#         # case where we are already at the max section (don't go forward)
+#         if data+1 == sections:
+#             raise PreventUpdate
+#         else:
+#             sectionValue = data+1
+
+#     # case where we are clicking prev section
+#     if cbcontext == "previousSec.n_clicks":
+#         # case where we are already at the min section (don't go backwards)
+#         if data == 0:
+#             raise PreventUpdate
+#         else:
+#             sectionValue = data+1
+
+#     minFrame = (sectionValue * framesPerSection) + 1
+#     if (sectionValue+1) != sections:
+#         maxFrame = (sectionValue+1) * framesPerSection
+#     else:
+#         maxFrame = (frame_count % framesPerSection) + (minFrame-1)
+
+#     diff = round((maxFrame - minFrame)/20)
+#     marks = [(minFrame-1)+x*diff for x in range(21)]
+#     if marks[0] % framesPerSection == 0:
+#         marks[0] += 1
+#     sliderMarks = {}
+#     for i in marks:
+#         sliderMarks[f'{i}'] = f'{i}'
+
+#     data = sectionValue 
+#     return minFrame, maxFrame, sliderMarks, data, data
+
+
 @app.callback(
     Output("slider_DB", 'min'),
     Output("slider_DB", 'max'),
     Output("slider_DB", 'marks'),
     Output('section_DB', 'data'),
     Input('dropdown_DB', 'value'),
-    Input("previousSec", "n_clicks"),
-    Input("nextSec", "n_clicks"),
     State('section_DB', 'data'))
-def initialize_section_and_slider(sectionValue, prev, next, data):
-    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-
+def initialize_section_and_slider(sectionValue, data):
     minFrame = (sectionValue * framesPerSection) + 1
     if (sectionValue+1) != sections:
         maxFrame = (sectionValue+1) * framesPerSection
