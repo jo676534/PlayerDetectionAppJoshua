@@ -16,7 +16,7 @@ from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
 
 def get_unfinished_games():
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
     cur.execute('''SELECT * FROM game WHERE process_state < 7''')
@@ -38,9 +38,9 @@ def get_team_names(game_id):
     conn = pg2.connect(database='soccer',
             user='postgres',
             host='localhost',  # localhost-------------------!
-            password='root')
+            password='brendan')
     cur = conn.cursor()
-    cur.execute('''SELECT * FROM game WHERE game_id = %s''' % game_id)
+    cur.execute(f'''SELECT * FROM game WHERE game_id={game_id}''')
     data = cur.fetchall()
 
     cols = []

@@ -19,10 +19,10 @@ import cv2  # from vid2frames
 
 # Get All Game Detections
 def get_game_detections(game_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
-    cur.execute('''SELECT * FROM detections where game_id = 0''')
+    cur.execute(f'''SELECT * FROM detections where game_id={game_id}''')
     data = cur.fetchall()
     
     cur.close()
@@ -37,24 +37,29 @@ def get_game_detections(game_id):
 # ----------------------------------------------------------------------------
 
 # database name is soccer
-# password is rootroot
+# password is brendan
 # username is postgres
 # host is database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com
 
 # Get All Detections From a Frame
-def get_frame_detections(game_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+def get_frame_detections(game_id, start, end):
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
-    cur.execute('''SELECT MAX(frame) FROM detections where game_id = 0''')
-    maxFrame = cur.fetchone()[0]
+    # cur.execute(f'''SELECT MAX(frame) FROM detections where game_id={game_id}''')
+    # maxFrame = cur.fetchone()[0]
     
+
     dic = {}
     
-    for frame in range(maxFrame+1):
+
+    from tqdm import tqdm 
+    print(f'grabbing frames {start} to {end} from database:')
+    for frame in tqdm(range(start, end+1)):
+        
         # create a temporary cursor and execute the get request for the detections of this frame
         cur_temp = conn.cursor()
-        cur_temp.execute('''SELECT * FROM detections WHERE game_id=0 AND frame={0}'''.format(frame))
+        cur_temp.execute(f'''SELECT * FROM detections WHERE game_id={game_id} AND frame={frame}''')
         data = cur_temp.fetchall()
         
         cols = []
@@ -96,11 +101,11 @@ def get_frame_detections(game_id):
 
 
 def gfd(game_id, frame):
-    con = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    con = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
 
     with con:
         with con.cursor() as curs:
-            curs.execute('''SELECT * FROM detections WHERE game_id=0 AND frame={0}'''.format(frame))
+            curs.execute(f'''SELECT * FROM detections WHERE game_id={game_id} AND frame={frame}''')
             data = curs.fetchall()
             
             cols = []
@@ -112,15 +117,15 @@ def gfd(game_id, frame):
 # ----------------------------------------------------------------------------
 
 def get_tracks(game_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
 
     cur = conn.cursor()
-    cur.execute('''SELECT MAX(track_id) FROM detections WHERE game_id={0}'''.format(game_id))
+    cur.execute(f'''SELECT MAX(track_id) FROM detections WHERE game_id={game_id}''')
     maxTrack = cur.fetchone()[0]
     cur.close()
 
     cur = conn.cursor()
-    cur.execute('''SELECT COUNT(DISTINCT track_id) FROM detections WHERE game_id={0}'''.format(game_id))
+    cur.execute(f'''SELECT COUNT(DISTINCT track_id) FROM detections WHERE game_id={game_id}''')
     unique_tracks = cur.fetchone()[0]
     cur.close()
 
@@ -131,7 +136,7 @@ def get_tracks(game_id):
         # create a temporary cursor and execute the get request for the detections of this frame
         # print("Fetching track {} of {}".format(track_id, maxTrack))
         cur_temp = conn.cursor()
-        cur_temp.execute('''SELECT * FROM detections WHERE game_id={0} AND track_id={1}'''.format(game_id, track_id))
+        cur_temp.execute(f'''SELECT * FROM detections WHERE game_id={game_id} AND track_id={track_id}''')
         data = cur_temp.fetchall()
 
         if data:
@@ -152,12 +157,13 @@ def get_tracks(game_id):
 # ----------------------------------------------------------------------------
 
 def save_track(game_id, detections_df, frame, track_id, player_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
     # Query/Commit Here
     for index, det in detections_df.iterrows():
-        cur.execute('''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id) VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})'''.format(game_id, frame, det['x0'], det['y0'], det['x1'], det['y1'], track_id, player_id))
+        # cur.execute('''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id) VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})'''.format(game_id, frame, det['x0'], det['y0'], det['x1'], det['y1'], track_id, player_id))
+        cur.execute(f'''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id) VALUES ({game_id}, {frame}, {det['x0']}, {det['y0']}, {det['x1']}, {det['y1']}, {track_id}, {player_id})''')
         #print('''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id) VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7})'''.format(game_id, frame, det['x0'], det['y0'], det['x1'], det['y1'], track_id, player_id))
         frame += 1
 
@@ -170,11 +176,11 @@ def save_track(game_id, detections_df, frame, track_id, player_id):
 # ----------------------------------------------------------------------------
 
 def unique_track_id(game_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
     # Query/Commit Here
-    cur.execute('''SELECT MAX(track_id) FROM detections WHERE game_id={0}'''.format(game_id))
+    cur.execute(f'''SELECT MAX(track_id) FROM detections WHERE game_id={game_id}''')
     data = cur.fetchall()
 
     cur.close()
@@ -186,11 +192,11 @@ def unique_track_id(game_id):
 # ----------------------------------------------------------------------------
 
 def delete_detection(game_id, frame, track_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
     # Query/Commit Here
-    cur.execute('''DELETE FROM detections WHERE game_id={0} AND frame={1} AND track_id={2}'''.format(game_id, frame, track_id))
+    cur.execute(f'''DELETE FROM detections WHERE game_id={game_id} AND frame={frame} AND track_id={track_id}''')
     
     conn.commit()
     cur.close()
@@ -199,11 +205,11 @@ def delete_detection(game_id, frame, track_id):
 # ----------------------------------------------------------------------------
 
 def delete_detection_section(game_id, start_frame, final_frame, track_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
     # Query/Commit Here
-    cur.execute('''DELETE FROM detections WHERE game_id={0} AND track_id={1} AND frame >= {2} AND frame <= {3}'''.format(game_id, track_id, start_frame, final_frame))
+    cur.execute(f'''DELETE FROM detections WHERE game_id={game_id} AND track_id={track_id} AND frame >= {start_frame} AND frame <= {final_frame}''')
     
     conn.commit()
     cur.close()
@@ -212,7 +218,7 @@ def delete_detection_section(game_id, start_frame, final_frame, track_id):
 # ----------------------------------------------------------------------------
 
 def delete_detection_list(game_id, track_id, arr):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
 
     print("4")
@@ -222,7 +228,7 @@ def delete_detection_list(game_id, track_id, arr):
     print("5")
 
     # Query/Commit Here
-    cur.execute('''DELETE FROM detections WHERE game_id={0} AND track_id={1} AND frame=ANY('{2}')'''.format(game_id, track_id, st))
+    cur.execute(f'''DELETE FROM detections WHERE game_id={game_id} AND track_id={track_id} AND frame=ANY('{st}')''')
     #cur.execute('''SELECT * FROM detections WHERE game_id=0 AND frame=ANY('{0}')'''.format(st))
 
     print("6")
@@ -234,7 +240,7 @@ def delete_detection_list(game_id, track_id, arr):
 # ----------------------------------------------------------------------------
 
 def add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     
     # cur1 = conn.cursor()
     # cur1.execute('''SELECT initials FROM player WHERE player_id={0}'''.format(player_id))
@@ -247,7 +253,8 @@ def add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials)
 
     cur = conn.cursor()
     # cur.execute('''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id, initials) VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8})'''.format(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials))
-    cur.execute('''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id, initials) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)''', (game_id, frame, x0, y0, x1, y1, track_id, player_id, initials))
+    # cur.execute('''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id, initials) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)''', (game_id, frame, x0, y0, x1, y1, track_id, player_id, initials))
+    cur.execute(f'''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id, initials) VALUES ({game_id}, {frame}, {x0}, {y0}, {x1}, {y1}, {track_id}, {player_id}, {initials})''')
     cur.close()
 
     print("B")
@@ -267,10 +274,10 @@ def add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials)
 # ----------------------------------------------------------------------------
 
 def get_player_initials(player_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     
     cur1 = conn.cursor()
-    cur1.execute('''SELECT initials FROM player WHERE player_id={0}'''.format(player_id))
+    cur1.execute(f'''SELECT initials FROM player WHERE player_id={player_id}''')
     initials = cur1.fetchone()[0]
     cur1.close()
 
@@ -282,7 +289,7 @@ def get_player_initials(player_id):
 # ----------------------------------------------------------------------------
 
 def get_partial_frame_detections(game_id, start_frame, final_frame):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
 
     cur.execute('''SELECT MAX(frame) FROM detections''')
@@ -293,7 +300,7 @@ def get_partial_frame_detections(game_id, start_frame, final_frame):
 
     while frame <= final_frame:
         cur_temp = conn.cursor()
-        cur_temp.execute('''SELECT * FROM detections WHERE game_id=0 AND frame={0}'''.format(frame))
+        cur_temp.execute(f'''SELECT * FROM detections WHERE game_id={game_id} AND frame={frame}''')
         data = cur_temp.fetchall()
         
         cols = []
@@ -313,15 +320,15 @@ def get_partial_frame_detections(game_id, start_frame, final_frame):
 # ----------------------------------------------------------------------------
 
 def assign_track(game_id, player_id, track_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
 
     cur1 = conn.cursor()
-    cur1.execute('''SELECT initials FROM player WHERE player_id={0}'''.format(player_id))
+    cur1.execute(f'''SELECT initials FROM player WHERE player_id={player_id}''')
     initials = cur1.fetchone()[0]
     cur1.close()
 
     cur = conn.cursor()
-    cur.execute('''UPDATE detections SET player_id = %s, initials = %s WHERE track_id = %s AND game_id = %s''', (player_id, initials, track_id, game_id))
+    cur.execute(f'''UPDATE detections SET player_id={player_id}, initials={initials} WHERE track_id={track_id} AND game_id={game_id}''')
 
     conn.commit()
     cur.close()
@@ -332,9 +339,9 @@ def assign_track(game_id, player_id, track_id):
 # ----------------------------------------------------------------------------
 
 def delete_track(game_id, track_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
-    cur.execute('''DELETE FROM detections WHERE track_id = %s and game_id = %s''', (track_id, game_id))
+    cur.execute(f'''DELETE FROM detections WHERE track_id={track_id} and game_id={game_id}''')
     conn.commit()
     cur.close()
     conn.close()
@@ -342,14 +349,14 @@ def delete_track(game_id, track_id):
 # ----------------------------------------------------------------------------
 
 def min_max_track_frame(game_id, track_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur1 = conn.cursor()
     cur2 = conn.cursor()
     
-    cur1.execute('''SELECT MAX(frame) FROM detections WHERE track_id={0} and game_id={1}'''.format(track_id, game_id))
+    cur1.execute(f'''SELECT MAX(frame) FROM detections WHERE track_id={track_id} and game_id={game_id}''')
     max = cur1.fetchone()[0]
     
-    cur2.execute('''SELECT MIN(frame) FROM detections WHERE track_id={0} and game_id={1}'''.format(track_id, game_id))
+    cur2.execute(f'''SELECT MIN(frame) FROM detections WHERE track_id={track_id} and game_id={game_id}''')
     min = cur2.fetchone()[0]
 
     cur1.close()
@@ -361,10 +368,10 @@ def min_max_track_frame(game_id, track_id):
 # ----------------------------------------------------------------------------
 
 def get_player_frames(game_id, player_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
-    cur.execute('''SELECT frame FROM detections WHERE game_id={0} AND player_id={1}'''.format(game_id, player_id))
+    cur.execute(f'''SELECT frame FROM detections WHERE game_id={game_id} AND player_id={player_id}''')
     data = cur.fetchall()
         
     cols = []
@@ -383,10 +390,10 @@ def get_player_frames(game_id, player_id):
 # ----------------------------------------------------------------------------
 
 def get_track_frames(game_id, track_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
-    cur.execute('''SELECT frame FROM detections WHERE game_id={0} AND track_id={1}'''.format(game_id, track_id))
+    cur.execute(f'''SELECT frame FROM detections WHERE game_id={game_id} AND track_id={track_id}''')
     data = cur.fetchall()
         
     cols = []
@@ -405,7 +412,7 @@ def get_track_frames(game_id, track_id):
 # ----------------------------------------------------------------------------
 
 def endpoint_framework(game_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
     # Query/Commit Here

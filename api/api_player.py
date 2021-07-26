@@ -18,7 +18,7 @@ import cv2  # from vid2frames
 
 # GET FUNCTIONS
 def get_players(game_id): # will need significant rework to find the players for each specific specific team
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
     cur.execute('''SELECT * FROM player''')
@@ -34,10 +34,10 @@ def get_players(game_id): # will need significant rework to find the players for
     return pd.DataFrame(data=players_data, columns=pcols)
 
 def get_players_roster(game_id): # will need significant rework to find the players for each specific specific team
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
         
-    cur.execute('''SELECT * FROM roster WHERE game_id = %s''' % game_id)
+    cur.execute(f'''SELECT * FROM roster WHERE game_id={game_id}''')
     players_data = cur.fetchall()
         
     cur.close()
@@ -53,10 +53,10 @@ def get_players_roster(game_id): # will need significant rework to find the play
 # ----------------------------------------------------------------------------
 
 def get_player(game_id, player_id): # will need significant rework to find the players for each specific specific team
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
-    cur.execute('''SELECT * FROM roster where game_id={} and player_id={}'''.format(game_id, player_id))
+    cur.execute(f'''SELECT * FROM roster where game_id={game_id} and player_id={player_id}''')
     players_data = cur.fetchall()
     
     cur.close()
@@ -73,11 +73,11 @@ def get_player(game_id, player_id): # will need significant rework to find the p
 # assigning a track to a player
 # USE the one in api_detections instead
 def assign_track(game_id, track_id, player_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
     # Query/Commit Here
-    cur.execute('''UPDATE detections SET player_id = %s WHERE game_id = %s AND track_id = %s''', (player_id, game_id, track_id))
+    cur.execute(f'''UPDATE detections SET player_id={player_id} WHERE game_id={game_id} AND track_id ={track_id}''')
     
     conn.commit()
     cur.close()
@@ -87,10 +87,10 @@ def assign_track(game_id, track_id, player_id):
 
 # getting a player's tracks
 def get_player_detections(game_id, player_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
 
-    cur.execute('''SELECT * FROM detections WHERE game_id = %s AND player_id = %s''', (game_id, player_id))
+    cur.execute(f'''SELECT * FROM detections WHERE game_id={game_id} AND player_id={player_id}''')
     data = cur.fetchall()
 
     cols = []
@@ -105,11 +105,11 @@ def get_player_detections(game_id, player_id):
 # ----------------------------------------------------------------------------
 
 def get_initials(player_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
     cur = conn.cursor()
     
     # Query/Commit Here
-    cur.execute('''SELECT initials FROM players WHERE player_id={}'''.format(player_id))
+    cur.execute(f'''SELECT initials FROM players WHERE player_id={player_id}''')
     initials = cur.fetchone()[0]
     
     conn.commit()
