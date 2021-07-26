@@ -18,7 +18,7 @@ import cv2  # from vid2frames
 
 # GET FUNCTIONS
 def get_teams(game_id): # will need significant rework to find the two specific teams
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
+    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
     cur = conn.cursor()
     
     cur.execute('''SELECT * FROM team''')
