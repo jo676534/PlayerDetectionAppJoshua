@@ -59,17 +59,22 @@ df_teams = None # api_team.get_teams(0)
 df_players = None # api_player.get_players(0)
 
 
-def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, name=None, color=None, opacity=1, group=None, text=None):
+def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, show_initials, name=None, color=None, opacity=1, group=None, text=None):
     # could put code here to determine colors
     line_color = ""
     header = ""
+    
+    # determines color
     if player_id == -1:
         line_color = "#c90000" # red (not assigned)
-        header = str(track_id)
     else: 
         line_color = "#0600b3" # blue (is assigned)
-        header = initials
 
+    # determines showing initials vs track_id
+    if show_initials and track_id != -1 and initials:
+        header = initials
+    else:
+        header = str(track_id)
 
     fig.add_shape(
         editable=True,
@@ -129,16 +134,17 @@ video_card_DB = dbc.Card(
                        dbc.FormGroup(
                                 dbc.Checklist(
                                     options=[
-                                        {"label": "Assigned Track Boxes", "value": 1}, #1 is assigned
-                                        {"label": "Unassigned Track Boxes", "value": 2}, #2 is unassigned
+                                        {"label": "Assigned Tracks", "value": 1}, #1 is assigned
+                                        {"label": "Unassigned Tracks", "value": 2}, #2 is unassigned
+                                        {"label": "Player Initials", "value": 3},
                                     ],
-                                    value=[1, 2],
+                                    value=[1, 2, 3],
                                     id="switches-input",
                                     style ={'margin-left':'20px'},
                                     switch=True,
                                     inline=True,
                                 ),              
-                    ),
+                        ),
                         html.Div(
                         [
                             dcc.Dropdown(
@@ -622,10 +628,11 @@ def display(btn1, btn2, game_id):
     if button_id == "but8":
         section = "B"
 
+    # THIS IS HARD CODED AND NEEDS TO INSTEAD USE EACH TEAMS TEAM ID //////////////////////////////////////////////////////////////////////////////////////////////////
     # Players in team A
-    a_row = df_players[df_players["team_id"] == 0]
+    a_row = df_players[df_players["team_id"] == 0] # HERE
     # Players in team B
-    b_row = df_players[df_players["team_id"] == 1]
+    b_row = df_players[df_players["team_id"] == 1] # HERE
     
 
     # # Dash component for team A
@@ -868,10 +875,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
         
         else:
             trackList =[]
-            conn = pg2.connect(database='soccer',
-            user='postgres',
-            host='localhost',  # localhost-------------------!
-            password='root')
+            conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
             cur = conn.cursor()
             cur.execute('''SELECT * FROM detections WHERE player_id = %s''' % value)
             data = cur.fetchall()
@@ -911,8 +915,8 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
             else:
                 
                 data1 = pd.DataFrame(data=data, columns=cols)
-                unique_track_ids_temp = data1.iloc[1]['track_id']
-                trackList.append(data1.iloc[1]['track_id'])
+                unique_track_ids_temp = data1.iloc[0]['track_id']
+                trackList.append(data1.iloc[0]['track_id'])
                 for i in range(len(data1)):
                     if unique_track_ids_temp != data1.iloc[i]['track_id']:
                         unique_track_ids_temp = data1.iloc[i]['track_id']
@@ -938,7 +942,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                                         className= "radio_items",
                                     align = 'center',
                                     style={'width': '100%', 
-                                            'height': '350px', 
+                                            'height': '437px', 
                                             'overflow': 'scroll', 
                                             'padding': '10px 10px 10px 20px'}), 
                                 ],)
@@ -1030,30 +1034,27 @@ def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
 
 def draw_tracks(fig, currentFrame, switches_value, game_id):
 
+    print(f"Switches value is:\n{switches_value}")
+
     global dic
     # if not dic:
     #     dic = api_detections.get_frame_detections(game_id)
 
-
     frame_df = dic[currentFrame] 
-    unassinged_is_checked = False
     assigned_is_checked = False
-    
-    if (len(switches_value)==2):
-        unassinged_is_checked = True
-        assigned_is_checked = True
+    unassinged_is_checked = False
+    initials_is_checked = False
 
-    if (len(switches_value)==1):
-        if (switches_value[0]==1):
-            unassinged_is_checked = False
-            assigned_is_checked = True
-        if (switches_value[0]==2):
-            unassinged_is_checked = True
-            assigned_is_checked = False 
+
+    if 1 in switches_value:
+        assigned_is_checked = True
     
-    if (len(switches_value)==0):
-        unassinged_is_checked = False
-        assigned_is_checked = False
+    if 2 in switches_value:
+        unassinged_is_checked = True
+
+    if 3 in switches_value:
+        initials_is_checked = True
+
     
     if (unassinged_is_checked and assigned_is_checked):
         for i in range(len(frame_df)):
@@ -1064,7 +1065,7 @@ def draw_tracks(fig, currentFrame, switches_value, game_id):
             track_id = frame_df.iloc[i]['track_id']
             player_id = frame_df.iloc[i]['player_id']
             initials = frame_df.iloc[i]['initials']
-            add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1)
+            add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, initials_is_checked)
 
     elif (unassinged_is_checked and assigned_is_checked == 0):
         for i in range(len(frame_df)):
@@ -1078,7 +1079,7 @@ def draw_tracks(fig, currentFrame, switches_value, game_id):
                 track_id = frame_df.iloc[i]['track_id']
                 player_id = frame_df.iloc[i]['player_id']
                 initials = frame_df.iloc[i]['initials']
-                add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1)
+                add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, initials_is_checked)
 
     elif (assigned_is_checked and unassinged_is_checked == 0):
         for i in range(len(frame_df)):
@@ -1092,7 +1093,7 @@ def draw_tracks(fig, currentFrame, switches_value, game_id):
                 track_id = frame_df.iloc[i]['track_id']
                 player_id = frame_df.iloc[i]['player_id']
                 initials = frame_df.iloc[i]['initials']
-                add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1)     
+                add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, initials_is_checked)     
 
 
     return fig 
@@ -1229,6 +1230,59 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
             return slider_min, slider_min
     else: data = slider; return slider, slider
 
+
+# @app.callback(
+#     Output("slider_DB", 'min'),
+#     Output("slider_DB", 'max'),
+#     Output("slider_DB", 'marks'),
+#     Output('section_DB', 'data'), # info storage section number
+#     Output('dropdown_DB', 'value'),
+#     Input('dropdown_DB', 'value'), # dropdown value
+#     Input("previousSec", "n_clicks"),
+#     Input("nextSec", "n_clicks"),
+#     State('section_DB', 'data')) # info storage section number
+# def initialize_section_and_slider(sectionValue, prev, next, data):
+#     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+#     print(cbcontext)
+
+#     # case where we looped back through the callback and want to stop
+#     if (cbcontext == "dropdown_DB.value") and (sectionValue == data): 
+#         raise PreventUpdate
+
+#     # case where we are clicking next section
+#     if cbcontext == "nextSec.n_clicks":
+#         # case where we are already at the max section (don't go forward)
+#         if data+1 == sections:
+#             raise PreventUpdate
+#         else:
+#             sectionValue = data+1
+
+#     # case where we are clicking prev section
+#     if cbcontext == "previousSec.n_clicks":
+#         # case where we are already at the min section (don't go backwards)
+#         if data == 0:
+#             raise PreventUpdate
+#         else:
+#             sectionValue = data+1
+
+#     minFrame = (sectionValue * framesPerSection) + 1
+#     if (sectionValue+1) != sections:
+#         maxFrame = (sectionValue+1) * framesPerSection
+#     else:
+#         maxFrame = (frame_count % framesPerSection) + (minFrame-1)
+
+#     diff = round((maxFrame - minFrame)/20)
+#     marks = [(minFrame-1)+x*diff for x in range(21)]
+#     if marks[0] % framesPerSection == 0:
+#         marks[0] += 1
+#     sliderMarks = {}
+#     for i in marks:
+#         sliderMarks[f'{i}'] = f'{i}'
+
+#     data = sectionValue 
+#     return minFrame, maxFrame, sliderMarks, data, data
+
+
 @app.callback(
     Output("slider_DB", 'min'),
     Output("slider_DB", 'max'),
@@ -1249,14 +1303,11 @@ def initialize_section_and_slider(sectionValue, data, game_id):
     global a_name
     global b_name
 
-
-
     minFrame = (sectionValue * framesPerSection) + 1
     if (sectionValue+1) != sections:
         maxFrame = (sectionValue+1) * framesPerSection
     else:
         maxFrame = (frame_count % framesPerSection) + (minFrame-1)
-
 
     diff = round((maxFrame - minFrame)/20)
     marks = [(minFrame-1)+x*diff for x in range(21)]
@@ -1269,6 +1320,8 @@ def initialize_section_and_slider(sectionValue, data, game_id):
     data = sectionValue 
 
 # ------------------------------------------------------------------
+# initializer of info
+
     if not game_id: 
         game_id = 0
 
@@ -1289,13 +1342,13 @@ def initialize_section_and_slider(sectionValue, data, game_id):
     print(minFrame, maxFrame)
     return minFrame, maxFrame, sliderMarks, data, div
 
+
 # initializes the states 
 @app.callback(Output('dropdown_DB', 'value'),
                 Input('section_DB', 'modified_timestamp'),
                 State('section_DB', 'data'),
                 State('frame_DB', 'data'),
-                State('video_state_DB', 'data'),
-)
+                State('video_state_DB', 'data'),)
 def initial(section_ts, sectiondata, framedata, video_state):
     # if section_ts is None:
         # raise PreventUpdate
@@ -1312,3 +1365,4 @@ def initial(section_ts, sectiondata, framedata, video_state):
     framedata = framedata or 0
     video_state = False 
     return sectiondata
+
