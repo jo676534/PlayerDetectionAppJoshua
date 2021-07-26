@@ -645,10 +645,11 @@ def display(btn1, btn2, game_id):
     if button_id == "but8":
         section = "B"
 
+    # THIS IS HARD CODED AND NEEDS TO INSTEAD USE EACH TEAMS TEAM ID //////////////////////////////////////////////////////////////////////////////////////////////////
     # Players in team A
-    a_row = df_players[df_players["team_id"] == 0]
+    a_row = df_players[df_players["team_id"] == 0] # HERE
     # Players in team B
-    b_row = df_players[df_players["team_id"] == 1]
+    b_row = df_players[df_players["team_id"] == 1] # HERE
     
 
     # # Dash component for team A

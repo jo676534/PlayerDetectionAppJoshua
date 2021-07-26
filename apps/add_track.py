@@ -254,7 +254,7 @@ layout = html.Div(
             [
                 dbc.Row(
                     [
-                        dbc.Col(video_card_add, md=7.5),
+                        dbc.Col(video_card_add, md=7.3),
                         dbc.Col(children=[right_side, end_buttons], md=5),
                     ],
                 ),
