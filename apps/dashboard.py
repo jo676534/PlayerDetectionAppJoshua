@@ -32,7 +32,8 @@ from api import api_game
 
 
 
-filename = "./Videos/game_0.mp4"
+# filename = "./Videos/game_0.mp4"
+filename = '/home/brendan/projects/sd/SeniorDesign/segmentation/datasets/video.mp4'
 vidcap = cv2.VideoCapture(filename)
 
 # OpenCV2 version 2 used "CV_CAP_PROP_FPS"
@@ -552,8 +553,10 @@ def set_final_frame(n_clicks, frame):
     State("radio_players_A", 'value'),
     State('radio_all_tracks', 'value'),
     State("game_id", "data"),
+    State('slider_DB', 'min'),
+    State('slider_DB', 'max'),
     prevent_initial_call=True)
-def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, storage1, storage2, player_id, track_id, game_id):
+def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, storage1, storage2, player_id, track_id, game_id, slider_min, slider_max):
     global dic
     global dic_tracks
     global unique_tracks
@@ -575,7 +578,7 @@ def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, stor
         api_detections.delete_detection_section(game_id, start_frame, final_frame, track_id) # don't check and just purge the section even if there isn't anything there or only partially there within the single api call (simpler and doesn't matter much)
         
         # UPDATE LOCATION //////////////////////////////////////////////////////////////////////////////////////////////////
-        dic = api_detections.get_frame_detections(game_id)
+        dic = api_detections.get_frame_detections(game_id, slider_min, slider_max)
         dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
         return ("Deleted selected dections from the track.", start_frame, final_frame, player_id)
@@ -590,27 +593,7 @@ def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, stor
 
 
 # simple callback that will only be called on page startup/refresh to create the necessary data structures
-@app.callback(
-    Output("hidden_div_init_input", "children"),
-    Input("hidden_div_init_input", "children"),
-    State("game_id", "data"))
-def initializer(useless_input, game_id):
-    global dic
-    global dic_tracks
-    global unique_tracks
-    global df_teams
-    global df_players
 
-    if not game_id: 
-        game_id = 0
-
-    dic = api_detections.get_frame_detections(game_id)
-    dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
-
-    df_teams = api_team.get_teams(game_id)
-    df_players = api_player.get_players_roster(game_id)
-
-    return None
 
 
 # Call back that toggles between Team A and Team B
@@ -979,8 +962,10 @@ def update_output(value):
     State('radio_all_tracks', 'value'),
     State("radio_players_A", 'value'),
     State("game_id", "data"),
+    State('slider_DB', 'min'),
+    State('slider_DB', 'max'),
     prevent_initial_call=True)
-def update_player_tracks(assignBt, track_id, player_id, game_id):
+def update_player_tracks(assignBt, track_id, player_id, game_id, slider_min, slider_max):
     if assignBt:
         global dic_tracks
         global unique_tracks
@@ -998,7 +983,7 @@ def update_player_tracks(assignBt, track_id, player_id, game_id):
             api_detections.assign_track(game_id, player_id, track_id)
         
         # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-        dic = api_detections.get_frame_detections(game_id)
+        dic = api_detections.get_frame_detections(game_id, slider_min, slider_max)
         dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
         return None, "Track successfully assigned."
@@ -1015,8 +1000,10 @@ def update_player_tracks(assignBt, track_id, player_id, game_id):
     Input('delete_bt', 'n_clicks'),
     State('radio_all_tracks', 'value'),
     State("game_id", "data"),
+    State('slider_DB', 'min'),
+    State('slider_DB', 'max'),
     prevent_initial_call=True)
-def delete_track(delete_bt, track_id, game_id):
+def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
     global dic_tracks
     global unique_tracks
     global dic
@@ -1032,36 +1019,20 @@ def delete_track(delete_bt, track_id, game_id):
         api_detections.delete_track(game_id, track_id)
 
     # UPDATE LOCATION ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-    dic = api_detections.get_frame_detections(game_id)
+    dic = api_detections.get_frame_detections(game_id, slider_min, slider_max)
     dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
     return (None, None, None, "Track successfully deleted.")
 
 
-@app.callback(
-    Output('team_buttons', 'children'),
-    Input("hidden_div_init_input", "children"),
-    State("game_id", "data"),)
-def init_team_buttons(hidden_div, game_id):
 
-    global a_name
-    global b_name
-
-    if not game_id: 
-        game_id = 0
-
-    a_name, b_name = api_game.get_team_names(game_id)
-
-    print ("Callback triggered")
-    return html.Div( children = [dbc.Button(str(a_name), id="but7", outline=True, style={ "font-size": "12px"}),
-           dbc.Button(str(b_name), id="but8", outline=True, style={"margin-left": "5px","font-size": "12px"})])
 
 
 def draw_tracks(fig, currentFrame, switches_value, game_id):
 
     global dic
-    if not dic:
-        dic = api_detections.get_frame_detections(game_id)
+    # if not dic:
+    #     dic = api_detections.get_frame_detections(game_id)
 
 
     frame_df = dic[currentFrame] 
@@ -1263,10 +1234,23 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
     Output("slider_DB", 'max'),
     Output("slider_DB", 'marks'),
     Output('section_DB', 'data'),
+    Output('team_buttons', 'children'),
     Input('dropdown_DB', 'value'),
-    State('section_DB', 'data')
+    State('section_DB', 'data'),
+    State('game_id', 'data')
 )
-def initialize_section_and_slider(sectionValue, data):
+def initialize_section_and_slider(sectionValue, data, game_id):
+
+    global dic
+    global dic_tracks
+    global unique_tracks
+    global df_teams
+    global df_players
+    global a_name
+    global b_name
+
+
+
     minFrame = (sectionValue * framesPerSection) + 1
     if (sectionValue+1) != sections:
         maxFrame = (sectionValue+1) * framesPerSection
@@ -1283,7 +1267,27 @@ def initialize_section_and_slider(sectionValue, data):
         sliderMarks[f'{i}'] = f'{i}'
 
     data = sectionValue 
-    return minFrame, maxFrame, sliderMarks, data
+
+# ------------------------------------------------------------------
+    if not game_id: 
+        game_id = 0
+
+    dic = api_detections.get_frame_detections(game_id, minFrame, maxFrame)
+    dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
+
+    df_teams = api_team.get_teams(game_id)
+    df_players = api_player.get_players_roster(game_id)
+
+# ------------------------------------------------------------------
+
+    a_name, b_name = api_game.get_team_names(game_id)
+
+    div = html.Div( children = [dbc.Button(str(a_name), id="but7", outline=True, style={ "font-size": "12px"}),
+           dbc.Button(str(b_name), id="but8", outline=True, style={"margin-left": "5px","font-size": "12px"})])
+
+
+    print(minFrame, maxFrame)
+    return minFrame, maxFrame, sliderMarks, data, div
 
 # initializes the states 
 @app.callback(Output('dropdown_DB', 'value'),
@@ -1295,6 +1299,15 @@ def initialize_section_and_slider(sectionValue, data):
 def initial(section_ts, sectiondata, framedata, video_state):
     # if section_ts is None:
         # raise PreventUpdate
+
+    '''
+    do a prevent update 
+    '''
+
+
+
+
+    print('testing')
     sectiondata = sectiondata or 0
     framedata = framedata or 0
     video_state = False 

@@ -40,7 +40,7 @@ def get_team_names(game_id):
             host='localhost',  # localhost-------------------!
             password='root')
     cur = conn.cursor()
-    cur.execute('''SELECT * FROM game WHERE game_id = %s''' % game_id)
+    cur.execute(f'''SELECT * FROM game WHERE game_id={game_id}''')
     data = cur.fetchall()
 
     cols = []

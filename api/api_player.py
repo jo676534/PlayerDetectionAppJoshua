@@ -37,7 +37,7 @@ def get_players_roster(game_id): # will need significant rework to find the play
     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
     cur = conn.cursor()
         
-    cur.execute('''SELECT * FROM roster WHERE game_id = %s''' % game_id)
+    cur.execute(f'''SELECT * FROM roster WHERE game_id={game_id}''')
     players_data = cur.fetchall()
         
     cur.close()
@@ -56,7 +56,7 @@ def get_player(game_id, player_id): # will need significant rework to find the p
     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
     cur = conn.cursor()
     
-    cur.execute('''SELECT * FROM roster where game_id={} and player_id={}'''.format(game_id, player_id))
+    cur.execute(f'''SELECT * FROM roster where game_id={game_id} and player_id={player_id}''')
     players_data = cur.fetchall()
     
     cur.close()
@@ -77,7 +77,7 @@ def assign_track(game_id, track_id, player_id):
     cur = conn.cursor()
     
     # Query/Commit Here
-    cur.execute('''UPDATE detections SET player_id = %s WHERE game_id = %s AND track_id = %s''', (player_id, game_id, track_id))
+    cur.execute(f'''UPDATE detections SET player_id={player_id} WHERE game_id={game_id} AND track_id ={track_id}''')
     
     conn.commit()
     cur.close()
@@ -90,7 +90,7 @@ def get_player_detections(game_id, player_id):
     conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
     cur = conn.cursor()
 
-    cur.execute('''SELECT * FROM detections WHERE game_id = %s AND player_id = %s''', (game_id, player_id))
+    cur.execute(f'''SELECT * FROM detections WHERE game_id={game_id} AND player_id={player_id}''')
     data = cur.fetchall()
 
     cols = []
@@ -109,7 +109,7 @@ def get_initials(player_id):
     cur = conn.cursor()
     
     # Query/Commit Here
-    cur.execute('''SELECT initials FROM players WHERE player_id={}'''.format(player_id))
+    cur.execute(f'''SELECT initials FROM players WHERE player_id={player_id}''')
     initials = cur.fetchone()[0]
     
     conn.commit()
