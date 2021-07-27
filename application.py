@@ -18,6 +18,7 @@ from apps import final_review
 
 
 
+
 navbar = dbc.NavbarSimple(
     children=[
         dbc.DropdownMenu(
