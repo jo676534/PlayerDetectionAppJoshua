@@ -6,7 +6,7 @@ import pandas as pd
 
 # GET FUNCTIONS
 def get_players(game_id): # will need significant rework to find the players for each specific specific team
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
+    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     
     cur.execute('''SELECT * FROM player''')
@@ -22,7 +22,7 @@ def get_players(game_id): # will need significant rework to find the players for
     return pd.DataFrame(data=players_data, columns=pcols)
 
 def get_players_roster(game_id): # will need significant rework to find the players for each specific specific team
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
+    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
         
     cur.execute(f'''SELECT * FROM roster WHERE game_id={game_id}''')
@@ -41,7 +41,7 @@ def get_players_roster(game_id): # will need significant rework to find the play
 # ----------------------------------------------------------------------------
 
 def get_player(game_id, player_id): # will need significant rework to find the players for each specific specific team
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
+    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     
     cur.execute(f'''SELECT * FROM roster where game_id={game_id} and player_id={player_id}''')
@@ -61,7 +61,7 @@ def get_player(game_id, player_id): # will need significant rework to find the p
 # assigning a track to a player
 # USE the one in api_detections instead
 def assign_track(game_id, track_id, player_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
+    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     
     # Query/Commit Here
@@ -75,7 +75,7 @@ def assign_track(game_id, track_id, player_id):
 
 # getting a player's tracks
 def get_player_detections(game_id, player_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
+    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
 
     cur.execute(f'''SELECT * FROM detections WHERE game_id={game_id} AND player_id={player_id}''')
@@ -93,7 +93,7 @@ def get_player_detections(game_id, player_id):
 # ----------------------------------------------------------------------------
 
 def get_initials(player_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
+    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     
     # Query/Commit Here

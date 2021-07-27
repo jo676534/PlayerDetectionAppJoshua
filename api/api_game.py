@@ -4,7 +4,7 @@ import psycopg2 as pg2
 import pandas as pd
 
 def get_unfinished_games():
-    conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='brendan')
+    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     
     cur.execute('''SELECT * FROM game WHERE process_state < 7''')
@@ -25,8 +25,8 @@ def get_team_names(game_id):
      # Team Names
     conn = pg2.connect(database='soccer',
             user='postgres',
-            host='localhost',  # localhost-------------------!
-            password='brendan')
+            host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com',  # database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com-------------------!
+            password='rootroot')
     cur = conn.cursor()
     cur.execute(f'''SELECT * FROM game WHERE game_id={game_id}''')
     data = cur.fetchall()
