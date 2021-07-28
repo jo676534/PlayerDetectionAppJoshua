@@ -22,6 +22,7 @@ import time
 import math
 import asyncio
 # import boto3
+import pandasql as ps
 
 from app import app
 from apps import add_track
@@ -32,7 +33,7 @@ from api import api_game
 
 
 
-filename = "./Videos/game_1.mp4"
+filename = "./Videos/game_0.mp4"
 # filename = '/home/brendan/projects/sd/SeniorDesign/segmentation/datasets/video.mp4'
 vidcap = cv2.VideoCapture(filename)
 
@@ -51,12 +52,13 @@ player_tracks_counter = 0
 all_tracks_counter = 0
 viewable_tracks_counter = 0
 track_state = 0
-dic = None # api_detections.get_frame_detections(0)
+dic_frames = None # api_detections.get_frame_detections(0)
 dic_tracks, unique_tracks = None, None # api_detections.get_tracks(0)
 # fetch the teams ------------------
 df_teams = None # api_team.get_teams(0)
 # fetch the players ----------------
 df_players = None # api_player.get_players(0)
+df_detections = None
 
 
 def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, show_initials, name=None, color=None, opacity=1, group=None, text=None):
@@ -415,21 +417,25 @@ layout = html.Div(  # was app.layout
     State("game_id", "data"),
     prevent_initial_call=True)
 def manual_annotation(graph_relayout, frame, player_id, game_id):
-    global dic
+    global dic_frames
+    global df_detections
     global dic_tracks
     global unique_tracks
 
     if (not 'shapes' in graph_relayout):
         return "Please do not resize boxes, that is not supported", None
     
-    old_num_boxes = len(dic[frame])
+    sql = f'''SELECT * FROM df_detections WHERE game_id={game_id} AND frame={frame}'''
+    df_frame = ps.sqldf(sql)
+
+    old_num_boxes = len(df_frame)
     new_num_boxes = len(graph_relayout['shapes'])
 
     track_id = 0
 
     # DELETE BOX ---------------------------------
     if (new_num_boxes < old_num_boxes): 
-        df = dic[frame]
+        df = df_frame
 
         i = 0
         skip = 0
@@ -463,15 +469,17 @@ def manual_annotation(graph_relayout, frame, player_id, game_id):
         
         # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
         # we do this rather than making an api call because it will likely be faster and cost less
-        df = df.reset_index() # needed because the add box indexing can overlap, causing multiple entries to be deleted
-        df = df.drop('index', 1) # this creates a new index column with the old index values that we don't want so we discard it
-        df = df.drop(df[df['track_id'] == int(track_id)].index) # then we search for indexes with the proper track_id and drop them
-        dic[frame] = df # now we update the dictionary with the new, modified dataframe
+        # df = df.reset_index() # needed because the add box indexing can overlap, causing multiple entries to be deleted
+        # df = df.drop('index', 1) # this creates a new index column with the old index values that we don't want so we discard it
+        # df = df.drop(df[df['track_id'] == int(track_id)].index) # then we search for indexes with the proper track_id and drop them
+        # dic_frames[frame] = df # now we update the dictionary with the new, modified dataframe
 
         # works, just commented out for now
         api_detections.delete_detection(game_id, frame, track_id)
 
-        dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
+        # df_detections = api_detections.get_detection_data() # needs work ----------------================================--------------------=========================
+        # not completely useless like add box, but relatively so
+        # dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
         
         return "Detection box deleted from frame {} and track {}".format(frame, track_id), None
 
@@ -482,7 +490,7 @@ def manual_annotation(graph_relayout, frame, player_id, game_id):
         elif (old_num_boxes+1 == new_num_boxes): # good condition
             # Need to check here if there is already a track/detection with an assigned player_id in this frame
             err = False
-            for index, detection in dic[frame].iterrows():
+            for index, detection in df_frame.iterrows():
                 if int(detection['player_id']) == int(player_id):
                     err = True
                     break
@@ -498,17 +506,19 @@ def manual_annotation(graph_relayout, frame, player_id, game_id):
                 if y0 > y1: y0, y1 = y1, y0
 
                 track_id = -2 - int(player_id) # the smallest player_id is 0 and every player has a unique id, therefore manual track annotation ids can be consistently assigned through this simple formula
-
-                # manual update of dic for efficiency
                 initials = api_detections.get_player_initials(player_id)
-                df_temp = pd.DataFrame([[game_id, frame, x0, y0, x1, y1, track_id, player_id, initials]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id', 'initials'])
-                dic[frame] = dic[frame].append(df_temp)
+
+                # manual update of dic_frames for efficiency
+                # df_temp = pd.DataFrame([[game_id, frame, x0, y0, x1, y1, track_id, player_id, initials]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id', 'initials'])
+                # dic_frames[frame] = dic_frames[frame].append(df_temp)
 
                 # works, just commented out for now
                 api_detections.add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials)
 
                 # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-                dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
+                # df_detections = api_detections.get_detection_data() # needs work ----------------================================--------------------=========================
+                # not completely useless like add box, but relatively so
+                # dic_tracks, unique_tracks = api_detections.get_tracks(game_id) # Completely uncessary
                 
                 return "Box successfully added (not db linked) [norm]", None
             else:
@@ -565,9 +575,10 @@ def set_final_frame(n_clicks, frame):
     State('slider_DB', 'max'),
     prevent_initial_call=True)
 def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, storage1, storage2, player_id, track_id, game_id, slider_min, slider_max):
-    global dic
+    global dic_frames
     global dic_tracks
     global unique_tracks
+    global df_detections
 
     # universal checks
     if add_clicks is None and delete_clicks is None: # if this callback was accidently called or initialized
@@ -586,7 +597,9 @@ def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, stor
         api_detections.delete_detection_section(game_id, start_frame, final_frame, track_id) # don't check and just purge the section even if there isn't anything there or only partially there within the single api call (simpler and doesn't matter much)
         
         # UPDATE LOCATION //////////////////////////////////////////////////////////////////////////////////////////////////
-        dic = api_detections.get_frame_detections(game_id, slider_min, slider_max)
+        # dic_frames = api_detections.get_frame_detections(game_id, slider_min, slider_max)
+        df_detections = api_detections.get_detection_data(game_id, slider_min, slider_max)
+
         dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
         return ("Deleted selected dections from the track.", start_frame, final_frame, player_id)
@@ -972,7 +985,8 @@ def update_player_tracks(assignBt, track_id, player_id, game_id, slider_min, sli
     if assignBt:
         global dic_tracks
         global unique_tracks
-        global dic
+        global dic_frames
+        global df_detections
 
         cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
         
@@ -986,7 +1000,8 @@ def update_player_tracks(assignBt, track_id, player_id, game_id, slider_min, sli
             api_detections.assign_track(game_id, player_id, track_id)
         
         # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-        dic = api_detections.get_frame_detections(game_id, slider_min, slider_max)
+        # dic_frames = api_detections.get_frame_detections(game_id, slider_min, slider_max)
+        df_detections = api_detections.get_detection_data(game_id, slider_min, slider_max)
         dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
         return None, "Track successfully assigned."
@@ -1009,7 +1024,8 @@ def update_player_tracks(assignBt, track_id, player_id, game_id, slider_min, sli
 def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
     global dic_tracks
     global unique_tracks
-    global dic
+    global dic_frames
+    global df_detections
 
     if not delete_bt:
         return (None, None, None, None)
@@ -1022,7 +1038,8 @@ def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
         api_detections.delete_track(game_id, track_id)
 
     # UPDATE LOCATION ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-    dic = api_detections.get_frame_detections(game_id, slider_min, slider_max)
+    # dic_frames = api_detections.get_frame_detections(game_id, slider_min, slider_max)
+    df_detections = api_detections.get_detection_data(game_id, slider_min, slider_max)
     dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
     return (None, None, None, "Track successfully deleted.")
@@ -1033,11 +1050,12 @@ def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
 
 def draw_tracks(fig, currentFrame, switches_value, game_id):
 
-    global dic
-    # if not dic:
-    #     dic = api_detections.get_frame_detections(game_id)
+    global dic_frames
+    global df_detections
+    
+    sql = f'''SELECT * FROM df_detections WHERE game_id={game_id} AND frame={currentFrame}'''
+    frame_df = ps.sqldf(sql)
 
-    frame_df = dic[currentFrame] 
     assigned_is_checked = False
     unassinged_is_checked = False
     initials_is_checked = False
@@ -1089,7 +1107,6 @@ def draw_tracks(fig, currentFrame, switches_value, game_id):
                 player_id = frame_df.iloc[i]['player_id']
                 initials = frame_df.iloc[i]['initials']
                 add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, initials_is_checked)     
-
 
     return fig 
 
@@ -1289,8 +1306,8 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
     State('game_id', 'data')
 )
 def initialize_section_and_slider(sectionValue, data, game_id):
-
-    global dic
+    global df_detections
+    global dic_frames
     global dic_tracks
     global unique_tracks
     global df_teams
@@ -1317,7 +1334,8 @@ def initialize_section_and_slider(sectionValue, data, game_id):
 # ------------------------------------------------------------------
 # initializer of info
 
-    dic = api_detections.get_frame_detections(game_id, minFrame, maxFrame)
+    # dic_frames = api_detections.get_frame_detections(game_id, minFrame, maxFrame)
+    df_detections = api_detections.get_detection_data(game_id, minFrame, maxFrame)
     dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
     df_teams = api_team.get_teams(game_id)

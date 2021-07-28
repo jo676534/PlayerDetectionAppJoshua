@@ -15,6 +15,7 @@ import psycopg2 as pg2
 import pandas as pd
 from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
+import pandasql as ps
 
 
 # Get All Game Detections
@@ -48,55 +49,60 @@ def get_frame_detections(game_id, start, end):
     
     # cur.execute(f'''SELECT MAX(frame) FROM detections where game_id={game_id}''')
     # maxFrame = cur.fetchone()[0]
+
+    # start of test
+    print("Query started")
+    cur.execute(f'''SELECT * FROM detections WHERE game_id={game_id}''')
+    data = cur.fetchall()
+    cols = []
+    for elt in cur.description: cols.append(elt[0])
+    df = pd.DataFrame(data=data, columns=cols, dtype=object)
+    print("Query finished")
+    # end of test
+
     
     dic = {}
-    
 
     from tqdm import tqdm 
     print(f'grabbing frames {start} to {end} from database:')
+
     for frame in tqdm(range(start, end+1)):
         
-        # create a temporary cursor and execute the get request for the detections of this frame
-        cur_temp = conn.cursor()
-        cur_temp.execute(f'''SELECT * FROM detections WHERE game_id={game_id} AND frame={frame}''')
-        data = cur_temp.fetchall()
+        q = f'''SELECT * FROM df WHERE game_id={game_id} AND frame={frame}'''
+        df_frame = ps.sqldf(q)
+        dic[frame] = df_frame
 
-        cols = []
-        for elt in cur_temp.description:
-            cols.append(elt[0])
+        # create a temporary cursor and execute the get request for the detections of this frame
+        # cur_temp = conn.cursor()
+        # cur_temp.execute(f'''SELECT * FROM detections WHERE game_id={game_id} AND frame={frame}''')
+        # data = cur_temp.fetchall()
+
+        # cols = []
+        # for elt in cur_temp.description:
+        #     cols.append(elt[0])
         
-        dic[frame] = pd.DataFrame(data=data, columns=cols, dtype=object)
-        cur_temp.close()
+        # dic[frame] = pd.DataFrame(data=data, columns=cols, dtype=object)
+        # cur_temp.close()
     
     cur.close()
     conn.close()
-
-    # game_id = 0 
-
-    # dic = {} 
-
-    # with con:
-    #     with con.cursor() as curs:
-    #             sql = f'SELECT * FROM detections WHERE game_id={game_id}'
-    #             curs.execute(sql)
-    #             rows = curs.fetchall()
-    #             rows.sort(key = lambda x: x[1])
-
-    #             cols = []
-    #             for elt in curs.description:
-    #                 cols.append(elt[0])
-
-    #             for i in rows: # i[1] is just frame number
-    #                 # print("Fetching frame data {} of {}".format(i, len(rows)))
-    #                 l = [[i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8]]]
-    #                 if i[1] in dic: 
-    #                     df = dic[i[1]]
-    #                     df2 = pd.DataFrame(data=l, columns=cols)
-    #                     dic[i[1]] = df.append(df2)
-    #                 else: 
-    #                     dic[i[1]] = pd.DataFrame(data=l, columns=cols) # [l]
     
     return dic
+
+
+def get_detection_data(game_id, start, end):
+    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot') # ctrl + d
+    cur = conn.cursor()
+
+    cur.execute(f'''SELECT * FROM detections WHERE game_id={game_id}''')
+    data = cur.fetchall()
+
+    cols = []
+    for elt in cur.description: cols.append(elt[0])
+    
+    df = pd.DataFrame(data=data, columns=cols, dtype=object)
+    
+    return df
 
 
 def gfd(game_id, frame):
@@ -119,7 +125,7 @@ def get_tracks(game_id):
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
 
     cur = conn.cursor()
-    cur.execute(f'''SELECT MAX(track_id) FROM detections WHERE game_id={game_id}''')
+    cur.execute(f'''SELECT MAX(track_id) FROM detections WHERE game_id={game_id}''') # may need to add a min and max for a range in here
     maxTrack = cur.fetchone()[0]
     cur.close()
 
@@ -131,7 +137,8 @@ def get_tracks(game_id):
     dic = {}
     ctr = 0
 
-    for track_id in range(maxTrack+1):
+    from tqdm import tqdm 
+    for track_id in tqdm(range(maxTrack+1)):
         # create a temporary cursor and execute the get request for the detections of this frame
         # print("Fetching track {} of {}".format(track_id, maxTrack))
         cur_temp = conn.cursor()
@@ -220,17 +227,11 @@ def delete_detection_list(game_id, track_id, arr):
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
 
-    print("4")
-
     st = set(arr)
-    
-    print("5")
 
     # Query/Commit Here
     cur.execute(f'''DELETE FROM detections WHERE game_id={game_id} AND track_id={track_id} AND frame=ANY('{st}')''')
     #cur.execute('''SELECT * FROM detections WHERE game_id=0 AND frame=ANY('{0}')'''.format(st))
-
-    print("6")
 
     conn.commit()
     cur.close()
@@ -245,8 +246,7 @@ def add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials)
     # cur1.execute('''SELECT initials FROM player WHERE player_id={0}'''.format(player_id))
     # initials = cur1.fetchone()[0]
     # cur1.close()
-    
-    # print("A")
+
     # print(initials)
     # initials = str(initials)
 
@@ -256,13 +256,9 @@ def add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials)
     # cur.execute(f'''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id, initials) VALUES ({game_id}, {frame}, {x0}, {y0}, {x1}, {y1}, {track_id}, {player_id}, {initials})''')
     cur.close()
 
-    print("B")
-
     # cur2 = conn.cursor()
     # cur2.execute('''UPDATE detections SET initials = {0} WHERE game_id={1} AND frame={2} AND track_id={3}'''.format(initials, game_id, frame, track_id))
     # cur2.close()
-
-    print("C")
 
     conn.commit()
     
