@@ -105,20 +105,6 @@ def get_detection_data(game_id, start, end):
     return df
 
 
-def gfd(game_id, frame):
-    con = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
-
-    with con:
-        with con.cursor() as curs:
-            curs.execute(f'''SELECT * FROM detections WHERE game_id={game_id} AND frame={frame}''')
-            data = curs.fetchall()
-            
-            cols = []
-            for elt in curs.description:
-                cols.append(elt[0])
-            
-            return pd.DataFrame(data=data, columns=cols)
-
 # ----------------------------------------------------------------------------
 
 def get_tracks(game_id):
