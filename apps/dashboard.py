@@ -32,8 +32,8 @@ from api import api_game
 
 
 
-# filename = "./Videos/game_0.mp4"
-filename = '/home/brendan/projects/sd/SeniorDesign/segmentation/datasets/video.mp4'
+filename = "./Videos/game_1.mp4"
+# filename = '/home/brendan/projects/sd/SeniorDesign/segmentation/datasets/video.mp4'
 vidcap = cv2.VideoCapture(filename)
 
 # OpenCV2 version 2 used "CV_CAP_PROP_FPS"
@@ -111,6 +111,7 @@ def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, show_in
         opacity=0.8
     )
 
+
 def getSections(sections):
     sectionOptions = [
         {'label': 'Section {}'.format(i+1), 'value': i}
@@ -118,11 +119,13 @@ def getSections(sections):
     ]
     return sectionOptions
 
+
 info_storage_DB = html.Div([
     dcc.Store(id='section_DB', storage_type='local', data=0),
     dcc.Store(id='frame_DB', storage_type='local', data=1), 
     dcc.Store(id='video_state_DB', storage_type='session', data=False),
 ])
+
 
 video_card_DB = dbc.Card(
     id="imagebox",
@@ -474,14 +477,13 @@ def manual_annotation(graph_relayout, frame, player_id, game_id):
 
     # ADD BOX ------------------------------------
     elif (new_num_boxes > old_num_boxes): 
-        print("ADD BOX CALLED")
         if (player_id is None):
             return "Need a player_id selected to add a box", None
         elif (old_num_boxes+1 == new_num_boxes): # good condition
             # Need to check here if there is already a track/detection with an assigned player_id in this frame
             err = False
             for index, detection in dic[frame].iterrows():
-                if detection['player_id'] == int(player_id):
+                if int(detection['player_id']) == int(player_id):
                     err = True
                     break
             if not err:
@@ -611,9 +613,6 @@ def display(btn1, btn2, game_id):
 
     global df_players
     ctx = dash.callback_context
-
-    if not game_id: 
-        game_id = 0
 
     if not ctx.triggered:
         button_id = 'No clicks yet'
@@ -1034,8 +1033,6 @@ def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
 
 def draw_tracks(fig, currentFrame, switches_value, game_id):
 
-    print(f"Switches value is:\n{switches_value}")
-
     global dic
     # if not dic:
     #     dic = api_detections.get_frame_detections(game_id)
@@ -1071,7 +1068,6 @@ def draw_tracks(fig, currentFrame, switches_value, game_id):
         for i in range(len(frame_df)):
             player_id = frame_df.iloc[i]['player_id']
             if(player_id == -1):
-                #print(player_id)
                 x0 = frame_df.iloc[i]['x0']
                 y0 = frame_df.iloc[i]['y0']
                 x1 = frame_df.iloc[i]['x1']
@@ -1085,7 +1081,6 @@ def draw_tracks(fig, currentFrame, switches_value, game_id):
         for i in range(len(frame_df)):
             player_id = frame_df.iloc[i]['player_id']
             if(player_id != -1):
-                #print(player_id)
                 x0 = frame_df.iloc[i]['x0']
                 y0 = frame_df.iloc[i]['y0']
                 x1 = frame_df.iloc[i]['x1']
@@ -1322,9 +1317,6 @@ def initialize_section_and_slider(sectionValue, data, game_id):
 # ------------------------------------------------------------------
 # initializer of info
 
-    if not game_id: 
-        game_id = 0
-
     dic = api_detections.get_frame_detections(game_id, minFrame, maxFrame)
     dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
@@ -1339,7 +1331,6 @@ def initialize_section_and_slider(sectionValue, data, game_id):
            dbc.Button(str(b_name), id="but8", outline=True, style={"margin-left": "5px","font-size": "12px"})])
 
 
-    print(minFrame, maxFrame)
     return minFrame, maxFrame, sliderMarks, data, div
 
 
@@ -1358,9 +1349,6 @@ def initial(section_ts, sectiondata, framedata, video_state):
     '''
 
 
-
-
-    print('testing')
     sectiondata = sectiondata or 0
     framedata = framedata or 0
     video_state = False 
