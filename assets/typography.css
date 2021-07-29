@@ -78,6 +78,13 @@ border-color: #00c2cb;
   color:#000e44;
 }
 
+#add_track_output{
+  margin-top: 15px;
+  font-size: 14px;
+  font-style: italic;
+  color:#000e44;
+}
+
 
 /* Slider Colors */
 .rc-slider-track {
@@ -102,22 +109,22 @@ border-color: #00c2cb;
     border-color: #00c2cb;
   }
 
-  #area_dropdown .Select-placeholder{
+  #dropdown_DB .Select-placeholder{
     color: #00c2cb;
     background-color: aliceblue;
     border-color: #00c2cb;
   }
 
-  #area_dropdown .Select-control{
+  #dropdown_DB .Select-control{
     border-color: #00c2cb;
-    border-radius: 1px;
-    border-style: groove;
+    border-radius: 2px;
+    border-style: solid;
   }
 
-  #area_dropdown .Select-menu-outer{
+  #dropdown_DB .Select-menu-outer{
     border-color: #00c2cb;
   }
-  #area_dropdown .VirtualizedSelectFocusedOption {
+  #dropdown_DB .VirtualizedSelectFocusedOption {
     background-color: #00c1cbd3;
     color: aliceblue;
   }
@@ -140,7 +147,7 @@ border-color: #00c2cb;
     float: left;
     box-sizing: border-box; } */
 
-.all_tracks_bt{
+#all_tracks_bt{
    color: #00c2cb;
    border-color: #00c2cb;
    background-color: aliceblue;
@@ -156,7 +163,7 @@ border-color: #00c2cb;
   }
 
 
-.viewable_tracks_bt{
+#viewable_tracks_bt{
     color: #00c2cb;
     border-color: #00c2cb;
     background-color: aliceblue;
@@ -171,7 +178,7 @@ border-color: #00c2cb;
      color: #000e44;
    }
 
-.player_tracks_bt{
+#player_tracks_bt{
     color: #00c2cb;
     border-color: #00c2cb;
     background-color: aliceblue;
@@ -186,7 +193,7 @@ border-color: #00c2cb;
      color: #ffffff;
    }
 
-.but7{
+#but7{
     color: #00c2cb;
     border-color: #00c2cb;
     background-color: aliceblue;
@@ -264,6 +271,8 @@ border-color: #00c2cb;
   background-color: #11256b6e;
  }
 
+
+ /* Buttons in track_card footer */
 #assign_track_bt:hover{
   color: #00c2cb;
   border-color: #00c2cb;
@@ -325,14 +334,30 @@ border-color: #00c2cb;
   background-color: aliceblue;
 }
 
-#annotated_data_card{
+#go_to_add_track:hover{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+
+#go_to_add_track{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+
+
+/* Card Outlines*/
+#track_card{
   border-color: #000e44;
 }
 
-#annotated_data_card2{
+#team_card{
   border-color: #000e44;
 }
 
 #imagebox {
   border-color: #000e44;
 }
+
+
