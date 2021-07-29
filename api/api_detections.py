@@ -10,7 +10,7 @@ def get_detection_data(game_id, start, end):
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot') # ctrl + d
     cur = conn.cursor()
 
-    cur.execute(f'''SELECT * FROM detections WHERE game_id={game_id}''')
+    cur.execute(f'''SELECT * FROM detections WHERE game_id={game_id} AND frame>={start} AND frame<={end}''') # fstrings confirmed to work
     data = cur.fetchall()
 
     cols = []
@@ -26,7 +26,6 @@ def save_track(game_id, detections_df, frame, track_id, player_id):
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     
-    # Query/Commit Here
     for index, det in detections_df.iterrows():
         cur.execute(f'''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id) VALUES ({game_id}, {frame}, {det['x0']}, {det['y0']}, {det['x1']}, {det['y1']}, {track_id}, {player_id})''')
         frame += 1
@@ -41,7 +40,7 @@ def unique_track_id(game_id):
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     
-    cur.execute(f'''SELECT MAX(track_id) FROM detections WHERE game_id={game_id}''')
+    cur.execute(f'''SELECT MAX(track_id) FROM detections WHERE game_id={game_id}''') # fstrings confirmed to work
     data = cur.fetchall()
 
     cur.close()
@@ -55,7 +54,6 @@ def delete_detection(game_id, frame, track_id):
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     
-    # Query/Commit Here
     cur.execute(f'''DELETE FROM detections WHERE game_id={game_id} AND frame={frame} AND track_id={track_id}''')
     
     conn.commit()
@@ -68,7 +66,6 @@ def delete_detection_section(game_id, start_frame, final_frame, track_id):
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     
-    # Query/Commit Here
     cur.execute(f'''DELETE FROM detections WHERE game_id={game_id} AND track_id={track_id} AND frame >= {start_frame} AND frame <= {final_frame}''')
     
     conn.commit()
@@ -94,8 +91,9 @@ def add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials)
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')  
     cur = conn.cursor()
     
-    cur.execute(f'''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id, initials) VALUES ({game_id}, {frame}, {x0}, {y0}, {x1}, {y1}, {track_id}, {player_id}, {initials})''')
-    
+    # fstrings don't work here for some reason # cur.execute(f'''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id, initials) VALUES ({game_id}, {frame}, {x0}, {y0}, {x1}, {y1}, {track_id}, {player_id}, {initials})''')
+    cur.execute('''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id, initials) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)''', (game_id, frame, x0, y0, x1, y1, track_id, player_id, initials))
+
     cur.close()
     conn.commit()
     conn.close()

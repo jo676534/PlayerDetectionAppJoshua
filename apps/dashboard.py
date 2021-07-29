@@ -6,7 +6,6 @@ import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
-import psycopg2 as pg2
 import pandas as pd
 from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
