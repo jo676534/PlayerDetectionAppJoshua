@@ -57,48 +57,23 @@ def get_frame_detections(game_id, start, end):
     
     cur.close()
     conn.close()
-
-    # game_id = 0 
-
-    # dic = {} 
-
-    # with con:
-    #     with con.cursor() as curs:
-    #             sql = f'SELECT * FROM detections WHERE game_id={game_id}'
-    #             curs.execute(sql)
-    #             rows = curs.fetchall()
-    #             rows.sort(key = lambda x: x[1])
-
-    #             cols = []
-    #             for elt in curs.description:
-    #                 cols.append(elt[0])
-
-    #             for i in rows: # i[1] is just frame number
-    #                 # print("Fetching frame data {} of {}".format(i, len(rows)))
-    #                 l = [[i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8]]]
-    #                 if i[1] in dic: 
-    #                     df = dic[i[1]]
-    #                     df2 = pd.DataFrame(data=l, columns=cols)
-    #                     dic[i[1]] = df.append(df2)
-    #                 else: 
-    #                     dic[i[1]] = pd.DataFrame(data=l, columns=cols) # [l]
     
     return dic
 
 
-def gfd(game_id, frame):
-    con = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+def get_detection_data(game_id, start, end):
+    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot') # ctrl + d
+    cur = conn.cursor()
 
-    with con:
-        with con.cursor() as curs:
-            curs.execute(f'''SELECT * FROM detections WHERE game_id={game_id} AND frame={frame}''')
-            data = curs.fetchall()
-            
-            cols = []
-            for elt in curs.description:
-                cols.append(elt[0])
-            
-            return pd.DataFrame(data=data, columns=cols)
+    cur.execute(f'''SELECT * FROM detections WHERE game_id={game_id}''')
+    data = cur.fetchall()
+
+    cols = []
+    for elt in cur.description: cols.append(elt[0])
+    
+    df = pd.DataFrame(data=data, columns=cols, dtype=object)
+    
+    return df
 
 # ----------------------------------------------------------------------------
 
