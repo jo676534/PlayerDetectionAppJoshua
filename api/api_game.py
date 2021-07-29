@@ -1,7 +1,5 @@
 import pandas as pd
-
 import psycopg2 as pg2
-import pandas as pd
 
 def get_unfinished_games():
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
@@ -21,12 +19,9 @@ def get_unfinished_games():
     
     return df
 
+
 def get_team_names(game_id):
-     # Team Names
-    conn = pg2.connect(database='soccer',
-            user='postgres',
-            host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com',  # database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com-------------------!
-            password='rootroot')
+    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     cur.execute(f'''SELECT * FROM game WHERE game_id={game_id}''')
     data = cur.fetchall()
@@ -44,3 +39,24 @@ def get_team_names(game_id):
     b_name = game.iloc[0]["team2_name"]
 
     return a_name, b_name
+
+
+def get_team_ids(game_id):
+    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    cur = conn.cursor()
+    cur.execute(f'''SELECT * FROM game WHERE game_id={game_id}''')
+    data = cur.fetchall()
+
+    cols = []
+    for elt in cur.description:
+        cols.append(elt[0])
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    game = pd.DataFrame(data=data, columns=cols)
+    a_id = game.iloc[0]["team1_id"]
+    b_id = game.iloc[0]["team2_id"]
+
+    return a_id, b_id

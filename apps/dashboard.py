@@ -40,6 +40,8 @@ track_state = 0
 df_teams = None
 df_players = None
 df_detections = None
+team_a_id = None
+team_b_id = None
 
 # Functions start here ====================================================================================================================
 
@@ -566,10 +568,6 @@ def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, stor
         return ("{}".format(storage1), start_frame, final_frame, player_id)
 
 
-# simple callback that will only be called on page startup/refresh to create the necessary data structures
-
-
-
 # Call back that toggles between Team A and Team B
 @app.callback(Output('container', 'children'),
               Input("but7", 'n_clicks'),
@@ -577,6 +575,8 @@ def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, stor
               State("game_id", "data"))
 def display(btn1, btn2, game_id):
     global df_players
+    global team_a_id
+    global team_b_id
     ctx = dash.callback_context
 
     if not ctx.triggered:
@@ -592,11 +592,11 @@ def display(btn1, btn2, game_id):
     if button_id == "but8":
         section = "B"
 
-    # THIS IS HARD CODED AND NEEDS TO INSTEAD USE EACH TEAMS TEAM ID //////////////////////////////////////////////////////////////////////////////////////////////////
+    if not team_a_id or not team_b_id: team_a_id, team_b_id = api_game.get_team_ids(game_id)
     # Players in team A
-    a_row = df_players[df_players["team_id"] == 0] # HERE
+    a_row = df_players[df_players["team_id"] == team_a_id] # HERE
     # Players in team B
-    b_row = df_players[df_players["team_id"] == 1] # HERE
+    b_row = df_players[df_players["team_id"] == team_b_id] # HERE
     
     # Dash component for team A
     sectionA = html.Div([
@@ -607,7 +607,6 @@ def display(btn1, btn2, game_id):
         dbc.Col([dbc.RadioItems(
         options=[
             {'label': "("+ str(a_row.iloc[i]["jersey"]) + ") "+ str(a_row.iloc[i]["name"]), 'value': str(a_row.iloc[i]["player_id"])} for i in range(0, len(a_row))],
-        #value=str(a_row.iloc[1]["player_id"]), 
         id = "radio_players_A",
         className= "radio_items",
     
@@ -630,8 +629,7 @@ def display(btn1, btn2, game_id):
                 align = 'center',),
         dbc.Col([dbc.RadioItems(
         options=[
-            {'label': "("+ str(b_row.iloc[i]["jersey"]) + ") "+str(b_row.iloc[i]["name"]), 'value': str(b_row.iloc[i]["player_id"])} for i in range(0, len(b_row))],
-        #value=str(b_row.iloc[1]["name"]),  
+            {'label': "("+ str(b_row.iloc[i]["jersey"]) + ") "+str(b_row.iloc[i]["name"]), 'value': str(b_row.iloc[i]["player_id"])} for i in range(0, len(b_row))], 
         id = "radio_players_A",
         className= "radio_items",
         )],
@@ -655,8 +653,7 @@ def display(btn1, btn2, game_id):
         return sectionA
 
 
-# Callback that toggles between track buttons:
-# all tracks, viewable tracks, player tracks
+# Callback that toggles between track buttons: all tracks, viewable tracks, player tracks
 @app.callback(Output('track_container', 'children'),
               Input("all_tracks_bt", 'n_clicks'),
               Input("viewable_tracks_bt", 'n_clicks'),
@@ -837,8 +834,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, player_id, hidden_div_j2, switche
             sql = f'''SELECT * FROM df_switches WHERE game_id={game_id} AND player_id={player_id}'''
             df_player_detections = ps.sqldf(sql)
             player_tracks = df_player_detections.track_id.unique()
-            player_tracks = sorted(df_player_detections)
-
+            player_tracks = sorted(player_tracks)
             if len(df_player_detections) < 1:
                 return html.Div([
                          html.Div(children=[
@@ -876,8 +872,6 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, player_id, hidden_div_j2, switche
                                     dbc.Col([dbc.RadioItems(
                                         options=[
                                             {'label': 'Track ID: ' + str(player_tracks[i]), 'value': str(player_tracks[i])} for i in range(len(player_tracks))],
-                                        # labelStyle = {'textAlign':'center'},
-                                        #value=str(viewable_row.iloc[frame]['track_id']), 
                                         id = "radio_all_tracks",)],
                                         className= "radio_items",
                                     align = 'center',
@@ -891,14 +885,15 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, player_id, hidden_div_j2, switche
         return "Select Tracks"
 
 
+# Current frame number callback
 @app.callback(
     Output('frame_display_DB', 'children'),
-    Input('frame_DB', 'data')
-    )
+    Input('frame_DB', 'data'))
 def update_output(value):
     return (f'  Current Frame Number: {value}')
 
 
+# assign track callback
 @app.callback(
     Output('hidden-div', 'children'),
     Output("assign_track_output", "children"),
@@ -1033,6 +1028,7 @@ def get_frame(current_frame):
     return image 
 
 
+# main update player callback
 @app.callback(
     Output('canvas_DB', 'figure'),
 
@@ -1067,26 +1063,25 @@ def update_player(switches_value, hiddenj0, hiddenj3, current_frame, section, fr
 
     return fig, None
 
-
+# player state callback
 @app.callback(
     Output('video_state_DB', 'data'),
     Output('playpause_DB', 'children'),
     Output('interval_DB', 'disabled'),
     Input('playpause_DB', 'n_clicks'),
     State('video_state_DB', 'data'),
-    State('interval_DB', 'disabled'),
-)
+    State('interval_DB', 'disabled'),)
 def player_state(play_button, video_state, interval_state):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     string = 'Pause' if interval_state else 'Play'
     text = html.Img(src = f'https://github.com/dianabisbe/Images/blob/main/{string}.png?raw=true',
                               style={'height':'30px'})
-    
 
     video_state = not video_state 
     interval_state = not interval_state
     return video_state, text, interval_state
 
+# frame update based on what button was pressed
 @app.callback(
     Output('frame_DB', 'data'),
     Output('slider_DB', 'value'),
@@ -1105,8 +1100,7 @@ def player_state(play_button, video_state, interval_state):
     State('slider_DB', 'max'),
     State('frame_DB', 'data'),
     State('radio_all_tracks', 'value'),
-    State('frame_DB', 'modified_timestamp'),
-)
+    State('frame_DB', 'modified_timestamp'),)
 def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider, section, gts, gte, slider_min, slider_max, data, track_id, ts):
     global df_detections
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
@@ -1214,12 +1208,13 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
     Output('team_buttons', 'children'),
     Input('dropdown_DB', 'value'),
     State('section_DB', 'data'),
-    State('game_id', 'data')
-)
+    State('game_id', 'data'),)
 def initialize_section_and_slider(sectionValue, data, game_id):
     global df_detections
     global df_teams
     global df_players
+    global team_a_id
+    global team_b_id
 
     minFrame = (sectionValue * framesPerSection) + 1
     if (sectionValue+1) != sections:
@@ -1241,10 +1236,13 @@ def initialize_section_and_slider(sectionValue, data, game_id):
     df_detections = api_detections.get_detection_data(game_id, minFrame, maxFrame)
     df_teams = api_team.get_teams(game_id)
     df_players = api_player.get_players_roster(game_id)
+    team_a_id, team_b_id = api_game.get_team_ids(game_id)
 
     a_name, b_name = api_game.get_team_names(game_id)
-    div = html.Div( children = [dbc.Button(str(a_name), id="but7", outline=True, style={ "font-size": "12px"}),
-           dbc.Button(str(b_name), id="but8", outline=True, style={"margin-left": "5px","font-size": "12px"})])
+    div = html.Div(children=[
+            dbc.Button(str(a_name), id="but7", outline=True, style={"font-size": "12px"}),
+            dbc.Button(str(b_name), id="but8", outline=True, style={"margin-left": "5px","font-size": "12px"})
+        ])
 
     return minFrame, maxFrame, sliderMarks, data, div
 

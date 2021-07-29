@@ -1,8 +1,5 @@
 import pandas as pd
 import psycopg2 as pg2
-import pandas as pd
-
-
 
 # GET FUNCTIONS
 def get_players(game_id): # will need significant rework to find the players for each specific specific team
