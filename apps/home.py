@@ -1,4 +1,3 @@
-
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
@@ -9,17 +8,6 @@ from app import app
 from api import api_game
 
 df_game = api_game.get_unfinished_games()
-
-
-# need to find a way to dynamically create this
-dropdown = dbc.DropdownMenu(
-    label="game_selection",
-    children=[
-        dbc.DropdownMenuItem("Game 0"),
-        dbc.DropdownMenuItem("Game 1"),
-        dbc.DropdownMenuItem("Game 2"),
-    ],
-)
 
 
 game_card = dbc.Card(

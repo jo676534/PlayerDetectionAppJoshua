@@ -1148,25 +1148,6 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
     else: data = slider; return slider, slider
 
 
-# # initializes the states 
-# @app.callback(Output('dropdown_DB', 'value'),
-#                 Input('section_DB', 'modified_timestamp'),
-#                 State('section_DB', 'data'),
-#                 State('frame_DB', 'data'),
-#                 State('video_state_DB', 'data'),)
-# def initial(section_ts, sectiondata, framedata, video_state):
-#     # if section_ts is None:
-#         # raise PreventUpdate
-
-#     '''
-#     do a prevent update 
-#     '''
-
-#     sectiondata = sectiondata or 0
-#     framedata = framedata or 0
-#     video_state = False 
-#     return sectiondata
-
 
 # want to turn this callback into an actual initalizer for normal data
 @app.callback(
@@ -1176,18 +1157,41 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
     Output('section_DB', 'data'), # dropdown (storage)
     Output('dropdown_DB', 'value'), # dropdown (actual)
     Input('dropdown_DB', 'value'),
+    Input("previousSec", "n_clicks"),
+    Input("nextSec", "n_clicks"),
     State('section_DB', 'data'),
     State('game_id', 'data'),)
-def initialize_section_and_slider(dropdown_value, stored_section_value, game_id):
-    global df_detections
-    global df_teams
-    global df_players
-    global team_a_id
-    global team_b_id
+def initialize_section_and_slider(dropdown_value, prev, next, stored_section_value, game_id):
+    global sections
 
-    minFrame = (stored_section_value * framesPerSection) + 1
-    if (stored_section_value+1) != sections:
-        maxFrame = (stored_section_value+1) * framesPerSection
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+
+    # here check if dropdown was updated 
+    section = None
+    if dropdown_value is not None: # this will happen on whenever the dropdown is used 
+        section = dropdown_value
+    else: # this will happen on initialization
+        section = stored_section_value
+
+    # case where we are clicking next section
+    if cbcontext == "nextSec.n_clicks":
+        # case where we are already at the max section (don't go forward)
+        if section+1 == sections:
+            raise PreventUpdate
+        else:
+            section = section+1
+
+    # case where we are clicking prev section
+    if cbcontext == "previousSec.n_clicks":
+        # case where we are already at the min section (don't go backwards)
+        if section == 0:
+            raise PreventUpdate
+        else:
+            section = section-1
+
+    minFrame = (section * framesPerSection) + 1
+    if (section+1) != sections:
+        maxFrame = (section+1) * framesPerSection
     else:
         maxFrame = (frame_count % framesPerSection) + (minFrame-1)
 
@@ -1199,7 +1203,7 @@ def initialize_section_and_slider(dropdown_value, stored_section_value, game_id)
     for i in marks:
         sliderMarks[f'{i}'] = f'{i}'
 
-    return minFrame, maxFrame, sliderMarks, stored_section_value, stored_section_value
+    return minFrame, maxFrame, sliderMarks, section, section
 
 
 # initializer callback
