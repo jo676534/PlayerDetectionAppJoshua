@@ -730,6 +730,9 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, player_id, hidden_div_j2, switche
 
     # DEFAULT (ALL TRACKS) --------------------------------------------------------------------
     if not ctx.triggered:
+        all_tracks = df_detections.track_id.unique()
+        all_tracks = sorted(all_tracks)
+
         button_id = 'No clicks yet'
         return  html.Div([
                 html.Div(children=[
