@@ -51,12 +51,13 @@ info_storage = html.Div([
     dcc.Store(id='player_id_add', storage_type='session'),
 ])
 
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    navbar,
-    html.Div(id='page-content', children=[]),
-    info_storage,
-])
+app.layout = html.Div(
+    children = [
+        dcc.Location(id='url', refresh=False),
+        navbar,
+        html.Div(id='page-content', children=[], style= {'height':'100%'}),
+        info_storage,
+    ])
 
 
 @app.callback(Output('page-content', 'children'),
