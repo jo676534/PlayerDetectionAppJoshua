@@ -431,8 +431,9 @@ def update_frame(previous_add, next_add, ff10, ff50, rw10, rw50, interval, slide
     Input('final_frame_add', 'data'),
     Input('player_id_add', 'data'),
     State('frame_add', 'data'),
-    State('video_state_add', 'data'),)
-def initial(startNum, endNum, player_id, framedata, video_state):
+    State('video_state_add', 'data'),
+    State("game_id", "data"),)
+def initial(startNum, endNum, player_id, framedata, video_state, game_id):
     global start
     global end
     global dic
@@ -453,7 +454,7 @@ def initial(startNum, endNum, player_id, framedata, video_state):
     for i in marks:
         sliderMarks[f'{i}'] = f'{i}'
 
-    dic = api_detections.get_partial_frame_detections(0, startNum, endNum)
+    dic = api_detections.get_partial_frame_detections(game_id, startNum, endNum)
     initials = api_detections.get_player_initials(player_id)
 
     return start, end, sliderMarks
@@ -485,8 +486,7 @@ def set_start_add(n_clicks, frame):
 @app.callback(
     Output("which_player", "children"),
     Input('player_id_add', 'data'),
-    Input("game_id", "data"),
-    )
+    Input("game_id", "data"),)
 def which_player(player_id, game_id):
     df = api_player.get_player(game_id, player_id)
     name = df.iloc[0]["name"]
@@ -497,8 +497,7 @@ def which_player(player_id, game_id):
 # Current frame display callback
 @app.callback(
     Output('frame_display_add', 'children'),
-    Input('frame_add', 'data')
-    )
+    Input('frame_add', 'data'),)
 def update_output(value):
     return (f'  Current Frame Number: {value}')
 
@@ -515,8 +514,9 @@ def update_output(value):
     State("final_frame_add", "data"), # ff
     State('player_id_add', 'data'),
     State('frame_add', 'data'),
+    State("game_id", "data"),
     prevent_initial_call=True)
-def save_detection(save_clicks, reset_clicks, start_input, final_input, start_frame, final_frame, player_id, current_frame):
+def save_detection(save_clicks, reset_clicks, start_input, final_input, start_frame, final_frame, player_id, current_frame, game_id):
     # STATES TO PRECEED CHECKING THE INPUT
     global state
     global detections_df
@@ -544,20 +544,20 @@ def save_detection(save_clicks, reset_clicks, start_input, final_input, start_fr
         state = 2
         # need to check for player track overlap
         # save the detection track first (but not assigned the player quite yet)
-        track_id = api_detections.unique_track_id(0)
-        api_detections.save_track(0, detections_df, start_frame, track_id, -1)
+        track_id = api_detections.unique_track_id(game_id)
+        api_detections.save_track(game_id, detections_df, start_frame, track_id, -1) # Do NOT change -1. It NEEDS to be -1 for this
 
         # then get the three arrays for the intersection of the track and player
-        player_frames = api_detections.get_player_frames(0, player_id)
-        track_frames = api_detections.get_track_frames(0, track_id)
+        player_frames = api_detections.get_player_frames(game_id, player_id)
+        track_frames = api_detections.get_track_frames(game_id, track_id)
         intersection = [val for val in track_frames if val in player_frames]
 
         # now delete the detections of the track where there is intersection
         if intersection:
-            api_detections.delete_detection_list(0, track_id, intersection)
+            api_detections.delete_detection_list(game_id, track_id, intersection)
 
         # finally change the player_id to the proper player_id
-        api_detections.assign_track(0, player_id, track_id)
+        api_detections.assign_track(game_id, player_id, track_id)
         
         return "Track saved. Now click quit to return.", None
     # Bad State: user input one but not the other
@@ -576,18 +576,18 @@ def save_detection(save_clicks, reset_clicks, start_input, final_input, start_fr
         detections_df = detections_df[start_input-start_frame:final_input-final_frame+1] 
         # new form of overlap detection
         # save the detection track first (but not assigned the player quite yet)
-        track_id = api_detections.unique_track_id(0)
-        api_detections.save_track(0, detections_df, start_frame, track_id, -1)
+        track_id = api_detections.unique_track_id(game_id)
+        api_detections.save_track(game_id, detections_df, start_frame, track_id, -1)
 
         # then get the three arrays for the intersection of the track and player
-        player_frames = api_detections.get_player_frames(0, player_id)
-        track_frames = api_detections.get_track_frames(0, track_id)
+        player_frames = api_detections.get_player_frames(game_id, player_id)
+        track_frames = api_detections.get_track_frames(game_id, track_id)
         intersection = [val for val in track_frames if val in player_frames]
 
         # now delete the detections of the track where there is intersection
-        api_detections.delete_detection_list(0, track_id, intersection)
+        api_detections.delete_detection_list(game_id, track_id, intersection)
 
         # finally change the player_id to the proper player_id
-        api_detections.assign_track(0, player_id, track_id)
+        api_detections.assign_track(game_id, player_id, track_id)
         
         return "Track saved. Now click quit to return.", None

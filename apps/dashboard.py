@@ -12,6 +12,7 @@ from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
 import math
 # import boto3
+import pandasql as ps
 
 from app import app
 from api import api_detections
@@ -40,12 +41,13 @@ player_tracks_counter = 0
 all_tracks_counter = 0
 viewable_tracks_counter = 0
 track_state = 0
-dic = None # api_detections.get_frame_detections(0)
+dic_frames = None # api_detections.get_frame_detections(0)
 dic_tracks, unique_tracks = None, None # api_detections.get_tracks(0)
 # fetch the teams ------------------
 df_teams = None # api_team.get_teams(0)
 # fetch the players ----------------
 df_players = None # api_player.get_players(0)
+df_detections = None
 
 
 def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, show_initials, name=None, color=None, opacity=1, group=None, text=None):
@@ -100,6 +102,7 @@ def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, show_in
         opacity=0.8
     )
 
+
 def getSections(sections):
     sectionOptions = [
         {'label': 'Section {}'.format(i+1), 'value': i}
@@ -107,11 +110,13 @@ def getSections(sections):
     ]
     return sectionOptions
 
+
 info_storage_DB = html.Div([
     dcc.Store(id='section_DB', storage_type='local', data=0),
     dcc.Store(id='frame_DB', storage_type='local', data=1), 
     dcc.Store(id='video_state_DB', storage_type='session', data=False),
 ])
+
 
 video_card_DB = dbc.Card(
     id="imagebox",
@@ -401,21 +406,25 @@ layout = html.Div(  # was app.layout
     State("game_id", "data"),
     prevent_initial_call=True)
 def manual_annotation(graph_relayout, frame, player_id, game_id):
-    global dic
+    global dic_frames
+    global df_detections
     global dic_tracks
     global unique_tracks
 
     if (not 'shapes' in graph_relayout):
         return "Please do not resize boxes, that is not supported", None
     
-    old_num_boxes = len(dic[frame])
+    sql = f'''SELECT * FROM df_detections WHERE game_id={game_id} AND frame={frame}'''
+    df_frame = ps.sqldf(sql)
+
+    old_num_boxes = len(df_frame)
     new_num_boxes = len(graph_relayout['shapes'])
 
     track_id = 0
 
     # DELETE BOX ---------------------------------
     if (new_num_boxes < old_num_boxes): 
-        df = dic[frame]
+        df = df_frame
 
         i = 0
         skip = 0
@@ -449,28 +458,29 @@ def manual_annotation(graph_relayout, frame, player_id, game_id):
         
         # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
         # we do this rather than making an api call because it will likely be faster and cost less
-        df = df.reset_index() # needed because the add box indexing can overlap, causing multiple entries to be deleted
-        df = df.drop('index', 1) # this creates a new index column with the old index values that we don't want so we discard it
-        df = df.drop(df[df['track_id'] == int(track_id)].index) # then we search for indexes with the proper track_id and drop them
-        dic[frame] = df # now we update the dictionary with the new, modified dataframe
+        # df = df.reset_index() # needed because the add box indexing can overlap, causing multiple entries to be deleted
+        # df = df.drop('index', 1) # this creates a new index column with the old index values that we don't want so we discard it
+        # df = df.drop(df[df['track_id'] == int(track_id)].index) # then we search for indexes with the proper track_id and drop them
+        # dic_frames[frame] = df # now we update the dictionary with the new, modified dataframe
 
         # works, just commented out for now
         api_detections.delete_detection(game_id, frame, track_id)
 
-        dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
+        # df_detections = api_detections.get_detection_data() # needs work ----------------================================--------------------=========================
+        # not completely useless like add box, but relatively so
+        # dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
         
         return "Detection box deleted from frame {} and track {}".format(frame, track_id), None
 
     # ADD BOX ------------------------------------
     elif (new_num_boxes > old_num_boxes): 
-        print("ADD BOX CALLED")
         if (player_id is None):
             return "Need a player_id selected to add a box", None
         elif (old_num_boxes+1 == new_num_boxes): # good condition
             # Need to check here if there is already a track/detection with an assigned player_id in this frame
             err = False
-            for index, detection in dic[frame].iterrows():
-                if detection['player_id'] == int(player_id):
+            for index, detection in df_frame.iterrows():
+                if int(detection['player_id']) == int(player_id):
                     err = True
                     break
             if not err:
@@ -485,17 +495,19 @@ def manual_annotation(graph_relayout, frame, player_id, game_id):
                 if y0 > y1: y0, y1 = y1, y0
 
                 track_id = -2 - int(player_id) # the smallest player_id is 0 and every player has a unique id, therefore manual track annotation ids can be consistently assigned through this simple formula
-
-                # manual update of dic for efficiency
                 initials = api_detections.get_player_initials(player_id)
-                df_temp = pd.DataFrame([[game_id, frame, x0, y0, x1, y1, track_id, player_id, initials]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id', 'initials'])
-                dic[frame] = dic[frame].append(df_temp)
+
+                # manual update of dic_frames for efficiency
+                # df_temp = pd.DataFrame([[game_id, frame, x0, y0, x1, y1, track_id, player_id, initials]], columns=['game_id', 'frame', 'x0', 'y0', 'x1', 'y1', 'track_id', 'player_id', 'initials'])
+                # dic_frames[frame] = dic_frames[frame].append(df_temp)
 
                 # works, just commented out for now
                 api_detections.add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials)
 
                 # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-                dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
+                # df_detections = api_detections.get_detection_data() # needs work ----------------================================--------------------=========================
+                # not completely useless like add box, but relatively so
+                # dic_tracks, unique_tracks = api_detections.get_tracks(game_id) # Completely uncessary
                 
                 return "Box successfully added (not db linked) [norm]", None
             else:
@@ -552,9 +564,10 @@ def set_final_frame(n_clicks, frame):
     State('slider_DB', 'max'),
     prevent_initial_call=True)
 def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, storage1, storage2, player_id, track_id, game_id, slider_min, slider_max):
-    global dic
+    global dic_frames
     global dic_tracks
     global unique_tracks
+    global df_detections
 
     # universal checks
     if add_clicks is None and delete_clicks is None: # if this callback was accidently called or initialized
@@ -573,8 +586,10 @@ def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, stor
         api_detections.delete_detection_section(game_id, start_frame, final_frame, track_id) # don't check and just purge the section even if there isn't anything there or only partially there within the single api call (simpler and doesn't matter much)
         
         # UPDATE LOCATION //////////////////////////////////////////////////////////////////////////////////////////////////
-        dic = api_detections.get_frame_detections(game_id, slider_min, slider_max)
-        dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
+        # dic_frames = api_detections.get_frame_detections(game_id, slider_min, slider_max)
+        df_detections = api_detections.get_detection_data(game_id, slider_min, slider_max)
+
+        # dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
         return ("Deleted selected dections from the track.", start_frame, final_frame, player_id)
     # Add Track
@@ -600,9 +615,6 @@ def display(btn1, btn2, game_id):
 
     global df_players
     ctx = dash.callback_context
-
-    if not game_id: 
-        game_id = 0
 
     if not ctx.triggered:
         button_id = 'No clicks yet'
@@ -691,21 +703,25 @@ def display(btn1, btn2, game_id):
               Input('hidden_div_j1', 'children'),
               Input("radio_players_A", 'value'),
               Input('hidden_div_j2', 'children'),
+              Input('switches-input', 'value'),
               State("frame_DB", 'data'),
               State("game_id", "data"),)
-def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game_id):
+def display_2(btn1, btn2, btn3, hidden_div_j1, player_id, hidden_div_j2, switches_value, frame, game_id):
     ctx = dash.callback_context
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     unassinged_is_checked = False
     assigned_is_checked = False
+
     global dic_tracks
     global unique_tracks
     global track_state # 0 is no state, 1 is all, 2 is view, 3 is player
+    global df_detections
 
-    if not dic_tracks:
-        dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
-
+    # DEFAULT (ALL TRACKS) --------------------------------------------------------------------
     if not ctx.triggered:
+        all_tracks = df_detections.track_id.unique()
+        all_tracks = sorted(all_tracks)
+
         button_id = 'No clicks yet'
         return  html.Div([
                 html.Div(children=[
@@ -718,8 +734,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                         align = 'center',),            
                 dbc.Col([dbc.RadioItems(
                 options=[
-                    {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
-                #value=str(list(dic_tracks.keys())[1]), 
+                    {'label': 'Track ID: ' + str(all_tracks[i]), 'value': str(all_tracks[i])} for i in range(0, len(all_tracks))],
                 id = "radio_all_tracks",
                 className= "radio_items",
                 )],
@@ -734,18 +749,18 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
             ])
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    #str(dic_tracks[i]['track_id'][0]
 
+    # Code for the dynamic updating
     # This first part uses the most recent track_state to determine which radio list should display when it needs to be refreshed
-    # hidden_div_j1 == video display callback
-    # radio_players_A == player buttons
-    # hidden_div_j2 == delete button
-    if cbcontext == 'hidden_div_j1.children' or cbcontext == 'radio_players_A.value' or cbcontext == 'hidden_div_j2.children':
-        if (track_state == 0 or track_state == 1) and (cbcontext == 'hidden_div_j2.children'):
+        # hidden_div_j1 == video display callback
+        # radio_players_A == player buttons
+        # hidden_div_j2 == delete button
+    if cbcontext == 'hidden_div_j1.children' or cbcontext == 'radio_players_A.value' or cbcontext == 'hidden_div_j2.children' or cbcontext == 'switches-input.value':
+        if (track_state == 0 or track_state == 1) and (cbcontext == 'hidden_div_j2.children' or cbcontext == 'switches-input.value'):
             button_id = "all_tracks_bt"
-        elif (track_state == 2) and (cbcontext == 'hidden_div_j1.children' or cbcontext == 'hidden_div_j2.children'):
+        elif (track_state == 2) and (cbcontext == 'hidden_div_j1.children' or cbcontext == 'hidden_div_j2.children' or cbcontext == 'switches-input.value'):
             button_id = "viewable_tracks_bt"
-        elif (track_state == 3) and (cbcontext == 'radio_players_A.value' or cbcontext == 'hidden_div_j2.children'):
+        elif (track_state == 3) and (cbcontext == 'radio_players_A.value' or cbcontext == 'hidden_div_j2.children' or cbcontext == 'switches-input.value'):
             button_id = "player_tracks_bt"
         else:
             raise PreventUpdate
@@ -757,29 +772,29 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
     elif cbcontext == 'player_tracks_bt.n_clicks':
         track_state = 3
 
-    # if cbcontext == 'switches_input.n_clicks':
-    #     print("First if")
-    #     if track_state == 2: 
-    #         print("Second if")
-    #         if (len(switches_value)==2):
-    #             unassinged_is_checked = True
-    #             assigned_is_checked = True
+    # Code to check the switches
+    if 1 in switches_value: assigned_is_checked = True
+    if 2 in switches_value: unassinged_is_checked = True
+    # now set up df to use in the start of all tracks, viewable tracks, and player tracks
+    df_switches = None
+    if not assigned_is_checked and not unassinged_is_checked: # show no tracks
+        sql = f'''SELECT * FROM df_detections WHERE player_id = -1 and player_id = 0''' # intentionally returns nothing
+        df_switches = ps.sqldf(sql)
+    elif not assigned_is_checked and unassinged_is_checked: # show just unassigned
+        sql = f'''SELECT * FROM df_detections WHERE player_id = -1'''
+        df_switches = ps.sqldf(sql)
+    elif assigned_is_checked and not unassinged_is_checked: # show just assigned
+        sql = f'''SELECT * FROM df_detections WHERE player_id != -1'''
+        df_switches = ps.sqldf(sql)
+    else:                                                   # show all tracks
+        df_switches = df_detections
 
-    #         if (len(switches_value)==1):
-    #             if (switches_value[0]==1):
-    #                 unassinged_is_checked = False
-    #                 assigned_is_checked = True
-    #             if (switches_value[0]==2):
-    #                 unassinged_is_checked = True
-    #                 assigned_is_checked = False 
-            
-    #         if (len(switches_value)==0):
-    #             unassinged_is_checked = False
-    #             assigned_is_checked = False
-
-    #         button_id = "viewable_tracks_bt"
-
+    # ALL TRACKS --------------------------------------------------------------------
     if button_id == "all_tracks_bt":
+        # may want to remove the negative track ids
+        #all_tracks = df_detections.track_id.unique()
+        all_tracks = df_switches.track_id.unique()
+        all_tracks = sorted(all_tracks)
         return  html.Div([
                 html.Div(children=[
                 dbc.Col([
@@ -791,8 +806,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                         align = 'center',),            
                 dbc.Col([dbc.RadioItems(
                 options=[
-                    {'label': 'Track ID: ' + str(dic_tracks[i]['track_id'][0]), 'value': str(dic_tracks[i]['track_id'][0])} for i in range(0, unique_tracks)],
-                #value=str(list(dic_tracks.keys())[1]), 
+                    {'label': 'Track ID: ' + str(all_tracks[i]), 'value': str(all_tracks[i])} for i in range(0, len(all_tracks))],
                 id = "radio_all_tracks",
                 className= "radio_items",
                 )],
@@ -806,10 +820,15 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                 )
             ])
 
+    # VIEWABLE TRACKS --------------------------------------------------------------------
     if button_id == "viewable_tracks_bt":
-        df_detections = api_detections.get_game_detections(game_id)
-        viewable_row = df_detections[df_detections["frame"] == frame]
-        viewable_row = viewable_row.sort_values(by=['track_id'])
+        # sql = f'''SELECT * FROM df_detections WHERE game_id={game_id} AND frame={frame}'''
+        sql = f'''SELECT * FROM df_switches WHERE game_id={game_id} AND frame={frame}'''
+        df_viewable = ps.sqldf(sql)
+
+        viewable_tracks = df_viewable.track_id.unique()
+        viewable_tracks = sorted(viewable_tracks)
+
         return html.Div([
                         html.Div(children=[
                            dbc.Col([
@@ -821,10 +840,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                         align = 'center',), 
                             dbc.Col([dbc.RadioItems(
                                 options=[
-                                    {'label': 'Track ID: ' + str(viewable_row.iloc[i]['track_id']), 
-                                    'value': str(viewable_row.iloc[i]['track_id'])} for i in range(0, len(viewable_row))],
-                                # labelStyle = {'textAlign':'center'},
-                                #value=str(viewable_row.iloc[frame]['track_id']), 
+                                    {'label': 'Track ID: ' + str(viewable_tracks[i]), 'value': str(viewable_tracks[i])} for i in range(0, len(viewable_tracks))],
                                 id = "radio_all_tracks",)],
                                 className= "radio_items",
                             align = 'center',
@@ -835,9 +851,9 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                         ],)
                 ])
 
+    # PLAYER TRACKS --------------------------------------------------------------------
     if button_id == "player_tracks_bt":
-
-        if value is None:
+        if player_id is None:
             return html.Div([
                          html.Div(children=[
                             dbc.Col([
@@ -850,7 +866,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                             dbc.Col([dbc.RadioItems(
                                 options=[
                                 {'label': "Select a Player", 
-                                'value': str(dic_tracks[1]['track_id'][0])}],
+                                'value': str(0)}],
 
                             id = "radio_all_tracks",)],
                             className= "radio_items",
@@ -861,22 +877,15 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                                     'padding': '10px 10px 10px 20px'}), 
                                 ],)
                         ])
-        
         else:
-            trackList =[]
-            conn = pg2.connect(database='soccer', user='postgres', host='localhost', password='root')
-            cur = conn.cursor()
-            cur.execute('''SELECT * FROM detections WHERE player_id = %s''' % value)
-            data = cur.fetchall()
-            
-            cols = []
-            for elt in cur.description:
-                cols.append(elt[0])
-            conn.commit()
-            cur.close()
-            conn.close()
+            # sql = f'''SELECT * FROM df_detections WHERE game_id={game_id} AND player_id={player_id}'''
+            sql = f'''SELECT * FROM df_switches WHERE game_id={game_id} AND player_id={player_id}'''
+            df_player_detections = ps.sqldf(sql)
 
-            if len(data) < 1:
+            player_tracks = df_player_detections.track_id.unique()
+            player_tracks = sorted(df_player_detections)
+
+            if len(df_player_detections) < 1:
 
                 return html.Div([
                          html.Div(children=[
@@ -890,7 +899,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                             dbc.Col([dbc.RadioItems(
                                 options=[
                                 {'label': "No Assigned Tracks", 
-                                'value': str(dic_tracks[1]['track_id'][0])}],
+                                'value': str(0)}],
 
                             id = "radio_all_tracks",)],
                             className= "radio_items",
@@ -902,16 +911,6 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                                 ],)
                         ])
             else:
-                
-                data1 = pd.DataFrame(data=data, columns=cols)
-                unique_track_ids_temp = data1.iloc[0]['track_id']
-                trackList.append(data1.iloc[0]['track_id'])
-                for i in range(len(data1)):
-                    if unique_track_ids_temp != data1.iloc[i]['track_id']:
-                        unique_track_ids_temp = data1.iloc[i]['track_id']
-                        trackList.append(unique_track_ids_temp)    
-
-                trackList = sorted(set(trackList))
                 return html.Div([
                                 html.Div(children=[
                                     dbc.Col([
@@ -923,8 +922,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, value, hidden_div_j2, frame, game
                                         align = 'center',), 
                                     dbc.Col([dbc.RadioItems(
                                         options=[
-                                            {'label': 'Track ID: ' + str(trackList[i]), 
-                                            'value': str(trackList[i])} for i in range( len(trackList))],
+                                            {'label': 'Track ID: ' + str(player_tracks[i]), 'value': str(player_tracks[i])} for i in range(len(player_tracks))],
                                         # labelStyle = {'textAlign':'center'},
                                         #value=str(viewable_row.iloc[frame]['track_id']), 
                                         id = "radio_all_tracks",)],
@@ -962,7 +960,8 @@ def update_player_tracks(assignBt, track_id, player_id, game_id, slider_min, sli
     if assignBt:
         global dic_tracks
         global unique_tracks
-        global dic
+        global dic_frames
+        global df_detections
 
         cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
         
@@ -976,8 +975,9 @@ def update_player_tracks(assignBt, track_id, player_id, game_id, slider_min, sli
             api_detections.assign_track(game_id, player_id, track_id)
         
         # UPDATE LOCATION (Works) ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-        dic = api_detections.get_frame_detections(game_id, slider_min, slider_max)
-        dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
+        # dic_frames = api_detections.get_frame_detections(game_id, slider_min, slider_max)
+        df_detections = api_detections.get_detection_data(game_id, slider_min, slider_max)
+        # dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
         return None, "Track successfully assigned."
     else:
@@ -999,7 +999,8 @@ def update_player_tracks(assignBt, track_id, player_id, game_id, slider_min, sli
 def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
     global dic_tracks
     global unique_tracks
-    global dic
+    global dic_frames
+    global df_detections
 
     if not delete_bt:
         return (None, None, None, None)
@@ -1012,24 +1013,21 @@ def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
         api_detections.delete_track(game_id, track_id)
 
     # UPDATE LOCATION ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-    dic = api_detections.get_frame_detections(game_id, slider_min, slider_max)
-    dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
+    # dic_frames = api_detections.get_frame_detections(game_id, slider_min, slider_max)
+    df_detections = api_detections.get_detection_data(game_id, slider_min, slider_max)
+    # dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
     return (None, None, None, "Track successfully deleted.")
 
 
-
-
-
 def draw_tracks(fig, currentFrame, switches_value, game_id):
 
-    print(f"Switches value is:\n{switches_value}")
+    global dic_frames
+    global df_detections
+    
+    sql = f'''SELECT * FROM df_detections WHERE game_id={game_id} AND frame={currentFrame}'''
+    frame_df = ps.sqldf(sql)
 
-    global dic
-    # if not dic:
-    #     dic = api_detections.get_frame_detections(game_id)
-
-    frame_df = dic[currentFrame] 
     assigned_is_checked = False
     unassinged_is_checked = False
     initials_is_checked = False
@@ -1060,7 +1058,6 @@ def draw_tracks(fig, currentFrame, switches_value, game_id):
         for i in range(len(frame_df)):
             player_id = frame_df.iloc[i]['player_id']
             if(player_id == -1):
-                #print(player_id)
                 x0 = frame_df.iloc[i]['x0']
                 y0 = frame_df.iloc[i]['y0']
                 x1 = frame_df.iloc[i]['x1']
@@ -1074,7 +1071,6 @@ def draw_tracks(fig, currentFrame, switches_value, game_id):
         for i in range(len(frame_df)):
             player_id = frame_df.iloc[i]['player_id']
             if(player_id != -1):
-                #print(player_id)
                 x0 = frame_df.iloc[i]['x0']
                 y0 = frame_df.iloc[i]['y0']
                 x1 = frame_df.iloc[i]['x1']
@@ -1083,7 +1079,6 @@ def draw_tracks(fig, currentFrame, switches_value, game_id):
                 player_id = frame_df.iloc[i]['player_id']
                 initials = frame_df.iloc[i]['initials']
                 add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, initials_is_checked)     
-
 
     return fig 
 
@@ -1174,8 +1169,11 @@ def player_state(play_button, video_state, interval_state):
     State('radio_all_tracks', 'value'),
     State('frame_DB', 'modified_timestamp'),
 )
-def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider, section, gts, gte, slider_min, slider_max, data, radioValue, ts):
+def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider, section, gts, gte, slider_min, slider_max, data, track_id, ts):
+    global df_detections
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+
+    
 
     if cbcontext == "previous_DB.n_clicks":
         data = data - 1 if data != slider_min else data 
@@ -1196,21 +1194,21 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
         data = data - 50 if data > (slider_min + 49) else slider_min
         return data, data 
     elif cbcontext =="gts_all_tracks.n_clicks":
-        for i in range (0, unique_tracks):
-            if radioValue:
-                if int(dic_tracks[i]['track_id'][0]) == int(radioValue):
-                    data = min(dic_tracks[i]['frame'])
-                    return data, data 
-            else:
-                raise PreventUpdate
+        if track_id:
+            sql = f'''SELECT MIN(frame) FROM df_detections WHERE track_id={track_id}'''
+            start = ps.sqldf(sql)
+            fr = int(start['MIN(frame)'][0])
+            return fr, fr
+        else:
+            raise PreventUpdate
     elif cbcontext =="go_to_end.n_clicks":
-        for i in range (0, unique_tracks):
-            if radioValue:
-                if int(dic_tracks[i]['track_id'][0]) == int(radioValue):
-                    data = max(dic_tracks[i]['frame'])
-                    return data, data
-            else:
-                raise PreventUpdate 
+        if track_id:
+            sql = f'''SELECT MAX(frame) FROM df_detections WHERE track_id={track_id}'''
+            end = ps.sqldf(sql)
+            fr = int(end['MAX(frame)'][0])
+            return fr, fr
+        else:
+            raise PreventUpdate
     elif cbcontext == 'interval_DB.n_intervals': data += 1; return data, data
     elif cbcontext == 'section_DB.data': 
         if ts is not None:
@@ -1283,8 +1281,8 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
     State('game_id', 'data')
 )
 def initialize_section_and_slider(sectionValue, data, game_id):
-
-    global dic
+    global df_detections
+    global dic_frames
     global dic_tracks
     global unique_tracks
     global df_teams
@@ -1311,11 +1309,9 @@ def initialize_section_and_slider(sectionValue, data, game_id):
 # ------------------------------------------------------------------
 # initializer of info
 
-    if not game_id: 
-        game_id = 0
-
-    dic = api_detections.get_frame_detections(game_id, minFrame, maxFrame)
-    dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
+    # dic_frames = api_detections.get_frame_detections(game_id, minFrame, maxFrame)
+    df_detections = api_detections.get_detection_data(game_id, minFrame, maxFrame)
+    # dic_tracks, unique_tracks = api_detections.get_tracks(game_id)
 
     df_teams = api_team.get_teams(game_id)
     df_players = api_player.get_players_roster(game_id)
@@ -1328,7 +1324,6 @@ def initialize_section_and_slider(sectionValue, data, game_id):
            dbc.Button(str(b_name), id="but8", outline=True, style={"margin-left": "5px","font-size": "12px"})])
 
 
-    print(minFrame, maxFrame)
     return minFrame, maxFrame, sliderMarks, data, div
 
 
@@ -1347,9 +1342,6 @@ def initial(section_ts, sectiondata, framedata, video_state):
     '''
 
 
-
-
-    print('testing')
     sectiondata = sectiondata or 0
     framedata = framedata or 0
     video_state = False 
