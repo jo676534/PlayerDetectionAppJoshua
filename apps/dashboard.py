@@ -1,30 +1,19 @@
 # INSTALL LIBRARIES ---------------------------------------------------------------------------------------------------------------------------
-from dash_bootstrap_components._components.Spinner import Spinner
 import pandas as pd
 import plotly.express as px  # (version 4.7.0)
-import plotly.graph_objects as go
 import dash  # (version 1.12.0) pip install dash
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
-# import dash_player
 from dash.dependencies import Input, Output, State
-import os
-from os.path import isfile, join
-from skimage import io
-import numpy as np
 import psycopg2 as pg2
 import pandas as pd
 from dash.exceptions import PreventUpdate
 import cv2  # from vid2frames
-from app import app
-import time
 import math
-import asyncio
 # import boto3
 
 from app import app
-from apps import add_track
 from api import api_detections
 from api import api_team
 from api import api_player
@@ -32,8 +21,8 @@ from api import api_game
 
 
 
-# filename = "./Videos/game_0.mp4"
-filename = '/home/brendan/projects/sd/SeniorDesign/segmentation/datasets/video.mp4'
+filename = "./Videos/game_0.mp4"
+# filename = '/home/brendan/projects/sd/SeniorDesign/segmentation/datasets/video.mp4'
 vidcap = cv2.VideoCapture(filename)
 
 # OpenCV2 version 2 used "CV_CAP_PROP_FPS"

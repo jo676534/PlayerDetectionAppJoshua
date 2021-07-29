@@ -8,4 +8,3 @@ app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP],
                             'content': 'width=device-width, initial-scale=1.0'}],
                             suppress_callback_exceptions = True
                )
-server = app.server

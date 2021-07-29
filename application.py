@@ -6,7 +6,7 @@ from dash.dependencies import Input, Output
 
 # Connect to main app.py file
 from app import app
-from app import server
+# from app import server
 
 # Connect apps here
 from apps import home
@@ -15,6 +15,7 @@ from apps import video_edit
 from apps import dashboard
 from apps import add_track
 from apps import final_review
+
 
 
 
@@ -79,5 +80,8 @@ def display_page(pathname):
         return home.layout
 
 
+
+
+application = app.server 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    application.run(debug=True, port=8080)
