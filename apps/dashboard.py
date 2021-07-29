@@ -25,7 +25,7 @@ framesPerSection = 5000
 
 
 # Video Initializer Code and Video Global Variables =======================================================================================
-filename = "./Videos/game_0.mp4" # filename = '/home/brendan/projects/sd/SeniorDesign/segmentation/datasets/video.mp4'
+filename = "./Videos/game_1.mp4" # filename = '/home/brendan/projects/sd/SeniorDesign/segmentation/datasets/video.mp4'
 vidcap = cv2.VideoCapture(filename)
 fps = vidcap.get(cv2.CAP_PROP_FPS) # OpenCV2 version 2 used "CV_CAP_PROP_FPS"
 frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -1148,6 +1148,95 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
     else: data = slider; return slider, slider
 
 
+# # initializes the states 
+# @app.callback(Output('dropdown_DB', 'value'),
+#                 Input('section_DB', 'modified_timestamp'),
+#                 State('section_DB', 'data'),
+#                 State('frame_DB', 'data'),
+#                 State('video_state_DB', 'data'),)
+# def initial(section_ts, sectiondata, framedata, video_state):
+#     # if section_ts is None:
+#         # raise PreventUpdate
+
+#     '''
+#     do a prevent update 
+#     '''
+
+#     sectiondata = sectiondata or 0
+#     framedata = framedata or 0
+#     video_state = False 
+#     return sectiondata
+
+
+# want to turn this callback into an actual initalizer for normal data
+@app.callback(
+    Output("slider_DB", 'min'), # slider
+    Output("slider_DB", 'max'), # slider
+    Output("slider_DB", 'marks'), # slider
+    Output('section_DB', 'data'), # dropdown (storage)
+    Output('dropdown_DB', 'value'), # dropdown (actual)
+    Input('dropdown_DB', 'value'),
+    State('section_DB', 'data'),
+    State('game_id', 'data'),)
+def initialize_section_and_slider(dropdown_value, stored_section_value, game_id):
+    global df_detections
+    global df_teams
+    global df_players
+    global team_a_id
+    global team_b_id
+
+    minFrame = (stored_section_value * framesPerSection) + 1
+    if (stored_section_value+1) != sections:
+        maxFrame = (stored_section_value+1) * framesPerSection
+    else:
+        maxFrame = (frame_count % framesPerSection) + (minFrame-1)
+
+    diff = round((maxFrame - minFrame)/20)
+    marks = [(minFrame-1)+x*diff for x in range(21)]
+    if marks[0] % framesPerSection == 0:
+        marks[0] += 1
+    sliderMarks = {}
+    for i in marks:
+        sliderMarks[f'{i}'] = f'{i}'
+
+    return minFrame, maxFrame, sliderMarks, stored_section_value, stored_section_value
+
+
+# initializer callback
+@app.callback(
+    Output('team_buttons', 'children'),
+    Input('dropdown_DB', 'value'), # whenever the dropdown is updated we want to trigger this input to regenerate the data
+    State('section_DB', 'data'),
+    State('game_id', 'data'),)
+def initializer(dropdown_value, stored_section_value, game_id):
+    global df_detections
+    global df_teams
+    global df_players
+    global team_a_id
+    global team_b_id
+
+    minFrame = (stored_section_value * framesPerSection) + 1
+    if (stored_section_value+1) != sections:
+        maxFrame = (stored_section_value+1) * framesPerSection
+    else:
+        maxFrame = (frame_count % framesPerSection) + (minFrame-1)
+
+    # initializer of info ----------------------------------------------
+    df_detections = api_detections.get_detection_data(game_id, minFrame, maxFrame)
+    df_teams = api_team.get_teams(game_id)
+    df_players = api_player.get_players_roster(game_id)
+    team_a_id, team_b_id = api_game.get_team_ids(game_id)
+
+    a_name, b_name = api_game.get_team_names(game_id)
+    div = html.Div(children=[
+            dbc.Button(str(a_name), id="but7", outline=True, style={"font-size": "12px"}),
+            dbc.Button(str(b_name), id="but8", outline=True, style={"margin-left": "5px","font-size": "12px"})
+        ])
+
+    return div
+
+
+
 # @app.callback(
 #     Output("slider_DB", 'min'),
 #     Output("slider_DB", 'max'),
@@ -1198,71 +1287,3 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
 
 #     data = sectionValue 
 #     return minFrame, maxFrame, sliderMarks, data, data
-
-
-@app.callback(
-    Output("slider_DB", 'min'),
-    Output("slider_DB", 'max'),
-    Output("slider_DB", 'marks'),
-    Output('section_DB', 'data'),
-    Output('team_buttons', 'children'),
-    Input('dropdown_DB', 'value'),
-    State('section_DB', 'data'),
-    State('game_id', 'data'),)
-def initialize_section_and_slider(sectionValue, data, game_id):
-    global df_detections
-    global df_teams
-    global df_players
-    global team_a_id
-    global team_b_id
-
-    minFrame = (sectionValue * framesPerSection) + 1
-    if (sectionValue+1) != sections:
-        maxFrame = (sectionValue+1) * framesPerSection
-    else:
-        maxFrame = (frame_count % framesPerSection) + (minFrame-1)
-
-    diff = round((maxFrame - minFrame)/20)
-    marks = [(minFrame-1)+x*diff for x in range(21)]
-    if marks[0] % framesPerSection == 0:
-        marks[0] += 1
-    sliderMarks = {}
-    for i in marks:
-        sliderMarks[f'{i}'] = f'{i}'
-
-    data = sectionValue 
-
-    # initializer of info ----------------------------------------------
-    df_detections = api_detections.get_detection_data(game_id, minFrame, maxFrame)
-    df_teams = api_team.get_teams(game_id)
-    df_players = api_player.get_players_roster(game_id)
-    team_a_id, team_b_id = api_game.get_team_ids(game_id)
-
-    a_name, b_name = api_game.get_team_names(game_id)
-    div = html.Div(children=[
-            dbc.Button(str(a_name), id="but7", outline=True, style={"font-size": "12px"}),
-            dbc.Button(str(b_name), id="but8", outline=True, style={"margin-left": "5px","font-size": "12px"})
-        ])
-
-    return minFrame, maxFrame, sliderMarks, data, div
-
-
-# initializes the states 
-@app.callback(Output('dropdown_DB', 'value'),
-                Input('section_DB', 'modified_timestamp'),
-                State('section_DB', 'data'),
-                State('frame_DB', 'data'),
-                State('video_state_DB', 'data'),)
-def initial(section_ts, sectiondata, framedata, video_state):
-    # if section_ts is None:
-        # raise PreventUpdate
-
-    '''
-    do a prevent update 
-    '''
-
-    sectiondata = sectiondata or 0
-    framedata = framedata or 0
-    video_state = False 
-    return sectiondata
-
