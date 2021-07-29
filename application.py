@@ -6,7 +6,7 @@ from dash.dependencies import Input, Output
 
 # Connect to main app.py file
 from app import app
-from app import server
+# from app import server
 
 # Connect apps here
 from apps import home
@@ -15,6 +15,7 @@ from apps import video_edit
 from apps import dashboard
 from apps import add_track
 from apps import final_review
+
 
 
 
@@ -51,12 +52,13 @@ info_storage = html.Div([
     dcc.Store(id='player_id_add', storage_type='session'),
 ])
 
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    navbar,
-    html.Div(id='page-content', children=[]),
-    info_storage,
-])
+app.layout = html.Div(
+    children = [
+        dcc.Location(id='url', refresh=False),
+        navbar,
+        html.Div(id='page-content', children=[], style= {'height':'100%'}),
+        info_storage,
+    ])
 
 
 @app.callback(Output('page-content', 'children'),
@@ -78,5 +80,8 @@ def display_page(pathname):
         return home.layout
 
 
+
+
+application = app.server 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    application.run(debug=True, port=8080)
