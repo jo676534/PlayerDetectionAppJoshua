@@ -91,7 +91,8 @@ info_storage_add = html.Div([
 
 
 right_side = dbc.Card(
-    [
+    id = 'right_side_card',
+    children = [
         dbc.CardHeader(
             [
                 html.H2("Bounding Box Submit Area"),
@@ -128,8 +129,8 @@ right_side = dbc.Card(
                 #html.Br(),
                 html.Div(
                     [
-                        dbc.Input(id="input_start", placeholder="Start", type="number", min=0, step=1, style={'width': '25%', 'display': 'inline-block', "margin-left": "0px", "margin-right": "15px",}),
-                        dbc.Input(id="input_final", placeholder="Final", type="number", min=0, step=1, style={'width': '25%', 'display': 'inline-block', "margin-left": "15px", "margin-right": "15px",}),
+                        dbc.Input(id="input_start", placeholder="Start", type="number", min=0, step=1, style={'width': '25%', 'display': 'inline-block', "margin-left": "0px", "margin-right": "15px",}, className= 'add_track_input',),
+                        dbc.Input(id="input_final", placeholder="Final", type="number", min=0, step=1, style={'width': '25%', 'display': 'inline-block', "margin-left": "15px", "margin-right": "15px",}, className= 'add_track_input',),
                     ]
                 ),
                 html.Div(
