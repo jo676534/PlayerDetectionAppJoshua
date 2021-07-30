@@ -25,15 +25,14 @@ framesPerSection = 5000
 
 
 # Video Initializer Code and Video Global Variables =======================================================================================
-filename = "./Videos/game_0.mp4" # filename = '/home/brendan/projects/sd/SeniorDesign/segmentation/datasets/video.mp4'
-vidcap = cv2.VideoCapture(filename)
-fps = vidcap.get(cv2.CAP_PROP_FPS) # OpenCV2 version 2 used "CV_CAP_PROP_FPS"
-frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
-vidcap.release()
-duration = frame_count/fps
-resolution = (1280, 720)
-sections = math.ceil(frame_count / framesPerSection)
-maxFrames = frame_count-1
+filename = ''
+vidcap = None
+fps = 0
+frame_count = 0
+duration = 0
+resolution = 0 
+sections = 0
+maxFrames = 0
 
 # Global Variables and Data Structures
 track_state = 0
@@ -46,6 +45,9 @@ first_time = True
 new_section = False
 
 # Functions start here ====================================================================================================================
+
+
+
 
 def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, show_initials, name=None, color=None, opacity=1, group=None, text=None):
     # could put code here to determine colors
@@ -100,12 +102,7 @@ def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, show_in
     )
 
 
-def getSections(sections):
-    sectionOptions = [
-        {'label': 'Section {}'.format(i+1), 'value': i}
-        for i in range(sections)
-    ]
-    return sectionOptions
+
 
 
 info_storage_DB = html.Div([
@@ -140,7 +137,7 @@ video_card_DB = dbc.Card(
                         [
                             dcc.Dropdown(
                                 id = 'dropdown_DB',
-                                options=getSections(sections),
+                                # options=[],
                                 searchable=False,
                                 clearable=False,
                                 placeholder="Select a video section",
@@ -158,6 +155,8 @@ video_card_DB = dbc.Card(
         html.Div(id='hidden_div_j2', style= {'display':'none'}),
         html.Div(id='hidden_div_j3', style= {'display':'none'}),
         html.Div(id='hidden_div_section', style= {'display':'none'}),
+        html.Div(id='hidden_div_init', style= {'display':'none'}),
+        html.Div(id='hidden_div_init2', style= {'display':'none'}),
         dbc.CardBody(
             [
                 html.Div(id="manual_annotation_output"),
@@ -397,6 +396,11 @@ layout = html.Div(  # was app.layout
         info_storage_DB
     ],
 )
+
+
+
+
+
 
 
 # manual annotation callback
@@ -1182,15 +1186,15 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
     Input('dropdown_DB', 'value'),
     Input("previousSec", "n_clicks"),
     Input("nextSec", "n_clicks"),
+    Input('hidden_div_init2', 'children'),
     State('section_DB', 'data'),
     State('game_id', 'data'),)
-def initialize_section_and_slider(dropdown_value, prev, next, stored_section_value, game_id):
+def initialize_section_and_slider(dropdown_value, prev, next, hidden_div, stored_section_value, game_id):
     global sections
     global new_section
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
     section = None
     min_or_max = 99
-
     # here check if dropdown was updated 
     if dropdown_value is not None: # this will happen on whenever the dropdown is used 
         section = dropdown_value
@@ -1239,6 +1243,44 @@ def initialize_section_and_slider(dropdown_value, prev, next, stored_section_val
         # update the track list
 
 
+@app.callback(
+    Output('dropdown_DB', 'options'),
+    Output('hidden_div_init2', 'children'),
+    Input('hidden_div_init', 'children'),
+    State('game_id', 'data'),
+)
+def initialize_globals(test, game_id):
+    global filename
+    global vidcap
+    global fps
+    global frame_count
+    global duration
+    global resolution
+    global sections
+    global maxFrames
+
+
+    filename = f"./Videos/game_{game_id}.mp4"
+    vidcap = cv2.VideoCapture(filename)
+    fps = vidcap.get(cv2.CAP_PROP_FPS) # OpenCV2 version 2 used "CV_CAP_PROP_FPS"
+    frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
+    vidcap.release()
+    duration = frame_count/fps
+    resolution = (1280, 720)
+    sections = math.ceil(frame_count / framesPerSection)
+    maxFrames = frame_count-1
+
+    
+    sectionOptions = [
+        {'label': 'Section {}'.format(i+1), 'value': i}
+        for i in range(sections)
+        ]
+
+
+
+    return sectionOptions, None 
+
+
 # initializer callback
 @app.callback(
     Output('team_buttons', 'children'),
@@ -1271,4 +1313,6 @@ def initializer(dropdown_value, stored_section_value, game_id):
         ])
 
     return div
+
+
 
