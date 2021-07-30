@@ -141,10 +141,11 @@ video_card_DB = dbc.Card(
                                 options=getSections(sections),
                                 searchable=False,
                                 clearable=False,
+                                placeholder="Select a video section",
                             ),
                             html.Div(id="dd-output-container"),
                         ],
-                        style={"width": "20%", 'margin-left':'200px', 'font-size': '14px'},  
+                        style={"width": "20%", 'margin-left':'10px', 'font-size': '14px'},  
                 )])    
             ],style = {"margin-bottom":"-15px"}
         ),
@@ -240,6 +241,8 @@ video_card_DB = dbc.Card(
 
 
 track_card = dbc.Card(
+    id = 'track_card',
+    children =
     [
         dbc.CardHeader(
             dbc.Col(
@@ -293,7 +296,7 @@ track_card = dbc.Card(
         ),
         dbc.CardFooter(
             [
-                html.H6("Add Track Section", className = "add_track_section_header"),
+                html.H6("Add Track Section", className = "add_track_section_header", style={'margin-bottom':'5px'}),
                 html.Div(
                     [
                         dbc.Input(id="dashboard_input_start", placeholder="Start", type="number", min=0, step=1, className= "dashboard_input"), # value
@@ -321,6 +324,8 @@ track_card = dbc.Card(
 
 
 team_card = dbc.Card(
+    id = 'team_card',
+    children =
     [
         dbc.CardHeader(
             html.Div( 
@@ -563,7 +568,7 @@ def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, stor
         if player_id is None:
             return ("Must have an intended player selected.", start_frame, final_frame, player_id)
         else:
-            return (dbc.Button("Now Click Here", id="go_to_add_track", href='/apps/add_track'), start_frame, final_frame, player_id)
+            return (dbc.Button("Now Click Here", id="go_to_add_track", href='/apps/add_track', style= {'margin-top': '15px', 'font-size':'12px'}), start_frame, final_frame, player_id)
     else:
         return ("{}".format(storage1), start_frame, final_frame, player_id)
 

@@ -100,14 +100,15 @@ video_card_VE = dbc.Card(
                                     id='dropdown_VE',
                                     options=getSections(sections),
                                     searchable=False,
+                                    placeholder = "Select Video Section",
                                     clearable=False,
                                 ),
                                 html.Div(id="dd-output-container"),
                             ],
-                            style={"width": "20%", 'margin-left': '200px',
+                            style={"width": "20%", 'margin-left': '10px',
                                 'font-size': '14px'},
                         )])
-                ], style={"margin-bottom": "-15px"}
+                ], style={"margin-bottom": "3px"}
             ),
             className="player_card_header",
         ),
@@ -202,7 +203,7 @@ video_trimmer_card = dbc.Card(
         dcc.Store(id='blacklist',
                 storage_type='memory'),
         dbc.CardHeader(
-            html.H2('Video Trimmer', id='testing',),
+            html.H4('Video Trimmer', id='testing',),
         ),
         dbc.CardBody(
             [
@@ -216,12 +217,12 @@ video_trimmer_card = dbc.Card(
                     children=[
                         dbc.Col(children=[
                                 html.H6('Enter Start of Frames to Trim: '),
-                                dcc.Input(id="startingFrame", type="number", debounce=True,
+                                dbc.Input(id="startingFrame", type="number", debounce=True,
                                         placeholder="Start Frame", min=0,),
                                 ]),
                         dbc.Col(children=[
                                 html.H6('Enter End of Frames to Trim: '),
-                                dcc.Input(id="endingFrame", type="number", debounce=True,
+                                dbc.Input(id="endingFrame", type="number", debounce=True,
                                         placeholder="End Frame", min=0,),
                                 ]),
                     ],
@@ -233,13 +234,13 @@ video_trimmer_card = dbc.Card(
                         dbc.ButtonGroup(
                             [
                                 dbc.Button('Set Start Frame',
-                                        id='setStart',),
+                                        id='setStart', style = {'font-size':'14px'}),
                                 dbc.Button('Set End Frame',
-                                        id='setEnd',),
+                                        id='setEnd',style = {'font-size':'14px'}),
                                 dbc.Button('Jump to Start',
-                                        id='jumpStart',),
+                                        id='jumpStart',style = {'font-size':'14px'}),
                                 dbc.Button('Jump to End',
-                                        id='jumpEnd',),
+                                        id='jumpEnd',style = {'font-size':'14px'}),
                             ],
                             style={"width": "100%"},
                         ),
@@ -261,13 +262,13 @@ save_card = html.Div(
         dbc.ButtonGroup(
             [
                 dbc.Button('Discard Video', id='discard',
-                        href='/apps/home', size="lg", color="danger"),
+                        href='/apps/home', size="md", color="danger",),
                 dbc.Button('Save and Quit',
-                        id='save-and-quit', href='/apps/home', size="lg"),
+                        id='save-and-quit', className= 'save-and-quit', href='/apps/home', size="md"),
                 # dbc.Button('Save and Continue',
                 #            id='save-and-continue', href='/apps/dashboard', size="lg"),
                 dbc.Button('Save and Continue',
-                        id='save-and-continue', size="lg"),
+                        id='save-and-continue', size="md"),
             ],
             style={"width": "100%"},
         ),
@@ -295,7 +296,7 @@ layout = html.Div(
                     [
                         dbc.Col(video_card_VE, md=7.5),
                         dbc.Col(children=[video_trimmer_card,
-                                        save_card, ], md=5),
+                                        save_card, ], md=4),
                     ],
                 ),
             ],
