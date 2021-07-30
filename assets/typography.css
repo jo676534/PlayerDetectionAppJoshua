@@ -714,6 +714,12 @@ border-color: #000e44;
   background-color: #000e44;
 }
 
+#link{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+
 /* HOVER BUTTON STYLES */
 
 #select_game:hover{
@@ -722,6 +728,11 @@ border-color: #000e44;
   background-color: aliceblue;
 }
 #collapse_button:hover{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+#link:hover{
   color: #00c2cb;
   border-color: #00c2cb;
   background-color: aliceblue;
