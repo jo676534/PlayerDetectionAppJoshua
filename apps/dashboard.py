@@ -25,17 +25,6 @@ framesPerSection = 5000
 
 
 # Video Initializer Code and Video Global Variables =======================================================================================
-# filename = "./Videos/game_0.mp4"
-# filename = "./Videos/game_{game_id}.mp4"
-# vidcap = cv2.VideoCapture(filename)
-# fps = vidcap.get(cv2.CAP_PROP_FPS) # OpenCV2 version 2 used "CV_CAP_PROP_FPS"
-# frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
-# vidcap.release()
-# duration = frame_count/fps
-# resolution = (1280, 720)
-# sections = math.ceil(frame_count / framesPerSection)
-# maxFrames = frame_count-1
-
 filename = ''
 vidcap = None
 fps = 0
