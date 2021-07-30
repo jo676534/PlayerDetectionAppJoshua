@@ -57,3 +57,4 @@ visdom==0.1.8.9
 websocket-client==1.1.0
 Werkzeug==2.0.1
 yacs==0.1.8
+pandasql==0.7.3
