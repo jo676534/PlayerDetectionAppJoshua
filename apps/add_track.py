@@ -178,7 +178,7 @@ video_card_add = dbc.Card(
                 ]),
                 dcc.Graph( # WILL HAVE TO INITIALIZE THIS AS WELL //////////////////////////////////////////////////////////////////////////////////////////
                     id="canvas_add",
-                    style={'width': '1000px', 'height': '600px'},
+                    style={'width': '970px', 'height': '600px'},
                     config={"modeBarButtonsToAdd": ["drawrect", "eraseshape"]},
                 )
             ]
@@ -247,7 +247,7 @@ layout = html.Div(
             [
                 dbc.Row(
                     [
-                        dbc.Col(video_card_add, md=7.3),
+                        dbc.Col(video_card_add, md=7),
                         dbc.Col(children=[right_side, end_buttons], md=5),
                     ],
                 ),
