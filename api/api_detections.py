@@ -160,6 +160,20 @@ def assign_track(game_id, player_id, track_id):
     conn.commit()
     cur.close()
     conn.close()
+# ----------------------------------------------------------------------------
+
+def unassign_track(game_id, player_id, track_id):
+    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+
+
+    cur = conn.cursor()
+    cur.execute(f'''UPDATE detections SET player_id={player_id} WHERE track_id={track_id} AND game_id={game_id}''')
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
 
 # ----------------------------------------------------------------------------
 

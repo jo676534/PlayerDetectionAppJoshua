@@ -343,8 +343,11 @@ team_card = dbc.Card(
             [
                 html.Div(id='container', children=
                     [
-                        dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}, disabled=True),
-                                dbc.Spinner(html.Div(id="assign_track_output")),],
+                        dbc.Col(children = 
+                                        [dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}, disabled=True),
+                                         dbc.Button("Unassign Track", id = 'unassign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}, disabled=True),
+                                         dbc.Spinner(html.Div(id="assign_track_output")),
+                                        ],
                                 align = 'center',),
                         dbc.Col([dbc.RadioItems(
                         options=
@@ -613,9 +616,12 @@ def display(btn1, btn2, game_id):
     # Dash component for team A
     sectionA = html.Div([
         html.Div(children=[
-        dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-                dbc.Spinner(html.Div(id="assign_track_output")),],
-                align = 'center',),
+        dbc.Col(children = [
+                    dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                    dbc.Button("Unassign Track", id = 'unassign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                    dbc.Spinner(html.Div(id="assign_track_output")),
+                ],
+                                align = 'center',),
         dbc.Col([dbc.RadioItems(
         options=[
             {'label': "("+ str(a_row.iloc[i]["jersey"]) + ") "+ str(a_row.iloc[i]["name"]), 'value': str(a_row.iloc[i]["player_id"])} for i in range(0, len(a_row))],
@@ -636,8 +642,11 @@ def display(btn1, btn2, game_id):
     # Dash component for team B
     sectionB = html.Div([
         html.Div(children=[
-        dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-                dbc.Spinner(html.Div(id="assign_track_output")),],
+        dbc.Col(children =[
+                    dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}, ),
+                    dbc.Button("Unassign Track", id = 'unassign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                    dbc.Spinner(html.Div(id="assign_track_output")),
+                ],
                 align = 'center',),
         dbc.Col([dbc.RadioItems(
         options=[
@@ -910,15 +919,18 @@ def update_output(value):
     Output('hidden-div', 'children'),
     Output("assign_track_output", "children"),
     Input('assign_track_bt', 'n_clicks'),
+    Input('unassign_track_bt', 'n_clicks'),
     State('radio_all_tracks', 'value'),
     State("radio_players_A", 'value'),
     State("game_id", "data"),
     State('slider_DB', 'min'),
     State('slider_DB', 'max'),
     prevent_initial_call=True)
-def update_player_tracks(assignBt, track_id, player_id, game_id, slider_min, slider_max):
+def update_player_tracks(assignBt,unassignBt, track_id, player_id, game_id, slider_min, slider_max):
+
+    global df_detections
+
     if assignBt:
-        global df_detections
 
         cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
         
@@ -934,6 +946,13 @@ def update_player_tracks(assignBt, track_id, player_id, game_id, slider_min, sli
         df_detections = api_detections.get_detection_data(game_id, slider_min, slider_max)
 
         return None, "Track successfully assigned."
+
+    if unassignBt:
+        
+        api_detections.unassign_track(game_id, -1 , track_id) 
+        df_detections = api_detections.get_detection_data(game_id, slider_min, slider_max)
+
+        return None, "Track successfully unassigned."
     else:
         return None, None
 
