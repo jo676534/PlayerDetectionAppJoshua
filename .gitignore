@@ -7,6 +7,5 @@ api/.ipynb_checkpoints
 /examples
 *.pyc
 apps/old_video_edit.py
-apps/pysot/
 *.mp4
 .vscode/settings.json
