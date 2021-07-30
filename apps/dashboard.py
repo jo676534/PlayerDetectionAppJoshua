@@ -25,7 +25,7 @@ framesPerSection = 5000
 
 
 # Video Initializer Code and Video Global Variables =======================================================================================
-filename = "./Videos/game_1.mp4" # filename = '/home/brendan/projects/sd/SeniorDesign/segmentation/datasets/video.mp4'
+filename = "./Videos/game_0.mp4" # filename = '/home/brendan/projects/sd/SeniorDesign/segmentation/datasets/video.mp4'
 vidcap = cv2.VideoCapture(filename)
 fps = vidcap.get(cv2.CAP_PROP_FPS) # OpenCV2 version 2 used "CV_CAP_PROP_FPS"
 frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
