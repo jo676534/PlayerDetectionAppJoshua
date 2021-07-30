@@ -10,6 +10,6 @@ RUN pip install -r requirements.txt
 RUN apt-get install -y libgl1-mesa-dev
 
 EXPOSE 8080
-# ENV PYTHONPATH="${PYTHONPATH}:/code/apps/pysot"
+ENV PYTHONPATH="${PYTHONPATH}:/code/apps/pysot"
 
 CMD python application.py
