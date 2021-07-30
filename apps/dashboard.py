@@ -165,7 +165,7 @@ video_card_DB = dbc.Card(
                         id='interval_DB',
                         disabled=False,
                         n_intervals=0,      # number of times the interval has passed
-                        max_intervals=maxFrames # alternative way to do this = properly output the maxFrames to
+                        # max_intervals=maxFrames # alternative way to do this = properly output the maxFrames to
                     ),
                 ]),
                 dcc.Graph( # WILL HAVE TO INITIALIZE THIS AS WELL //////////////////////////////////////////////////////////////////////////////////////////
@@ -1092,12 +1092,14 @@ def update_player(switches_value, hiddenj0, hiddenj3, current_frame, section, fr
     State('interval_DB', 'disabled'),)
 def player_state(play_button, video_state, interval_state):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+
     string = 'Pause' if interval_state else 'Play'
     text = html.Img(src = f'https://github.com/dianabisbe/Images/blob/main/{string}.png?raw=true',
                               style={'height':'30px'})
 
     video_state = not video_state 
     interval_state = not interval_state
+    print(interval_state)
     return video_state, text, interval_state
 
 # frame update based on what button was pressed
@@ -1125,7 +1127,7 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
     global df_detections
     global first_time
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-
+    print(cbcontext) 
     if first_time:
         first_time = False
         return data, data
