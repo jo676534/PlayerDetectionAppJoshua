@@ -42,6 +42,8 @@ df_players = None
 df_detections = None
 team_a_id = None
 team_b_id = None
+first_time = True
+new_section = False
 
 # Functions start here ====================================================================================================================
 
@@ -151,10 +153,11 @@ video_card_DB = dbc.Card(
         ),
         className= "player_card_header",
         ),
-        html.Div(id='hidden_div_j0', style= {'display':'none'},),
+        html.Div(id='hidden_div_j0', style= {'display':'none'}),
         html.Div(id='hidden_div_j1', style= {'display':'none'}),
         html.Div(id='hidden_div_j2', style= {'display':'none'}),
         html.Div(id='hidden_div_j3', style= {'display':'none'}),
+        html.Div(id='hidden_div_section', style= {'display':'none'}),
         dbc.CardBody(
             [
                 html.Div(id="manual_annotation_output"),
@@ -961,11 +964,16 @@ def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
     return (None, None, None, "Track successfully deleted.")
 
 
-def draw_tracks(fig, currentFrame, switches_value, game_id):
+def draw_tracks(fig, currentFrame, switches_value, slider_min, slider_max, game_id):
     global df_detections
+    global new_section
     
+    if df_detections is None or new_section:
+        new_section = False
+        df_detections = api_detections.get_detection_data(game_id, slider_min, slider_max)
+
     sql = f'''SELECT * FROM df_detections WHERE game_id={game_id} AND frame={currentFrame}'''
-    frame_df = ps.sqldf(sql)
+    frame_df = ps.sqldf(sql) # AttributeError: 'NoneType' object has no attribute 'index'
 
     assigned_is_checked = False
     unassinged_is_checked = False
@@ -1047,8 +1055,10 @@ def get_frame(current_frame):
     Input('frame_DB', 'data'),
     State('section_DB', 'data'),
     State('frame_DB', 'data'),
+    State('slider_DB', 'min'),
+    State('slider_DB', 'max'),
     State("game_id", "data"),)
-def update_player(switches_value, hiddenj0, hiddenj3, current_frame, section, frame_data, game_id):
+def update_player(switches_value, hiddenj0, hiddenj3, current_frame, section, frame_data, slider_min, slider_max, game_id):
     fig = px.imshow(get_frame(current_frame-1), binary_backend="jpg") # should subtract 1 b/c the video's frames are zero indexed while the slider is 1 indexed 
     fig.update_layout(
         xaxis= {
@@ -1064,7 +1074,7 @@ def update_player(switches_value, hiddenj0, hiddenj3, current_frame, section, fr
         margin=dict(l=0, r=0, b=0, t=0, pad=0),
         dragmode="drawrect",
     )
-    draw_tracks(fig, current_frame, switches_value, game_id)
+    draw_tracks(fig, current_frame, switches_value, slider_min, slider_max, game_id)
 
     return fig, None
 
@@ -1098,17 +1108,23 @@ def player_state(play_button, video_state, interval_state):
     Input('rewind-50_DB', 'n_clicks'),
     Input('interval_DB', 'n_intervals'),
     Input('slider_DB', 'value'),
-    Input('section_DB', 'data'),
+    Input('section_DB', 'data'), # info storage for section number
     Input('gts_all_tracks', 'n_clicks'),
     Input('go_to_end', 'n_clicks'),
+    Input("hidden_div_section", "children"),
     State('slider_DB', 'min'),
     State('slider_DB', 'max'),
     State('frame_DB', 'data'),
     State('radio_all_tracks', 'value'),
     State('frame_DB', 'modified_timestamp'),)
-def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider, section, gts, gte, slider_min, slider_max, data, track_id, ts):
+def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider, section, gts, gte, min_or_max, slider_min, slider_max, data, track_id, ts):
     global df_detections
+    global first_time
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+
+    if first_time:
+        first_time = False
+        return data, data
 
     if cbcontext == "previous_DB.n_clicks":
         data = data - 1 if data != slider_min else data 
@@ -1145,85 +1161,67 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
         else:
             raise PreventUpdate
     elif cbcontext == 'interval_DB.n_intervals': data += 1; return data, data
-    elif cbcontext == 'section_DB.data': 
-        if ts is not None:
+    elif cbcontext == 'section_DB.data':
+        if min_or_max == 99: #if ts is not None:
             return data, data
+        if min_or_max == 1:
+            return slider_max, slider_max
         else:
             return slider_min, slider_min
     else: data = slider; return slider, slider
 
 
-# @app.callback(
-#     Output("slider_DB", 'min'),
-#     Output("slider_DB", 'max'),
-#     Output("slider_DB", 'marks'),
-#     Output('section_DB', 'data'), # info storage section number
-#     Output('dropdown_DB', 'value'),
-#     Input('dropdown_DB', 'value'), # dropdown value
-#     Input("previousSec", "n_clicks"),
-#     Input("nextSec", "n_clicks"),
-#     State('section_DB', 'data')) # info storage section number
-# def initialize_section_and_slider(sectionValue, prev, next, data):
-#     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-#     print(cbcontext)
-
-#     # case where we looped back through the callback and want to stop
-#     if (cbcontext == "dropdown_DB.value") and (sectionValue == data): 
-#         raise PreventUpdate
-
-#     # case where we are clicking next section
-#     if cbcontext == "nextSec.n_clicks":
-#         # case where we are already at the max section (don't go forward)
-#         if data+1 == sections:
-#             raise PreventUpdate
-#         else:
-#             sectionValue = data+1
-
-#     # case where we are clicking prev section
-#     if cbcontext == "previousSec.n_clicks":
-#         # case where we are already at the min section (don't go backwards)
-#         if data == 0:
-#             raise PreventUpdate
-#         else:
-#             sectionValue = data+1
-
-#     minFrame = (sectionValue * framesPerSection) + 1
-#     if (sectionValue+1) != sections:
-#         maxFrame = (sectionValue+1) * framesPerSection
-#     else:
-#         maxFrame = (frame_count % framesPerSection) + (minFrame-1)
-
-#     diff = round((maxFrame - minFrame)/20)
-#     marks = [(minFrame-1)+x*diff for x in range(21)]
-#     if marks[0] % framesPerSection == 0:
-#         marks[0] += 1
-#     sliderMarks = {}
-#     for i in marks:
-#         sliderMarks[f'{i}'] = f'{i}'
-
-#     data = sectionValue 
-#     return minFrame, maxFrame, sliderMarks, data, data
-
 
 @app.callback(
-    Output("slider_DB", 'min'),
-    Output("slider_DB", 'max'),
-    Output("slider_DB", 'marks'),
-    Output('section_DB', 'data'),
-    Output('team_buttons', 'children'),
+    Output("slider_DB", 'min'), # slider
+    Output("slider_DB", 'max'), # slider
+    Output("slider_DB", 'marks'), # slider
+    Output('section_DB', 'data'), # dropdown (storage)
+    Output('dropdown_DB', 'value'), # dropdown (actual)
+    Output('hidden_div_section', 'children'), # hidden div
     Input('dropdown_DB', 'value'),
+    Input("previousSec", "n_clicks"),
+    Input("nextSec", "n_clicks"),
     State('section_DB', 'data'),
     State('game_id', 'data'),)
-def initialize_section_and_slider(sectionValue, data, game_id):
-    global df_detections
-    global df_teams
-    global df_players
-    global team_a_id
-    global team_b_id
+def initialize_section_and_slider(dropdown_value, prev, next, stored_section_value, game_id):
+    global sections
+    global new_section
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    section = None
+    min_or_max = 99
 
-    minFrame = (sectionValue * framesPerSection) + 1
-    if (sectionValue+1) != sections:
-        maxFrame = (sectionValue+1) * framesPerSection
+    # here check if dropdown was updated 
+    if dropdown_value is not None: # this will happen on whenever the dropdown is used 
+        section = dropdown_value
+        min_or_max = 0
+        new_section = True
+    else: # this will happen on initialization
+        section = stored_section_value
+
+    # case where we are clicking next section
+    if cbcontext == "nextSec.n_clicks":
+        # case where we are already at the max section (don't go forward)
+        if section+1 == sections:
+            raise PreventUpdate
+        else:
+            section = section+1
+            min_or_max = 0
+            new_section = True
+
+    # case where we are clicking prev section
+    if cbcontext == "previousSec.n_clicks":
+        # case where we are already at the min section (don't go backwards)
+        if section == 0:
+            raise PreventUpdate
+        else:
+            section = section-1
+            min_or_max = 1
+            new_section = True
+
+    minFrame = (section * framesPerSection) + 1
+    if (section+1) != sections:
+        maxFrame = (section+1) * framesPerSection
     else:
         maxFrame = (frame_count % framesPerSection) + (minFrame-1)
 
@@ -1235,7 +1233,30 @@ def initialize_section_and_slider(sectionValue, data, game_id):
     for i in marks:
         sliderMarks[f'{i}'] = f'{i}'
 
-    data = sectionValue 
+    return minFrame, maxFrame, sliderMarks, section, section, min_or_max
+    # need to also return a hidden div of sorts to update multiple things:
+        # set the current frame to either sliderMin (for nextSec) or sliderMax (for prevSec)
+        # update the track list
+
+
+# initializer callback
+@app.callback(
+    Output('team_buttons', 'children'),
+    Input('dropdown_DB', 'value'), # whenever the dropdown is updated we want to trigger this input to regenerate the data
+    State('section_DB', 'data'),
+    State('game_id', 'data'),)
+def initializer(dropdown_value, stored_section_value, game_id):
+    global df_detections
+    global df_teams
+    global df_players
+    global team_a_id
+    global team_b_id
+
+    minFrame = (stored_section_value * framesPerSection) + 1
+    if (stored_section_value+1) != sections:
+        maxFrame = (stored_section_value+1) * framesPerSection
+    else:
+        maxFrame = (frame_count % framesPerSection) + (minFrame-1)
 
     # initializer of info ----------------------------------------------
     df_detections = api_detections.get_detection_data(game_id, minFrame, maxFrame)
@@ -1249,25 +1270,5 @@ def initialize_section_and_slider(sectionValue, data, game_id):
             dbc.Button(str(b_name), id="but8", outline=True, style={"margin-left": "5px","font-size": "12px"})
         ])
 
-    return minFrame, maxFrame, sliderMarks, data, div
-
-
-# initializes the states 
-@app.callback(Output('dropdown_DB', 'value'),
-                Input('section_DB', 'modified_timestamp'),
-                State('section_DB', 'data'),
-                State('frame_DB', 'data'),
-                State('video_state_DB', 'data'),)
-def initial(section_ts, sectiondata, framedata, video_state):
-    # if section_ts is None:
-        # raise PreventUpdate
-
-    '''
-    do a prevent update 
-    '''
-
-    sectiondata = sectiondata or 0
-    framedata = framedata or 0
-    video_state = False 
-    return sectiondata
+    return div
 
