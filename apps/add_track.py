@@ -112,7 +112,7 @@ right_side = dbc.Card(
                 html.Div("6. Don't press the button while the tracker is running."),
                 html.Div("7. Once the tracker is finished, proceed to the area below."),
                 #html.Br(),
-                html.Button('Start Tracker', id='next_page', n_clicks=0),
+                dbc.Button('Start Tracker', id='next_page', n_clicks=0, style = {'margin':'12px'}),
                 html.Br(),
                 dbc.Spinner(html.Div(id='button_output'))
             ]

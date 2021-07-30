@@ -23,56 +23,67 @@ dropdown = dbc.DropdownMenu(
 
 
 game_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                dash_table.DataTable(
-                    id='game_table', 
-                    columns= [{'name': 'Game ID', 'id': 'game_id'}, {'name': 'Team 1 Name', 'id': 'team1_name'}, {'name': 'Team 2 Name', 'id': 'team2_name'}, {'name': 'Date Played', 'id': 'day_played'}, {'name': 'Process State', 'id': 'process_state'}], # [{"name": i, "id": i} for i in df_game.columns], #['Game ID', 'Team 1 Name', 'Team 2 Name', 'Day Played', 'Process State'],# 
-                    page_current=0,
-                    page_size=5,
-                ),
+    id = 'game_card',
+    children = [
+                dbc.CardBody(
+                    [
+                        dash_table.DataTable(
+                            id='game_table', 
+                            columns= [{'name': 'Game ID', 'id': 'game_id'},
+                                {'name': 'Team 1 Name', 'id': 'team1_name'}, 
+                                {'name': 'Team 2 Name', 'id': 'team2_name'}, 
+                                {'name': 'Date Played', 'id': 'day_played'}, 
+                                {'name': 'Process State', 'id': 'process_state'}],
+                                # [{"name": i, "id": i} for i in df_game.columns], #['Game ID', 'Team 1 Name', 'Team 2 Name', 'Day Played', 'Process State'],# 
+                            page_current=0,
+                            page_size=5,
+                            style_as_list_view=True,
+                            style_cell={'padding': '5px', 'font_family': 'Helvetica',},
+                            style_header={
+                                'backgroundColor': '#000e44',
+                                'fontWeight': 'bold',
+                                'color': '#00c2cb',
+                            }
+                        ),
+                    ]
+                )
             ]
-        )
-    ]
 )
 
 
 main_card = dbc.Card(
-    [
-        dbc.CardHeader(
-            
-        ),
-        dbc.CardBody(
-            [
-                dbc.Button(
-                    "Game Collapse",
-                    id="collapse_button",
-                    n_clicks=0,
-                ),
-                html.Br(),
-                html.Br(),
-                dbc.Collapse(
-                    game_card,
-                    id="game_collapse",
-                    is_open=False,
-                )
-            ]
-        )
-    ]
+    id = 'main_card',
+    children = [
+                    dbc.CardBody(
+                        [
+                            dbc.Button(
+                                "See Game List",
+                                id="collapse_button",
+                                n_clicks=0,
+                            ),
+                            html.Br(),
+                            html.Br(),
+                            dbc.Collapse(
+                                game_card,
+                                id="game_collapse",
+                                is_open=False,
+                            )
+                        ]
+                    )
+                ]
 )
 
 
 entry_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                dbc.Input(id="game_input", placeholder="Game ID", type="number", min=0, step=1, style={'width': '40%', 'display': 'inline-block', "margin-left": "0px", "margin-right": "15px",}),
-                dbc.Button("Select Game", id='select_game'),
-                html.Div(id="link_output"),
-            ]
-        )
-    ]
+    id = 'entry_card',
+    children = [ dbc.CardBody(
+                        [
+                            dbc.Input(id="game_input", placeholder="Game ID", type="number", min=0, step=1, style={'width': '40%', 'display': 'inline-block', "margin-left": "0px", "margin-right": "15px",}),
+                            dbc.Button("Select Game", id='select_game'),
+                            html.Div(id="link_output"),
+                        ]
+                    )
+                ]
 )
 
 

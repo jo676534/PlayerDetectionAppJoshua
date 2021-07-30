@@ -1,50 +1,54 @@
 body {
-    font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 }
 h1, h2, h3, h4, h5,h6{
-    margin-top: 0;
-    margin-bottom: 0;
-    color: #00c2cb;
-   
+  margin-top: 0;
+  margin-bottom: 0;
+  color: #00c2cb;
+  font-style:normal;
+  font-weight: bolder;
 }
 .add_track_section_header{
-    color: #00c2cb;
-    font-weight: bolder;
+  color: #00c2cb;
+  font-weight: bolder;
 }
 
 .dashboard_input{
-   border-color: #00c2cb;
-   background-color: aliceblue;
-   font-style: italic;
-   font-size: 12px;
-   color:#000e44;
-   margin-bottom: 10px;
+ border-color: #00c2cb;
+ background-color: aliceblue;
+ font-style: italic;
+ font-size: 12px;
+ color:#000e44;
+ margin-bottom: 10px;
 }
 
-#dashboard_input_start .placeholder{
+#dashboard_input_start::-webkit-input-placeholder {
   color: #000e44;
 }
 
+#dashboard_input_final::-webkit-input-placeholder {
+  color: #000e44;
+}
 .radio_items{
-    font-size : 16px;
+  font-size : 16px;
 }
 
 #radio_players_A
-  .custom-control-input:checked
-  ~ .custom-control-label::before {
-  background-color: #00c2cb;
-  border-color: #00c2cb;
+.custom-control-input:checked
+~ .custom-control-label::before {
+background-color: #00c2cb;
+border-color: #00c2cb;
 }
 
 #radio_all_tracks
-  .custom-control-input:checked
-  ~ .custom-control-label::before {
-  background-color: #00c2cb;
-  border-color: #00c2cb;
+.custom-control-input:checked
+~ .custom-control-label::before {
+background-color: #00c2cb;
+border-color: #00c2cb;
 }
 
 .links{
-    color: #00c2cb;
+  color: #00c2cb;
 }
 
 #switches-input
@@ -55,309 +59,544 @@ border-color: #00c2cb;
 }
 
 .current_frame{
-    font-size: 18px;
-    color: #000e44;
-    font-weight: bolder;
-    margin-left: 20px;
+  font-size: 18px;
+  color: #000e44;
+  font-weight: bolder;
+  margin-left: 20px;
 }
 
 .player_card_header
 {
-    font-size: 18px;
-    font-style: normal;
+  font-size: 18px;
+  font-style: normal;
 }
 #manual_annotation_output{
-    font-size: 14px;
-    font-style: italic;
-    color:#000e44;
+  font-size: 14px;
+  font-style: italic;
+  color:#000e44;
 }
 
 #assign_track_output{
-  font-size: 14px;
-  font-style: italic;
-  color:#000e44;
+font-size: 14px;
+font-style: italic;
+color:#000e44;
 }
 
 #add_track_output{
-  margin-top: 15px;
-  font-size: 14px;
-  font-style: italic;
-  color:#000e44;
+margin-top: 15px;
+font-size: 14px;
+font-style: italic;
+color:#000e44;
 }
 
 
 /* Slider Colors */
 .rc-slider-track {
-    background-color: #00c2cb;;
-  }
-  
-  .rc-slider-dot-active {  
-    border-color: #00c2cb;
-    border: solid 2px #00c2cb;
-  }
-  
-  .rc-slider-handle {
-    background-color: #00c2cb;
-    border-color: #00c2cb;
-  }
-  
-  .rc-slider-handle:hover {
-    border-color: #00c2cb;
-  }
-  
-  .rc-slider-handle-active:active {
-    border-color: #00c2cb;
-  }
+  background-color: #00c2cb;;
+}
 
-  #dropdown_DB .Select-placeholder{
-    color: #00c2cb;
-    background-color: aliceblue;
-    border-color: #00c2cb;
-  }
+.rc-slider-dot-active {  
+  border-color: #00c2cb;
+  border: solid 2px #00c2cb;
+}
 
-  #dropdown_DB .Select-control{
-    border-color: #00c2cb;
-    border-radius: 2px;
-    border-style: solid;
-  }
+.rc-slider-handle {
+  background-color: #00c2cb;
+  border-color: #00c2cb;
+}
 
-  #dropdown_DB .Select-menu-outer{
-    border-color: #00c2cb;
-  }
-  #dropdown_DB .VirtualizedSelectFocusedOption {
-    background-color: #00c1cbd3;
-    color: aliceblue;
-  }
-  
+.rc-slider-handle:hover {
+  border-color: #00c2cb;
+}
 
-  /* .dash_layout {
-    margin-bottom: 0px;
-  }
+.rc-slider-handle-active:active {
+  border-color: #00c2cb;
+}
 
-  .container {
-    position: relative;
-    width: 100%;
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 0 20px;
-    box-sizing: border-box; }
-  .column,
-  .columns {
-    width: 100%;
-    float: left;
-    box-sizing: border-box; } */
+/*Dashboard Dropdown Menu */
+#dropdown_DB .Select-placeholder{
+  color: #00c2cb;
+  background-color: aliceblue;
+  border-color: #00c2cb;
+}
 
+#dropdown_DB .Select-control{
+  border-color: #00c2cb;
+  border-radius: 2px;
+  border-style: solid;
+}
+
+#dropdown_DB .Select-menu-outer{
+  border-color: #00c2cb;
+}
+#dropdown_DB .VirtualizedSelectFocusedOption {
+  background-color: #00c1cbd3;
+  color: aliceblue;
+}
 #all_tracks_bt{
-   color: #00c2cb;
-   border-color: #00c2cb;
-   background-color: aliceblue;
+ color: #00c2cb;
+ border-color: #00c2cb;
+ background-color: aliceblue;
 }
 #all_tracks_bt:hover {
-    color: #00c2cb;
-    border-color: #000e44;
-    background-color: #000e44;
-  }
-  #all_tracks_bt:active {
-    border-color: #00c2cb;
-    color: #000e44;
-  }
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+#all_tracks_bt:active {
+  border-color: #00c2cb;
+  color: #000e44;
+}
 
 
 #viewable_tracks_bt{
-    color: #00c2cb;
-    border-color: #00c2cb;
-    background-color: aliceblue;
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+#viewable_tracks_bt:hover {
+   color: #00c2cb;
+   border-color: #000e44;
+   background-color: #000e44;
  }
- #viewable_tracks_bt:hover {
-     color: #00c2cb;
-     border-color: #000e44;
-     background-color: #000e44;
-   }
- #viewable_tracks_bt:active {
-     border-color: #00c2cb;
-     color: #000e44;
-   }
+#viewable_tracks_bt:active {
+   border-color: #00c2cb;
+   color: #000e44;
+ }
 
 #player_tracks_bt{
-    color: #00c2cb;
-    border-color: #00c2cb;
-    background-color: aliceblue;
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+#player_tracks_bt:hover {
+   color: #00c2cb;
+   border-color: #000e44;
+   background-color: #000e44;
  }
- #player_tracks_bt:hover {
-     color: #00c2cb;
-     border-color: #000e44;
-     background-color: #000e44;
-   }
- #player_tracks_bt:active {
-     border-color: #00c2cb;
-     color: #ffffff;
-   }
+#player_tracks_bt:active {
+   border-color: #00c2cb;
+   color: #ffffff;
+ }
 
 #but7{
-    color: #00c2cb;
-    border-color: #00c2cb;
-    background-color: aliceblue;
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+#but7:hover{
+   color: #00c2cb;
+   border-color: #000e44;
+   background-color: #000e44;
  }
- #but7:hover{
-     color: #00c2cb;
-     border-color: #000e44;
-     background-color: #000e44;
-   }
- #but7:active{
-     border-color: #00c2cb;
-     color: #ffffff;
-   }
+#but7:active{
+   border-color: #00c2cb;
+   color: #ffffff;
+ }
 
 #but8{
-    color: #00c2cb;
-    border-color: #00c2cb;
-    background-color: aliceblue;
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+#but8:hover{
+   color: #00c2cb;
+   border-color: #000e44;
+   background-color: #000e44;
  }
- #but8:hover{
-     color: #00c2cb;
-     border-color: #000e44;
-     background-color: #000e44;
-   }
- #but8:active{
-     border-color: #00c2cb;
-     color: #ffffff;
-   }
+#but8:active{
+   border-color: #00c2cb;
+   color: #ffffff;
+ }
 
 #gts_all_tracks:hover{
-  color: #00c2cb;
-  border-color: #00c2cb;
-  background-color: aliceblue;
+color: #00c2cb;
+border-color: #00c2cb;
+background-color: aliceblue;
 }
 #gts_all_tracks{
-   color: #00c2cb;
-   border-color: #000e44;
-   background-color: #000e44;
- }
+ color: #00c2cb;
+ border-color: #000e44;
+ background-color: #000e44;
+}
 #gts_all_tracks:disabled{
-  color: #000e44;
-  border-color: #000e44;
-  background-color: #11256b6e;
- }
+color: #000e44;
+border-color: #000e44;
+background-color: #11256b6e;
+}
 
- #go_to_end:hover{
-  color: #00c2cb;
-  border-color: #00c2cb;
-  background-color: aliceblue;
+#go_to_end:hover{
+color: #00c2cb;
+border-color: #00c2cb;
+background-color: aliceblue;
 }
 #go_to_end{
-   color: #00c2cb;
-   border-color: #000e44;
-   background-color: #000e44;
- }
+ color: #00c2cb;
+ border-color: #000e44;
+ background-color: #000e44;
+}
 #go_to_end:disabled{
-  color: #000e44;
-  border-color: #000e44;
-  background-color: #11256b6e;
- }
+color: #000e44;
+border-color: #000e44;
+background-color: #11256b6e;
+}
 
- #delete_bt:hover{
-  color: #00c2cb;
-  border-color: #00c2cb;
-  background-color: aliceblue;
+#delete_bt:hover{
+color: #00c2cb;
+border-color: #00c2cb;
+background-color: aliceblue;
 }
 #delete_bt{
-   color: #00c2cb;
-   border-color: #000e44;
-   background-color: #000e44;
- }
+ color: #00c2cb;
+ border-color: #000e44;
+ background-color: #000e44;
+}
 #delete_bt:disabled{
-  color: #000e44;
-  border-color: #000e44;
-  background-color: #11256b6e;
- }
+color: #000e44;
+border-color: #000e44;
+background-color: #11256b6e;
+}
 
 
- /* Buttons in track_card footer */
+/* Buttons in track_card footer */
 #assign_track_bt:hover{
-  color: #00c2cb;
-  border-color: #00c2cb;
-  background-color: aliceblue;
+color: #00c2cb;
+border-color: #00c2cb;
+background-color: aliceblue;
 }
 #assign_track_bt{
-   color: #00c2cb;
-   border-color: #000e44;
-   background-color: #000e44;
- }
+ color: #00c2cb;
+ border-color: #000e44;
+ background-color: #000e44;
+}
 #dassign_track_bt:disabled{
-  color: #000e44;
-  border-color: #000e44;
-  background-color: #11256b6e;
- }
+color: #000e44;
+border-color: #000e44;
+background-color: #11256b6e;
+}
 
- #set_start{
-  color: #00c2cb;
-  border-color: #000e44;
-  background-color: #000e44;
+#set_start{
+color: #00c2cb;
+border-color: #000e44;
+background-color: #000e44;
 }
 
 #set_final{
-  color: #00c2cb;
-  border-color: #000e44;
-  background-color: #000e44;
+color: #00c2cb;
+border-color: #000e44;
+background-color: #000e44;
 }
 
 #add_track{
-  color: #00c2cb;
-  border-color: #000e44;
-  background-color: #000e44;
+color: #00c2cb;
+border-color: #000e44;
+background-color: #000e44;
 }
 
 #delete_section{
-  color: #00c2cb;
-  border-color: #000e44;
-  background-color: #000e44;
+color: #00c2cb;
+border-color: #000e44;
+background-color: #000e44;
 }
 
 #set_start:hover{
-  color: #00c2cb;
-  border-color: #00c2cb;
-  background-color: aliceblue;
+color: #00c2cb;
+border-color: #00c2cb;
+background-color: aliceblue;
 }
 #set_final:hover{
-  color: #00c2cb;
-  border-color: #00c2cb;
-  background-color: aliceblue;
+color: #00c2cb;
+border-color: #00c2cb;
+background-color: aliceblue;
 }
 #add_track:hover{
-  color: #00c2cb;
-  border-color: #00c2cb;
-  background-color: aliceblue;
+color: #00c2cb;
+border-color: #00c2cb;
+background-color: aliceblue;
 }
 #delete_section:hover{
-  color: #00c2cb;
-  border-color: #00c2cb;
-  background-color: aliceblue;
+color: #00c2cb;
+border-color: #00c2cb;
+background-color: aliceblue;
 }
 
 #go_to_add_track:hover{
-  color: #00c2cb;
-  border-color: #00c2cb;
-  background-color: aliceblue;
+color: #00c2cb;
+border-color: #00c2cb;
+background-color: aliceblue;
 }
 
 #go_to_add_track{
-  color: #00c2cb;
-  border-color: #000e44;
-  background-color: #000e44;
+color: #00c2cb;
+border-color: #000e44;
+background-color: #000e44;
 }
 
 
 /* Card Outlines*/
 #track_card{
-  border-color: #000e44;
+border-color: #000e44;
 }
 
 #team_card{
-  border-color: #000e44;
+border-color: #000e44;
 }
 
 #imagebox {
+border-color: #000e44;
+}
+
+/*-----------------------------------Add Track Page Buttons----------------------------------- */
+/* HOVER BUTTON STYLE */
+#set_start_add:hover{
+  color: #00c2cb;
+  border-color: #aafbff;
+  background-color: aliceblue;
+}
+#set_final_add:hover{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+
+#button_save:hover{
+  color: #00c2cb;
+  border-color: #aafbff;
+  background-color: aliceblue;
+}
+#button_reset:hover{
+  color: #00c2cb;
+  border-color: #aafbff;
+  background-color: aliceblue;
+}
+
+#button_quit_1:hover{
+  color: #00c2cb;
+  border-color: #aafbff;
+  background-color: aliceblue;
+}
+
+#next_page:hover{
+  color: #00c2cb;
+  border-color: #aafbff;
+  background-color: aliceblue;
+}
+
+/* BUTTON STYLE */
+
+#set_start_add{
+  color: #00c2cb;
   border-color: #000e44;
+  background-color: #000e44;
+}  
+#set_final_add{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+
+#button_save{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+#button_reset{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+
+#button_quit_1{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+
+#next_page{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+
+/*-----------------------------------Video Editor Style----------------------------------- */
+
+/* VE Dropdown */
+#dropdown_VE .Select-placeholder{
+  color: #00c2cb;
+  background-color: aliceblue;
+  border-color: #00c2cb;
+}
+#dropdown_VE .Select-control{
+  border-color: #00c2cb;
+  border-radius: 2px;
+  border-style: solid;
+}
+#dropdown_VE .Select-menu-outer{
+  border-color: #00c2cb;
+}
+#dropdown_VE .VirtualizedSelectFocusedOption {
+  background-color: #00c1cbd3;
+  color: aliceblue;
+}
+
+/* INPUT STYLES */
+#startingFrame{
+  border-color: #00c2cb;
+  background-color: aliceblue;
+  font-style: italic;
+  font-size: 12px;
+  color:#000e44;
+  margin-bottom: 10px;
+}
+
+#endingFrame{
+  border-color: #00c2cb;
+  background-color: aliceblue;
+  font-style: italic;
+  font-size: 12px;
+  color:#000e44;
+  margin-bottom: 10px;
+}
+
+#startingFrame::-webkit-input-placeholder {
+  color: #000e44;
+}
+#endingFrame::-webkit-input-placeholder {
+  color: #000e44;
 }
 
 
+/* HOVER BUTTON STYLES */
+#setStart:hover{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+#setEnd:hover{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+#jumpStart:hover{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+#jumpEnd:hover{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+#addToTrim:hover{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+
+.save-and-quit:hover{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+#save-and-continue:hover{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+
+/* BUTTON STYLES */
+#setStart{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+#setEnd{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+#jumpStart{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+#jumpEnd{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+
+#addToTrim{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+
+.save-and-quit{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+
+#save-and-continue{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+
+/* Card Outline */
+#trimmer_card{
+  border-color: #000e44;
+}
+
+/*-----------------------------------Home Page Style----------------------------------- */
+/* Card Outlines */
+#main_card{
+  border-color: #000e44;
+}
+#game_card{
+  border-color: #000e44;
+}
+#entry_card{
+  border-color: #000e44;
+}
+
+/* BUTTON STYLES */
+#select_game{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+
+#collapse_button{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+
+/* HOVER BUTTON STYLES */
+
+#select_game:hover{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+#collapse_button:hover{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+
+/* INPUT */
+#game_input{
+  border-color: #00c2cb;
+  background-color: aliceblue;
+  font-style: italic;
+  font-size: 16px;
+  color:#000e44;
+  margin-bottom: 10px;
+}
+
+#game_input::-webkit-input-placeholder {
+  color: #000e44;
+}
