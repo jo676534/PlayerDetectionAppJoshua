@@ -91,7 +91,8 @@ info_storage_add = html.Div([
 
 
 right_side = dbc.Card(
-    [
+    id = 'right_side_card',
+    children = [
         dbc.CardHeader(
             [
                 html.H2("Bounding Box Submit Area"),
@@ -128,8 +129,8 @@ right_side = dbc.Card(
                 #html.Br(),
                 html.Div(
                     [
-                        dbc.Input(id="input_start", placeholder="Start", type="number", min=0, step=1, style={'width': '25%', 'display': 'inline-block', "margin-left": "0px", "margin-right": "15px",}),
-                        dbc.Input(id="input_final", placeholder="Final", type="number", min=0, step=1, style={'width': '25%', 'display': 'inline-block', "margin-left": "15px", "margin-right": "15px",}),
+                        dbc.Input(id="input_start", placeholder="Start", type="number", min=0, step=1, style={'width': '25%', 'display': 'inline-block', "margin-left": "0px", "margin-right": "15px",}, className= 'add_track_input',),
+                        dbc.Input(id="input_final", placeholder="Final", type="number", min=0, step=1, style={'width': '25%', 'display': 'inline-block', "margin-left": "15px", "margin-right": "15px",}, className= 'add_track_input',),
                     ]
                 ),
                 html.Div(
@@ -177,7 +178,7 @@ video_card_add = dbc.Card(
                 ]),
                 dcc.Graph( # WILL HAVE TO INITIALIZE THIS AS WELL //////////////////////////////////////////////////////////////////////////////////////////
                     id="canvas_add",
-                    style={'width': '1000px', 'height': '600px'},
+                    style={'width': '970px', 'height': '600px'},
                     config={"modeBarButtonsToAdd": ["drawrect", "eraseshape"]},
                 )
             ]
@@ -246,7 +247,7 @@ layout = html.Div(
             [
                 dbc.Row(
                     [
-                        dbc.Col(video_card_add, md=7.3),
+                        dbc.Col(video_card_add, md=7),
                         dbc.Col(children=[right_side, end_buttons], md=5),
                     ],
                 ),

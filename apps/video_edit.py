@@ -108,7 +108,7 @@ video_card_VE = dbc.Card(
                             style={"width": "20%", 'margin-left': '10px',
                                 'font-size': '14px'},
                         )])
-                ], style={"margin-bottom": "3px"}
+                ], style={"margin-bottom": "0px"}
             ),
             className="player_card_header",
         ),

@@ -4,15 +4,17 @@ body {
 h1, h2, h3, h4, h5,h6{
   margin-top: 0;
   margin-bottom: 0;
-  color: #00c2cb;
+  color: #000e44;
   font-style:normal;
   font-weight: bolder;
 }
+/* -------------------------------------Dashboard Style----------------------------------------------- */
 .add_track_section_header{
-  color: #00c2cb;
+  color: #000e44;
   font-weight: bolder;
 }
 
+/* DashBoard Inputs (blank spaces) */
 .dashboard_input{
  border-color: #00c2cb;
  background-color: aliceblue;
@@ -24,11 +26,15 @@ h1, h2, h3, h4, h5,h6{
 
 #dashboard_input_start::-webkit-input-placeholder {
   color: #000e44;
+  opacity: 0.7;
 }
 
 #dashboard_input_final::-webkit-input-placeholder {
   color: #000e44;
+  opacity: 0.7;
 }
+
+/* Dashboard Radio Items (All) */
 .radio_items{
   font-size : 16px;
 }
@@ -47,10 +53,21 @@ background-color: #00c2cb;
 border-color: #00c2cb;
 }
 
+#radio_players_A .custom-control-label{
+  color: #000e44;
+  font-weight:normal;
+}
+
+#radio_all_tracks .custom-control-label{
+  color: #000e44;
+  font-weight:normal;
+}
+
 .links{
   color: #00c2cb;
 }
 
+/* Switches Styeles */
 #switches-input
 .custom-control-input:checked
 ~ .custom-control-label::before {
@@ -58,11 +75,17 @@ background-color: #00c2cb;
 border-color: #00c2cb;
 }
 
+#switches-input .custom-control-label{
+  color: #000e44;
+  font-weight: bolder;
+}
+
 .current_frame{
   font-size: 18px;
   color: #000e44;
-  font-weight: bolder;
+  font-weight: 600;
   margin-left: 20px;
+  margin-top: 15px;
 }
 
 .player_card_header
@@ -70,7 +93,9 @@ border-color: #00c2cb;
   font-size: 18px;
   font-style: normal;
 }
-#manual_annotation_output{
+
+/* Text Outputs */
+#manual_annotation_output{  
   font-size: 14px;
   font-style: italic;
   color:#000e44;
@@ -113,6 +138,20 @@ color:#000e44;
   border-color: #00c2cb;
 }
 
+.rc-slider-mark{
+  font-size: 0.7rem;
+}
+
+.rc-slider-mark-text {
+  color: #000e44;
+  font-weight: 400;
+}
+
+.rc-slider-mark-text-active  {
+  color: #000e44;
+  font-weight: 600;
+}
+
 /*Dashboard Dropdown Menu */
 #dropdown_DB .Select-placeholder{
   color: #00c2cb;
@@ -122,8 +161,18 @@ color:#000e44;
 
 #dropdown_DB .Select-control{
   border-color: #00c2cb;
-  border-radius: 2px;
-  border-style: solid;
+  box-shadow: #00c2cb;
+  background-color: aliceblue;
+}
+
+#dropdown_DB .Select-control:hover{
+  border-color: #000e44;
+  box-shadow: #000e44;
+  background-color: #000e44;
+}
+
+#dropdown_DB .Select-value-label {
+  color: #00c2cb;
 }
 
 #dropdown_DB .Select-menu-outer{
@@ -133,6 +182,8 @@ color:#000e44;
   background-color: #00c1cbd3;
   color: aliceblue;
 }
+
+/* BUTTON STYLES AND HOVER */
 #all_tracks_bt{
  color: #00c2cb;
  border-color: #00c2cb;
@@ -189,6 +240,11 @@ color:#000e44;
    border-color: #000e44;
    background-color: #000e44;
  }
+
+ #but7:focus{
+  box-shadow:#00c2cb;
+}
+
 #but7:active{
    border-color: #00c2cb;
    color: #ffffff;
@@ -346,6 +402,33 @@ border-color: #000e44;
 border-color: #000e44;
 }
 
+#imagebox .card-footer {
+  border-color: #000e44;
+}
+
+#imagebox .card-header {
+  border-color: #000e44;
+}
+
+#track_card .card-footer{
+  border-color: #000e44;
+  /* background-color: aliceblue; */
+}
+
+#track_card .card-header{
+  border-color: #000e44;
+  /* background-color: aliceblue; */
+}
+
+#team_card .card-footer{
+  border-color: #000e44;
+}
+
+#team_card .card-header{
+  border-color: #000e44;
+}
+
+
 /*-----------------------------------Add Track Page Buttons----------------------------------- */
 /* HOVER BUTTON STYLE */
 #set_start_add:hover{
@@ -418,6 +501,41 @@ border-color: #000e44;
   background-color: #000e44;
 }
 
+/* Card Outline */
+
+#right_side_card{
+  border-color: #000e44;
+}
+
+#right_side_card .card-footer{
+  border-color: #000e44;
+}
+
+#right_side_card .card-header{
+  border-color: #000e44;
+}
+
+/* Input Styles */
+
+.add_track_input {
+  border-color: #00c2cb;
+  background-color: aliceblue;
+  font-style: italic;
+  font-size: 12px;
+  color:#000e44;
+  margin-bottom: 10px;
+ }
+
+#input_start::-webkit-input-placeholder {
+  opacity: 0.7;
+  color: #000e44;
+}
+
+#input_end::-webkit-input-placeholder {
+  opacity: 0.7;
+  color: #000e44;
+}
+
 /*-----------------------------------Video Editor Style----------------------------------- */
 
 /* VE Dropdown */
@@ -426,11 +544,23 @@ border-color: #000e44;
   background-color: aliceblue;
   border-color: #00c2cb;
 }
+
 #dropdown_VE .Select-control{
   border-color: #00c2cb;
-  border-radius: 2px;
-  border-style: solid;
+  box-shadow: #00c2cb;
+  background-color: aliceblue;
 }
+
+#dropdown_VE .Select-control:hover{
+  border-color: #000e44;
+  box-shadow: #000e44;
+  background-color: #000e44;
+}
+
+#dropdown_VE .Select-value-label {
+  color: #00c2cb;
+}
+
 #dropdown_VE .Select-menu-outer{
   border-color: #00c2cb;
 }
@@ -459,9 +589,11 @@ border-color: #000e44;
 }
 
 #startingFrame::-webkit-input-placeholder {
+  opacity: 0.7;
   color: #000e44;
 }
 #endingFrame::-webkit-input-placeholder {
+  opacity: 0.7;
   color: #000e44;
 }
 
@@ -549,6 +681,14 @@ border-color: #000e44;
   border-color: #000e44;
 }
 
+#trimmer_card .card-footer{
+  border-color: #000e44;
+}
+
+#trimmer_card .card-header{
+  border-color: #000e44;
+}
+
 /*-----------------------------------Home Page Style----------------------------------- */
 /* Card Outlines */
 #main_card{
@@ -574,6 +714,12 @@ border-color: #000e44;
   background-color: #000e44;
 }
 
+#link{
+  color: #00c2cb;
+  border-color: #000e44;
+  background-color: #000e44;
+}
+
 /* HOVER BUTTON STYLES */
 
 #select_game:hover{
@@ -582,6 +728,11 @@ border-color: #000e44;
   background-color: aliceblue;
 }
 #collapse_button:hover{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+}
+#link:hover{
   color: #00c2cb;
   border-color: #00c2cb;
   background-color: aliceblue;
@@ -599,4 +750,6 @@ border-color: #000e44;
 
 #game_input::-webkit-input-placeholder {
   color: #000e44;
+  opacity: 0.7;
 }
+
