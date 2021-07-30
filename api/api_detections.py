@@ -155,11 +155,24 @@ def assign_track(game_id, player_id, track_id):
     cur1.close()
 
     cur = conn.cursor()
-    cur.execute(f'''UPDATE detections SET player_id={player_id}, initials={initials} WHERE track_id={track_id} AND game_id={game_id}''')
+    cur.execute('''UPDATE detections SET player_id=%s, initials=%s WHERE track_id=%s AND game_id=%s''', (player_id, initials, track_id, game_id))
 
     conn.commit()
     cur.close()
     conn.close()
+# ----------------------------------------------------------------------------
+
+def unassign_track(game_id, track_id):
+    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+
+    cur = conn.cursor()
+    cur.execute(f'''UPDATE detections SET player_id=-1 WHERE track_id={track_id} AND game_id={game_id}''')
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
 
 # ----------------------------------------------------------------------------
 
@@ -177,7 +190,7 @@ def get_player_frames(game_id, player_id):
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     
-    cur.execute(f'''SELECT frame FROM detections WHERE game_id={game_id} AND player_id={player_id}''')
+    cur.execute('''SELECT frame FROM detections WHERE game_id=%s AND player_id=%s''', (game_id, player_id))
     data = cur.fetchall()
         
     cols = []
