@@ -325,10 +325,26 @@ background-color: aliceblue;
  border-color: #000e44;
  background-color: #000e44;
 }
-#dassign_track_bt:disabled{
+#assign_track_bt:disabled{
 color: #000e44;
 border-color: #000e44;
 background-color: #11256b6e;
+}
+
+#unassign_track_bt:hover{
+  color: #00c2cb;
+  border-color: #00c2cb;
+  background-color: aliceblue;
+  }
+#unassign_track_bt{
+   color: #00c2cb;
+   border-color: #000e44;
+   background-color: #000e44;
+}
+#unassign_track_bt:disabled{
+  color: #000e44;
+  border-color: #000e44;
+  background-color: #11256b6e;
 }
 
 #set_start{

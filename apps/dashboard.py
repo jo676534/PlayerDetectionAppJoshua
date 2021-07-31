@@ -60,8 +60,8 @@ def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, show_in
     else: 
         line_color = "#0600b3" # blue (is assigned)
 
-    # determines showing initials vs track_id
-    if show_initials and track_id != -1 and initials:
+    # determines initials or player_id
+    if show_initials and player_id != -1 and initials:
         header = initials
     else:
         header = str(track_id)
@@ -343,8 +343,11 @@ team_card = dbc.Card(
             [
                 html.Div(id='container', children=
                     [
-                        dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}, disabled=True),
-                                dbc.Spinner(html.Div(id="assign_track_output")),],
+                        dbc.Col(children = 
+                                        [dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}, disabled=True),
+                                         dbc.Button("Unassign Track", id = 'unassign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}, disabled=True),
+                                         dbc.Spinner(html.Div(id="assign_track_output")),
+                                        ],
                                 align = 'center',),
                         dbc.Col([dbc.RadioItems(
                         options=
@@ -613,9 +616,12 @@ def display(btn1, btn2, game_id):
     # Dash component for team A
     sectionA = html.Div([
         html.Div(children=[
-        dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-                dbc.Spinner(html.Div(id="assign_track_output")),],
-                align = 'center',),
+        dbc.Col(children = [
+                    dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                    dbc.Button("Unassign Track", id = 'unassign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                    dbc.Spinner(html.Div(id="assign_track_output")),
+                ],
+                                align = 'center',),
         dbc.Col([dbc.RadioItems(
         options=[
             {'label': "("+ str(a_row.iloc[i]["jersey"]) + ") "+ str(a_row.iloc[i]["name"]), 'value': str(a_row.iloc[i]["player_id"])} for i in range(0, len(a_row))],
@@ -636,8 +642,11 @@ def display(btn1, btn2, game_id):
     # Dash component for team B
     sectionB = html.Div([
         html.Div(children=[
-        dbc.Col([dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}),
-                dbc.Spinner(html.Div(id="assign_track_output")),],
+        dbc.Col(children =[
+                    dbc.Button("Assign Track", id = 'assign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"}, ),
+                    dbc.Button("Unassign Track", id = 'unassign_track_bt',color="secondary",block = True, style={"font-size": "12px","margin-bottom":"10px"},),
+                    dbc.Spinner(html.Div(id="assign_track_output")),
+                ],
                 align = 'center',),
         dbc.Col([dbc.RadioItems(
         options=[
@@ -910,30 +919,49 @@ def update_output(value):
     Output('hidden-div', 'children'),
     Output("assign_track_output", "children"),
     Input('assign_track_bt', 'n_clicks'),
+    Input('unassign_track_bt', 'n_clicks'),
     State('radio_all_tracks', 'value'),
     State("radio_players_A", 'value'),
     State("game_id", "data"),
     State('slider_DB', 'min'),
     State('slider_DB', 'max'),
     prevent_initial_call=True)
-def update_player_tracks(assignBt, track_id, player_id, game_id, slider_min, slider_max):
-    if assignBt:
-        global df_detections
+def update_player_tracks(assignBt, unassignBt, track_id, player_id, game_id, slider_min, slider_max):
+    global df_detections
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
 
-        cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    if cbcontext == 'assign_track_bt.n_clicks':
+        if not assignBt:
+            return None, None
+        
+        if player_id is None:
+            return None, "Must select a player."
+        if track_id is None:
+            return None, "Must select a track."
         
         player_frames = api_detections.get_player_frames(game_id, player_id)
         track_frames = api_detections.get_track_frames(game_id, track_id)
         intersection = [val for val in track_frames if val in player_frames]
 
-        if cbcontext == 'assign_track_bt.n_clicks':
-            if intersection: 
-                api_detections.delete_detection_list(game_id, track_id, intersection)
-            api_detections.assign_track(game_id, player_id, track_id)
+        if intersection: 
+            api_detections.delete_detection_list(game_id, track_id, intersection)
+        api_detections.assign_track(game_id, player_id, track_id)
         
         df_detections = api_detections.get_detection_data(game_id, slider_min, slider_max)
 
         return None, "Track successfully assigned."
+
+    if unassignBt:
+        if not unassignBt:
+            return None, None
+
+        if track_id is None:
+            return None, "Must select a track."
+
+        api_detections.unassign_track(game_id, track_id) 
+        df_detections = api_detections.get_detection_data(game_id, slider_min, slider_max)
+
+        return None, "Track successfully unassigned."
     else:
         return None, None
 
@@ -952,6 +980,7 @@ def update_player_tracks(assignBt, track_id, player_id, game_id, slider_min, sli
     prevent_initial_call=True)
 def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
     global df_detections
+    print("delete called")
 
     if not delete_bt:
         return (None, None, None, None)
@@ -960,6 +989,7 @@ def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
         return (None, None, None, "Select a track first.")
 
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    print(cbcontext)
     if cbcontext == 'delete_bt.n_clicks':
         api_detections.delete_track(game_id, track_id)
 
@@ -1054,6 +1084,7 @@ def get_frame(current_frame):
     Input('switches-input', 'value'),
     Input("hidden_div_j0", "children"),
     Input("hidden_div_j3", "children"),
+    Input('hidden-div', 'children'),
     # end of draw inupts 
 
     Input('frame_DB', 'data'),
@@ -1062,7 +1093,7 @@ def get_frame(current_frame):
     State('slider_DB', 'min'),
     State('slider_DB', 'max'),
     State("game_id", "data"),)
-def update_player(switches_value, hiddenj0, hiddenj3, current_frame, section, frame_data, slider_min, slider_max, game_id):
+def update_player(switches_value, hiddenj0, hiddenj3, hidden, current_frame, section, frame_data, slider_min, slider_max, game_id):
     fig = px.imshow(get_frame(current_frame-1), binary_backend="jpg") # should subtract 1 b/c the video's frames are zero indexed while the slider is 1 indexed 
     fig.update_layout(
         xaxis= {
