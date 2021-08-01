@@ -519,7 +519,6 @@ def manual_annotation(graph_relayout, frame, player_id, game_id, slider_min, sli
     Input("set_start", "n_clicks"),
     State('slider_DB', 'value'))
 def set_start_frame(n_clicks, frame):
-    # probably want to include the values for the other side (and this goes for that side too) to ensure they don't pass each other in negative ways
     if n_clicks is not None:
         return frame
 
