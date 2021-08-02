@@ -36,7 +36,6 @@ maxFrames = 0
 
 # Global Variables and Data Structures
 track_state = 0
-df_teams = None
 df_players = None
 df_detections = None
 team_a_id = None
@@ -519,7 +518,6 @@ def manual_annotation(graph_relayout, frame, player_id, game_id, slider_min, sli
     Input("set_start", "n_clicks"),
     State('slider_DB', 'value'))
 def set_start_frame(n_clicks, frame):
-    # probably want to include the values for the other side (and this goes for that side too) to ensure they don't pass each other in negative ways
     if n_clicks is not None:
         return frame
 
@@ -1322,7 +1320,6 @@ def initialize_globals(test, game_id):
     State('game_id', 'data'),)
 def initializer(dropdown_value, stored_section_value, game_id):
     global df_detections
-    global df_teams
     global df_players
     global team_a_id
     global team_b_id
@@ -1335,7 +1332,6 @@ def initializer(dropdown_value, stored_section_value, game_id):
 
     # initializer of info ----------------------------------------------
     df_detections = api_detections.get_detection_data(game_id, minFrame, maxFrame)
-    df_teams = api_team.get_teams(game_id)
     df_players = api_player.get_players_roster(game_id)
     team_a_id, team_b_id = api_game.get_team_ids(game_id)
 

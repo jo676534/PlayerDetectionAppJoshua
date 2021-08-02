@@ -60,3 +60,11 @@ def get_team_ids(game_id):
     b_id = game.iloc[0]["team2_id"]
 
     return a_id, b_id
+
+
+# conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+# cur = conn.cursor()
+# cur.execute('''UPDATE game SET process_state=%s WHERE game_id=%s''', (str(4), game_id)) # 4 for the start of the algo, 5 for the end of the algo
+# conn.commit()
+# cur.close()
+# conn.close()
