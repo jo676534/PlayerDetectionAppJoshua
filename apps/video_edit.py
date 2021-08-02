@@ -13,7 +13,7 @@ import math
 
 from app import app
 
-filename = "./Videos/game_0.mp4"
+filename = "./Videos/game_0_untrimmed.mp4"
 vidcap = cv2.VideoCapture(filename)
 
 # OpenCV2 version 2 used "CV_CAP_PROP_FPS"
