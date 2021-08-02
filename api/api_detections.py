@@ -133,9 +133,11 @@ def get_partial_frame_detections(game_id, start_frame, final_frame):
         cols = []
         for elt in cur_temp.description:
             cols.append(elt[0])
-        
-        dic[frame] = pd.DataFrame(data=data, columns=cols)
+        print(cols)
 
+        if data: dic[frame] = pd.DataFrame(data=data, columns=cols)
+        else: dic[frame] = []
+        
         cur_temp.close()
         frame += 1
     
@@ -192,19 +194,22 @@ def get_player_frames(game_id, player_id):
     
     cur.execute('''SELECT frame FROM detections WHERE game_id=%s AND player_id=%s''', (game_id, player_id))
     data = cur.fetchall()
-        
-    cols = []
-    for elt in cur.description:
-        cols.append(elt[0])
-        
-    df = pd.DataFrame(data=data, columns=cols)
 
-    frame_list = df['frame'].tolist()
+    if data:
+        cols = []
+        for elt in cur.description:
+            cols.append(elt[0])
+            
+        df = pd.DataFrame(data=data, columns=cols)
 
-    cur.close()
-    conn.close()
-    
-    return frame_list
+        frame_list = df['frame'].tolist()
+
+        cur.close()
+        conn.close()
+        
+        return frame_list
+    else:
+        return []
 
 # ----------------------------------------------------------------------------
 
@@ -214,19 +219,22 @@ def get_track_frames(game_id, track_id):
     
     cur.execute(f'''SELECT frame FROM detections WHERE game_id={game_id} AND track_id={track_id}''')
     data = cur.fetchall()
-        
-    cols = []
-    for elt in cur.description:
-        cols.append(elt[0])
-        
-    df = pd.DataFrame(data=data, columns=cols)
-
-    frame_list = df['frame'].tolist()
-
-    cur.close()
-    conn.close()
     
-    return frame_list
+    if data:
+        cols = []
+        for elt in cur.description:
+            cols.append(elt[0])
+            
+        df = pd.DataFrame(data=data, columns=cols)
+
+        frame_list = df['frame'].tolist()
+
+        cur.close()
+        conn.close()
+        
+        return frame_list
+    else:
+        return []
 
 # ----------------------------------------------------------------------------
 

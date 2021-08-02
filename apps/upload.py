@@ -229,6 +229,7 @@ def set_team_a(n_clicks):
     if n_clicks is not None:
         return t_id
 
+
 # set team b
 @app.callback(
     Output("team_b_id", "value"),
@@ -238,4 +239,47 @@ def set_team_b(n_clicks):
     global t_id
     if n_clicks is not None:
         return t_id
+
+
+@app.callback(
+    Output("team_a_name", "children"),
+    Input("team_a_id", "value"),
+    prevent_initial_callback=True)
+def get_a_name(team_id):
+    if(team_id is None): return None
+    sql = f'''SELECT * FROM df_team WHERE team_id={team_id}'''
+    df_out = ps.sqldf(sql)
+    if(len(df_out) == 0):
+        return "Invalid Team ID"
+    else:
+        for index, df in df_out.iterrows():
+            return df['name']
+
+
+@app.callback(
+    Output("team_b_name", "children"),
+    Input("team_b_id", "value"),
+    prevent_initial_callback=True)
+def get_b_name(team_id):
+    if(team_id is None): return None
+    sql = f'''SELECT * FROM df_team WHERE team_id={team_id}'''
+    df_out = ps.sqldf(sql)
+    if(len(df_out) == 0):
+        return "Invalid Team ID"
+    else:
+        for index, df in df_out.iterrows():
+            return df['name']
+
+
+
+
+
+
+
+
+
+
+
+
+
 
