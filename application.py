@@ -65,7 +65,7 @@ navbar = dbc.Navbar(
                                                     dbc.DropdownMenuItem(dcc.Link('Video Editor', href='/apps/video_edit')),
                                                     dbc.DropdownMenuItem(dcc.Link('Dashboard', href='/apps/dashboard')),
                                                     dbc.DropdownMenuItem(dcc.Link('Add Track', href='/apps/add_track')),
-                                                    dbc.DropdownMenuItem(dcc.Link('Final Review', href='/apps/final_review')),
+                                                    # dbc.DropdownMenuItem(dcc.Link('Upload', href='/apps/upload')),
                                                 ],
                                                 nav=True,
                                                 in_navbar=True,
