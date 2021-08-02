@@ -46,8 +46,6 @@ new_section = False
 # Functions start here ====================================================================================================================
 
 
-
-
 def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, show_initials, name=None, color=None, opacity=1, group=None, text=None):
     # could put code here to determine colors
     line_color = ""
@@ -101,7 +99,7 @@ def add_editable_box(fig, track_id, player_id, initials, x0, y0, x1, y1, show_in
     )
 
 
-
+# Dash components start here ====================================================================================================================
 
 
 info_storage_DB = html.Div([
@@ -286,7 +284,7 @@ track_card = dbc.Card(
                                 ],
                                 align = 'center',
                                 style={'width': '100%', 
-                                            'height': '437px', 
+                                            'height': '472px', 
                                             'overflow': 'scroll', 
                                             'padding': '10px 10px 10px 20px'
                                 }), 
@@ -297,7 +295,7 @@ track_card = dbc.Card(
         ),
         dbc.CardFooter(
             [
-                html.H6("Add Track Section", className = "add_track_section_header", style={'margin-bottom':'5px'}),
+                html.H6("Add Track & Delete Section", className = "add_track_section_header", style={'margin-bottom':'5px'}),
                 html.Div(
                     [
                         dbc.Input(id="dashboard_input_start", placeholder="Start", type="number", min=0, step=1, className= "dashboard_input"), # value
@@ -360,7 +358,7 @@ team_card = dbc.Card(
                         )],
                         align = 'center',
                         style={'width': '250px', 
-                            'height': '670px', 
+                            'height': '630px', 
                             'overflow': 'scroll', 
                             'padding': '10px 10px 10px 20px'
                             }), 
@@ -370,7 +368,7 @@ team_card = dbc.Card(
         ),
         dbc.CardFooter(
             [
-
+                dbc.Button("Run Homography", id="homography_modal_bt", n_clicks=0),
             ]
         ),
     ],
@@ -400,9 +398,7 @@ layout = html.Div(  # was app.layout
 )
 
 
-
-
-
+# Dash callbacks start here ====================================================================================================================
 
 
 # manual annotation callback
@@ -420,7 +416,7 @@ def manual_annotation(graph_relayout, frame, player_id, game_id, slider_min, sli
     global df_detections
 
     if (not 'shapes' in graph_relayout):
-        return "Please do not resize boxes, that is not supported", None
+        return None, None # "Please do not resize boxes, that is not supported", None
     
     sql = f'''SELECT * FROM df_detections WHERE game_id={game_id} AND frame={frame}'''
     df_frame = ps.sqldf(sql)
@@ -607,9 +603,9 @@ def display(btn1, btn2, game_id):
 
     if not team_a_id or not team_b_id: team_a_id, team_b_id = api_game.get_team_ids(game_id)
     # Players in team A
-    a_row = df_players[df_players["team_id"] == team_a_id] # HERE
+    a_row = df_players[df_players["team_id"] == team_a_id]
     # Players in team B
-    b_row = df_players[df_players["team_id"] == team_b_id] # HERE
+    b_row = df_players[df_players["team_id"] == team_b_id]
     
     # Dash component for team A
     sectionA = html.Div([
@@ -629,7 +625,7 @@ def display(btn1, btn2, game_id):
         )],
         align = 'center',
         style={'width': '250px', 
-            'height': '670px', 
+            'height': '630px', 
             'overflow': 'scroll', 
             'padding': '10px 10px 10px 20px'
             }), 
@@ -654,7 +650,7 @@ def display(btn1, btn2, game_id):
         )],
         align = 'center',
         style={'width': '250px', 
-            'height': '670px', 
+            'height': '630px', 
             'overflow': 'scroll', 
             'padding': '10px 10px 10px 20px'
             }), 
@@ -715,7 +711,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, player_id, hidden_div_j2, switche
                 )],
                 align = 'center',
                 style={'width': '100%', 
-                            'height': '437px', 
+                            'height': '472px', 
                             'overflow': 'scroll', 
                             'padding': '10px 10px 10px 20px'
                     }), 
@@ -786,7 +782,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, player_id, hidden_div_j2, switche
                 )],
                 align = 'center',
                 style={'width': '100%', 
-                            'height': '437px', 
+                            'height': '472px', 
                             'overflow': 'scroll', 
                             'padding': '10px 10px 10px 20px'
                     }), 
@@ -817,7 +813,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, player_id, hidden_div_j2, switche
                                 className= "radio_items",
                             align = 'center',
                             style={'width': '100%', 
-                                    'height': '437px', 
+                                    'height': '472px', 
                                     'overflow': 'scroll', 
                                     'padding': '10px 10px 10px 20px'}), 
                         ],)
@@ -844,7 +840,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, player_id, hidden_div_j2, switche
                             className= "radio_items",
                             align = 'center',
                             style={'width': '100%', 
-                                    'height': '437px', 
+                                    'height': '472px', 
                                     'overflow': 'scroll', 
                                     'padding': '10px 10px 10px 20px'}), 
                                 ],)
@@ -873,7 +869,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, player_id, hidden_div_j2, switche
                             className= "radio_items",
                             align = 'center',
                             style={'width': '100%', 
-                                    'height': '437px', 
+                                    'height': '472px', 
                                     'overflow': 'scroll', 
                                     'padding': '10px 10px 10px 20px'}), 
                                 ],)
@@ -895,7 +891,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, player_id, hidden_div_j2, switche
                                         className= "radio_items",
                                     align = 'center',
                                     style={'width': '100%', 
-                                            'height': '437px', 
+                                            'height': '472px', 
                                             'overflow': 'scroll', 
                                             'padding': '10px 10px 10px 20px'}), 
                                 ],)
@@ -978,7 +974,6 @@ def update_player_tracks(assignBt, unassignBt, track_id, player_id, game_id, sli
     prevent_initial_call=True)
 def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
     global df_detections
-    print("delete called")
 
     if not delete_bt:
         return (None, None, None, None)
@@ -987,7 +982,6 @@ def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
         return (None, None, None, "Select a track first.")
 
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-    print(cbcontext)
     if cbcontext == 'delete_bt.n_clicks':
         api_detections.delete_track(game_id, track_id)
 
@@ -1128,8 +1122,8 @@ def player_state(play_button, video_state, interval_state):
 
     video_state = not video_state 
     interval_state = not interval_state
-    print(interval_state)
     return video_state, text, interval_state
+
 
 # frame update based on what button was pressed
 @app.callback(
@@ -1156,7 +1150,6 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
     global df_detections
     global first_time
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-    print(cbcontext) 
     if first_time:
         first_time = False
         return data, data

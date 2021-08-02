@@ -313,6 +313,16 @@ border-color: #000e44;
 background-color: #11256b6e;
 }
 
+#homography_modal_bt:hover{
+color: #00c2cb;
+border-color: #00c2cb;
+background-color: aliceblue;
+}
+#homography_modal_bt{
+color: #00c2cb;
+border-color: #000e44;
+background-color: #000e44;
+}
 
 /* Buttons in track_card footer */
 #assign_track_bt:hover{

@@ -78,6 +78,7 @@ entry_card = dbc.Card(
 layout = html.Div([
     html.Br(),
     html.H1('Sports Science AI Home Page', style={'textAlign': 'center'}),
+    html.Div(id="hidden_div_game_reset"),
     dbc.Container(
         [
             html.Div(id="link_location"),
@@ -125,6 +126,7 @@ def game_collapse(n_clicks, is_open):
     Output("link_output", "children"),
     Output("game_id", "data"), # outputs to the game_id dcc.store on index page
     Output("video_path", "data"), # outputs to the video link dcc.store on index
+    Output("hidden_div_game_reset", "children"),
     Input("select_game", "n_clicks"),
     State("game_input", "value"),
     State("game_id", "data"),
@@ -156,9 +158,9 @@ def select_game(n_clicks, game_id, game_id_storage):
         else:
             error = 1
         
-        return output, game_id, "Path"
+        return output, game_id, "Path", None
     else:
-        return None, game_id_storage, None
+        return None, game_id_storage, None, None
 
 
 # need to do the following:
