@@ -384,9 +384,9 @@ layout = html.Div(  # was app.layout
             [
                 dbc.Row(
                     [
-                        dbc.Col(video_card_DB, md=7.5),
-                        dbc.Col(track_card, md=2.5),
-                        dbc.Col(team_card, md=2.5),
+                        dbc.Col(video_card_DB, xs =7.5, sm = 7.5, md = 7.5, lg = 7.5, xl = 7.5),
+                        dbc.Col(track_card, xs =2.5, sm = 2.5, md = 2.5, lg = 2.5, xl = 2.5),
+                        dbc.Col(team_card, xs =2.5, sm = 2.5, md = 2.5, lg = 2.5, xl = 2.5),
 
                     ],
                 ),
