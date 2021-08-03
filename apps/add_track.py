@@ -305,8 +305,6 @@ def submit_box(n_clicks, graph_relayout, start_frame, final_frame):
 
 def get_frame(current_frame):
     vidcap = cv2.VideoCapture(filename)
-    print(f"\nCV2: {cv2.CAP_PROP_POS_FRAMES}")
-    print(f"Current Frame: {current_frame}")
     vidcap.set(cv2.CAP_PROP_POS_FRAMES, current_frame)
     hasFrames, image = vidcap.read()
     if not hasFrames: return None 
@@ -527,7 +525,6 @@ def save_detection(save_clicks, reset_clicks, start_input, final_input, start_fr
     global detections_df
 
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-    print(cbcontext)
 
     # first check for if it was reset button
     if cbcontext == "button_reset.n_clicks":
