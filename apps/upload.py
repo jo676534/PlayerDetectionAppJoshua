@@ -12,12 +12,16 @@ import dash
 from app import app
 
 from api import api_team
+from api import api_player
 
 # Globals start here ========================
 
 df_team = api_team.get_teams()
-name = None
+df_player = api_player.get_players()
+t_name = None
 t_id = None
+p_name = None
+p_id = None
 
 # Dash components start here ================
 
@@ -27,10 +31,89 @@ main_upload_card = dbc.Card(
         dbc.CardHeader(
             [
                 html.H2("Player Info Card"),
+                html.Br(),
+                html.Div("Player ID:", style={'display': 'inline-block'}),
+                dbc.Input(id="player_id_input", placeholder="Player ID", type="number", min=0, step=1, style={'width': '15%', 'display': 'inline-block', "margin-left": "10px", "margin-right": "15px",}, className= 'add_track_input',),
+                html.Div(id="player_name_output", style={'display': 'inline-block'}),
+                html.Br(),
+                dbc.Button("Find Player ID", id="player_open_modal", style={'display': 'inline-block'}),
+                dbc.Button("Add to Team A", id="add_player_a", style={'display': 'inline-block', "margin-left": "20px"}),
+                dbc.Button("Add to Team B", id="add_player_b", style={'display': 'inline-block', "margin-left": "20px"}),
+                html.Br(),
+                html.Div(id="add_player_output"),
+                dbc.Modal(
+                    [
+                        dbc.ModalHeader("Player ID Search"),
+                        dbc.ModalBody(
+                            [
+                                html.Div("Player Name:", style={'display': 'inline-block'}),
+                                dbc.Input(id="player_name_input", placeholder="Player Name", style={'width': '30%', 'display': 'inline-block', "margin-left": "15px", "margin-right": "15px",}, className= 'add_track_input',),
+                                dbc.Button("Search", id="player_search", style={'display': 'inline-block'}),
+                                dbc.Button("Add New player", id="add_new_player", style={'display': 'inline-block', "margin-left": "15px"}),
+                                html.Br(),
+                                html.Div("Search Result:", style={'display': 'inline-block', 'margin-right': "10px"}),
+                                html.Div(id="player_serach_output", style={'display': 'inline-block'}),
+                                html.Br(),
+                                html.Div(
+                                    [
+                                        dbc.Button("Confirm", id="confirm_player", style={'display': 'inline-block', "margin-right": "15px"}),
+                                        dbc.Button("Deny", id="deny_player", style={'display': 'inline-block'}),
+                                    ],
+                                    id="player_button_div",
+                                    style={'display': 'none'},
+                                ),
+                                html.Div(
+                                    [
+                                        dbc.Button("Add to Team A", id="add_player_a_modal", style={'display': 'inline-block', "margin-right": "15px"}),
+                                        dbc.Button("Add to Team B", id="add_player_b_modal", style={'display': 'inline-block'}),
+                                    ],
+                                    id="player_add_div",
+                                    style={'display': 'none'},
+                                ),
+                                html.Hr(),
+                                html.H5("Player List"),
+                                # dash_table.DataTable(
+                                #     id='player_table',
+                                #     columns=[
+                                #         {'name': 'Team ID', 'id': 'team_id'}, 
+                                #         {'name': 'Team Name', 'id': 'name'}, 
+                                #     ],
+                                #     page_current=0,
+                                #     page_size=20,
+                                #     style_as_list_view=True,
+                                #     style_cell={'padding': '5px', 'font_family': 'Helvetica', 'textAlign': 'left'},
+                                #     style_header={
+                                #         'backgroundColor': '#000e44',
+                                #         'fontWeight': 'bold',
+                                #         'color': '#00c2cb',
+                                #     }
+                                # )
+                            ]
+                        ),
+                        dbc.ModalFooter(
+                            [
+                                dbc.Button("Close Modal", id="player_close_modal", n_clicks=0)
+                            ]
+                        ),
+                    ],
+                    id="player_modal",
+                    size="lg",
+                    scrollable=True,
+                    is_open=False,
+                ),
             ]
         ),
         dbc.CardBody(
-            "Player data input table"
+            [
+                "Team A Table",
+                html.Br(),
+                html.Div(id="player_table_a"),
+                html.Br(),
+                html.Hr(),
+                "Team B Table",
+                html.Br(),
+                html.Div(id="player_table_b"),
+            ]
         ),
         dbc.CardFooter(
             "Submit zone"
@@ -149,14 +232,28 @@ layout = html.Div([
 ])
 
 
-# modal toggle callback
+
+# team modal toggle callback
 @app.callback(
     Output("team_modal", "is_open"),
     Input("team_open_modal", "n_clicks"), 
     Input("team_close_modal", "n_clicks"),
     State("team_modal", "is_open"),
     prevent_initial_call=True)
-def toggle_modal(open, close, is_open):
+def toggle_team_modal(open, close, is_open):
+    if open or close:
+        return not is_open
+    return is_open
+
+
+# player modal toggle callback
+@app.callback(
+    Output("player_modal", "is_open"),
+    Input("player_open_modal", "n_clicks"), 
+    Input("player_close_modal", "n_clicks"),
+    State("player_modal", "is_open"),
+    prevent_initial_call=True)
+def toggle_player_modal(open, close, is_open):
     if open or close:
         return not is_open
     return is_open
@@ -185,7 +282,7 @@ def update_table(page_current, page_size, sort_by):
     State("team_name", "value"),
     prevent_inital_callback=True)
 def search_team(search_clicks, add_clicks, confirm, deny, team_name):
-    global name
+    global t_name
     global t_id
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
 
@@ -198,15 +295,15 @@ def search_team(search_clicks, add_clicks, confirm, deny, team_name):
             return "No teams were found with that name.", {'display': 'none'}, {'display': 'none'}
         else:
             for index, df in df_out.iterrows():
-                name = df['name']
+                t_name = df['name']
                 id = df['team_id']
                 t_id = int(id)
-                return(f"Team ID: {id}, Team Name: {name}", {'display': 'none'}, {'display': 'block'})
+                return(f"Team ID: {id}, Team Name: {t_name}", {'display': 'none'}, {'display': 'block'})
 
     elif(cbcontext == "add_team.n_clicks" and add_clicks):
-        name = team_name
+        t_name = team_name
         if(team_name is None): return("Please enter a team name first.", {'display': 'none'}, {'display': 'none'})
-        return(f"This will create a new team named \"{name}\". Are you sure?", {'display': 'block'}, {'display': 'none'})
+        return(f"This will create a new team named \"{t_name}\". Are you sure?", {'display': 'block'}, {'display': 'none'})
 
     elif(cbcontext == "confirm_team.n_clicks" and confirm):
         # here need to commit the team to the database
@@ -217,7 +314,33 @@ def search_team(search_clicks, add_clicks, confirm, deny, team_name):
 
     else:
         return(None, {'display': 'none'}, {'display': 'none'})
-    
+
+
+# player search modal callback
+@app.callback(
+    Output("player_serach_output", "children"),
+    Input("player_search", "n_clicks"),
+    State("player_name_input", "value"),
+    prevent_inital_callback=True)
+def search_player(search_clicks, player_name):
+    global p_id
+    global p_name
+
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    if(cbcontext == "player_search.n_clicks" and search_clicks):
+        sql = f'''SELECT * FROM df_player WHERE name like '%{player_name}%' '''
+        df_out = ps.sqldf(sql)
+        if(len(df_out) > 1):
+            return f"This query returned {len(df_out)} teams. Please be more specific." # , {'display': 'none'}, {'display': 'none'}
+        elif(len(df_out) == 0):
+            return "No teams were found with that name." # , {'display': 'none'}, {'display': 'none'}
+        else:
+            for index, df in df_out.iterrows():
+                p_name = df['name']
+                id = df['player_id']
+                t_id = int(id)
+                return f"Player ID: {id}, Player Name: {p_name}" # , {'display': 'none'}, {'display': 'block'})
+
 
 # set team a
 @app.callback(
