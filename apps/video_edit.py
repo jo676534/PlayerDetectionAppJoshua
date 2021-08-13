@@ -82,8 +82,8 @@ def getSections(sections):
 
 
 info_storage_VE = html.Div([
-    dcc.Store(id='section_VE', storage_type='local', data=0),
-    dcc.Store(id='frame_VE', storage_type='local', data=1),
+    dcc.Store(id='section_VE', storage_type='memory', data=0),
+    dcc.Store(id='frame_VE', storage_type='memory', data=1),
     dcc.Store(id='video_state_VE', storage_type='session', data=False),
 ])
 
