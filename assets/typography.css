@@ -313,6 +313,16 @@ border-color: #000e44;
 background-color: #11256b6e;
 }
 
+#homography_modal_bt:hover{
+color: #00c2cb;
+border-color: #00c2cb;
+background-color: aliceblue;
+}
+#homography_modal_bt{
+color: #00c2cb;
+border-color: #000e44;
+background-color: #000e44;
+}
 
 /* Buttons in track_card footer */
 #assign_track_bt:hover{
@@ -769,3 +779,44 @@ border-color: #000e44;
   opacity: 0.7;
 }
 
+/* Screen Sizes */
+@media only screen and (max-width: 600px) {
+  body {
+    background-color: lightblue;
+  }
+}
+
+
+/* [class*="col-"] {
+  width: 100%;
+} */
+
+ /* @media only screen and (max-width: 1820px) {
+
+    #imagebox {
+      width: 70%;
+    }
+
+    #team_card {
+      width: 70%;
+    }
+    #track_card {
+      width: 70%
+    }
+}  */
+
+/* @media only screen and (min-width: 768px) {
+ 
+  .col-1 {width: 8.33%;}
+  .col-2 {width: 16.66%;}
+  .col-3 {width: 25%;}
+  .col-4 {width: 33.33%;}
+  .col-5 {width: 41.66%;}
+  .col-6 {width: 50%;}
+  .col-7 {width: 58.33%;}
+  .col-8 {width: 66.66%;}
+  .col-9 {width: 75%;}
+  .col-10 {width: 83.33%;}
+  .col-11 {width: 91.66%;}
+  .col-12 {width: 100%;}
+} */

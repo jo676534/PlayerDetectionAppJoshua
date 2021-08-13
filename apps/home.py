@@ -13,29 +13,29 @@ df_game = api_game.get_unfinished_games()
 game_card = dbc.Card(
     id = 'game_card',
     children = [
-                dbc.CardBody(
-                    [
-                        dash_table.DataTable(
-                            id='game_table', 
-                            columns= [{'name': 'Game ID', 'id': 'game_id'},
-                                {'name': 'Team 1 Name', 'id': 'team1_name'}, 
-                                {'name': 'Team 2 Name', 'id': 'team2_name'}, 
-                                {'name': 'Date Played', 'id': 'day_played'}, 
-                                {'name': 'Process State', 'id': 'process_state'}],
-                                # [{"name": i, "id": i} for i in df_game.columns], #['Game ID', 'Team 1 Name', 'Team 2 Name', 'Day Played', 'Process State'],# 
-                            page_current=0,
-                            page_size=5,
-                            style_as_list_view=True,
-                            style_cell={'padding': '5px', 'font_family': 'Helvetica',},
-                            style_header={
-                                'backgroundColor': '#000e44',
-                                'fontWeight': 'bold',
-                                'color': '#00c2cb',
-                            }
-                        ),
-                    ]
-                )
+        dbc.CardBody(
+            [
+                dash_table.DataTable(
+                    id='game_table', 
+                    columns= [{'name': 'Game ID', 'id': 'game_id'},
+                        {'name': 'Team 1 Name', 'id': 'team1_name'}, 
+                        {'name': 'Team 2 Name', 'id': 'team2_name'}, 
+                        {'name': 'Date Played', 'id': 'day_played'}, 
+                        {'name': 'Process State', 'id': 'process_state'}],
+                        # [{"name": i, "id": i} for i in df_game.columns], #['Game ID', 'Team 1 Name', 'Team 2 Name', 'Day Played', 'Process State'],# 
+                    page_current=0,
+                    page_size=5,
+                    style_as_list_view=True,
+                    style_cell={'padding': '5px', 'font_family': 'Helvetica',},
+                    style_header={
+                        'backgroundColor': '#000e44',
+                        'fontWeight': 'bold',
+                        'color': '#00c2cb',
+                    }
+                ),
             ]
+        )
+    ]
 )
 
 
@@ -78,6 +78,7 @@ entry_card = dbc.Card(
 layout = html.Div([
     html.Br(),
     html.H1('Sports Science AI Home Page', style={'textAlign': 'center'}),
+    html.Div(id="hidden_div_game_reset"),
     dbc.Container(
         [
             html.Div(id="link_location"),
@@ -93,6 +94,7 @@ layout = html.Div([
     ), 
 ])
 
+
 # callback to create the table
 @app.callback(
     Output('game_table', 'data'),
@@ -104,8 +106,8 @@ def update_table(page_current,page_size,sort_by): # 'Game ID', 'Team 1 Name', 'T
     global df_game
     if 'user_id' in df_game:
         df_game = df_game.drop(['user_id', 'team1_id', 'team2_id', 'day_uploaded', 'video_original', 'video_modified'], axis=1)
-    #print([{"name": i, "id": i} for i in df_game.columns])
     return df_game.to_dict('records')
+
 
 # Collapse callback
 @app.callback(
@@ -118,11 +120,13 @@ def game_collapse(n_clicks, is_open):
         return not is_open
     return is_open
 
+
 # callback for the select game button
 @app.callback(
     Output("link_output", "children"),
     Output("game_id", "data"), # outputs to the game_id dcc.store on index page
     Output("video_path", "data"), # outputs to the video link dcc.store on index
+    Output("hidden_div_game_reset", "children"),
     Input("select_game", "n_clicks"),
     State("game_input", "value"),
     State("game_id", "data"),
@@ -154,9 +158,9 @@ def select_game(n_clicks, game_id, game_id_storage):
         else:
             error = 1
         
-        return output, game_id, "Path"
+        return output, game_id, "Path", None
     else:
-        return None, game_id_storage, None
+        return None, game_id_storage, None, None
 
 
 # need to do the following:

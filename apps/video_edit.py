@@ -261,7 +261,7 @@ save_card = html.Div(
     children=[
         dbc.ButtonGroup(
             [
-                dbc.Button('Discard Video', id='discard',
+                dbc.Button('Quit', id='discard',
                         href='/apps/home', size="md", color="danger",),
                 dbc.Button('Save and Quit',
                         id='save-and-quit', className= 'save-and-quit', href='/apps/home', size="md"),

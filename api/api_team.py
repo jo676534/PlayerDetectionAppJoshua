@@ -1,8 +1,10 @@
 import pandas as pd
 import psycopg2 as pg2
 import pandas as pd
+
 # GET FUNCTIONS
-def get_teams(game_id): # will need significant rework to find the two specific teams
+
+def get_teams(): # will need significant rework to find the two specific teams
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     

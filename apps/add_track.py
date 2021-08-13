@@ -39,7 +39,7 @@ initials = ''
 start = 0 
 end = 0 
 
-dic = {}
+# dic = {}
 detections_df = []
 
 
@@ -85,7 +85,7 @@ def add_editable_box(fig, track_id, x0, y0, x1, y1, name=None, color=None, opaci
 
 
 info_storage_add = html.Div([
-    dcc.Store(id='frame_add', storage_type='local', data=1), 
+    dcc.Store(id='frame_add', storage_type='session', data=1), 
     dcc.Store(id='video_state_add', storage_type='session', data=False),
     ])
 
@@ -154,7 +154,7 @@ end_buttons = dbc.Card(
                 dbc.Button("Quit", id="button_quit_1", href='/apps/dashboard')
             ]
         ),
-        html.Div(id="save_output"),
+        dbc.Spinner(html.Div(id="save_output")),
         html.Div(id="hidden_div_reset"),
     ])
 
@@ -420,6 +420,8 @@ def update_frame(previous_add, next_add, ff10, ff50, rw10, rw50, interval, slide
             return start_frame, start_frame
         else: data = slider; return slider, slider
     else:
+        if slider_min is None:
+            return start_frame, start_frame
         return slider_min, slider_min
 
 
@@ -437,7 +439,7 @@ def update_frame(previous_add, next_add, ff10, ff50, rw10, rw50, interval, slide
 def initial(startNum, endNum, player_id, framedata, video_state, game_id):
     global start
     global end
-    global dic
+    # global dic
     global initials
     global state
     global detections_df
@@ -455,7 +457,7 @@ def initial(startNum, endNum, player_id, framedata, video_state, game_id):
     for i in marks:
         sliderMarks[f'{i}'] = f'{i}'
 
-    dic = api_detections.get_partial_frame_detections(game_id, startNum, endNum)
+    # dic = api_detections.get_partial_frame_detections(game_id, startNum, endNum)
     initials = api_detections.get_player_initials(player_id)
 
     return start, end, sliderMarks
@@ -523,7 +525,6 @@ def save_detection(save_clicks, reset_clicks, start_input, final_input, start_fr
     global detections_df
 
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
-    print(cbcontext)
 
     # first check for if it was reset button
     if cbcontext == "button_reset.n_clicks":
