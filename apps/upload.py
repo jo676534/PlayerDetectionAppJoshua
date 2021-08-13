@@ -8,7 +8,7 @@ from dash.exceptions import PreventUpdate
 import pandasql as ps
 import dash_table
 import dash
-import boto3
+# import boto3
 
 from app import app
 
