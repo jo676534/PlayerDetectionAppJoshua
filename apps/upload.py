@@ -8,6 +8,7 @@ from dash.exceptions import PreventUpdate
 import pandasql as ps
 import dash_table
 import dash
+import boto3
 
 from app import app
 
@@ -25,6 +26,9 @@ t_name = None
 t_id = None
 p_name = None
 p_id = None
+
+access_key = ''
+secret_key = ''
 
 # Dash components start here ================
 
@@ -441,7 +445,8 @@ def get_b_name(team_id):
     State("player_modal", "is_open"),
     prevent_initial_call=True)
 def toggle_player_modal(open, close, hidden_div, is_open):
-    if open or close or hidden_div:
+    cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    if cbcontext == "player_open_modal.n_clicks" or cbcontext == "player_close_modal.n_clicks" or (cbcontext == "hidden_div_set_player.children" and hidden_div == "close"):
         return not is_open
     return is_open
 
@@ -494,9 +499,9 @@ def set_player(n_clicks, hidden_div):
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
 
     if n_clicks is not None and cbcontext == "set_player.n_clicks":
-        return p_id, None
+        return p_id, "close"
     else:
-        return None, None
+        return None, "dont"
 
 
 # display player name
