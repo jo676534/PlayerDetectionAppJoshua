@@ -2,7 +2,7 @@ import pandas as pd
 import psycopg2 as pg2
 
 # GET FUNCTIONS
-def get_players(game_id): # will need significant rework to find the players for each specific specific team
+def get_players():
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     
@@ -18,7 +18,8 @@ def get_players(game_id): # will need significant rework to find the players for
 
     return pd.DataFrame(data=players_data, columns=pcols)
 
-def get_players_roster(game_id): # will need significant rework to find the players for each specific specific team
+
+def get_players_roster(game_id):
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
         
@@ -37,7 +38,7 @@ def get_players_roster(game_id): # will need significant rework to find the play
 
 # ----------------------------------------------------------------------------
 
-def get_player(game_id, player_id): # will need significant rework to find the players for each specific specific team
+def get_player(game_id, player_id):
     conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
     cur = conn.cursor()
     
