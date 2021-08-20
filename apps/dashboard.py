@@ -157,7 +157,7 @@ video_card_DB = dbc.Card(
         dbc.CardBody(
             [
                 html.Div(id="manual_annotation_output"),
-                html.Div(children=[ # needs to be properly initialized //////////////////////////////////////////////////////////////////////
+                html.Div(children=[
                     dcc.Interval(
                         id='interval_DB',
                         disabled=False,
@@ -165,7 +165,7 @@ video_card_DB = dbc.Card(
                         # max_intervals=maxFrames # alternative way to do this = properly output the maxFrames to
                     ),
                 ]),
-                dcc.Graph( # WILL HAVE TO INITIALIZE THIS AS WELL //////////////////////////////////////////////////////////////////////////////////////////
+                dcc.Graph(
                     id="canvas_DB",
                     style={'width': '1000px', 'height': '600px'},
                     config={"modeBarButtonsToAdd": ["drawrect", "eraseshape"]},
@@ -175,7 +175,7 @@ video_card_DB = dbc.Card(
         dbc.CardFooter(
             [
                 # Slider Component
-                dcc.Slider( # need to have a default slider w/pointless values and then have it replaced later during initialization ///////////////////////
+                dcc.Slider(
                     id='slider_DB',
                     step=1,
 
@@ -549,7 +549,7 @@ def set_final_frame(n_clicks, frame):
 def add_track_function(add_clicks, delete_clicks, start_frame, final_frame, storage1, storage2, player_id, track_id, game_id, slider_min, slider_max):
     global df_detections
 
-    # universal checks
+    # universal checks (relevant for both delete and add)
     if add_clicks is None and delete_clicks is None: # if this callback was accidently called or initialized
         return None, start_frame, final_frame, player_id
     if ((start_frame is None) or (final_frame is None)):
@@ -721,7 +721,7 @@ def display_2(btn1, btn2, btn3, hidden_div_j1, player_id, hidden_div_j2, switche
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-    # Code for the dynamic updating
+    # Code for the dynamic updating (allows for other components to dynamically update the track list without haing to reclick on the track list buttons)
     # This first part uses the most recent track_state to determine which radio list should display when it needs to be refreshed
         # hidden_div_j1 == video display callback
         # radio_players_A == player buttons
@@ -924,6 +924,7 @@ def update_player_tracks(assignBt, unassignBt, track_id, player_id, game_id, sli
     global df_detections
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
 
+    # assign the track to the selected player (requires a selected player)
     if cbcontext == 'assign_track_bt.n_clicks':
         if not assignBt:
             return None, None
@@ -945,6 +946,7 @@ def update_player_tracks(assignBt, unassignBt, track_id, player_id, game_id, sli
 
         return None, "Track successfully assigned."
 
+    # unassign the track (doesn't require a selected player)
     if unassignBt:
         if not unassignBt:
             return None, None
@@ -960,7 +962,7 @@ def update_player_tracks(assignBt, unassignBt, track_id, player_id, game_id, sli
         return None, None
 
 
-# Callback for delete
+# Callback for delete track
 @app.callback(
     Output('hidden-div2', 'children'),
     Output('hidden_div_j2', 'children'),
@@ -990,6 +992,7 @@ def delete_track(delete_bt, track_id, game_id, slider_min, slider_max):
     return (None, None, None, "Track successfully deleted.")
 
 
+# not a callback, just a function for drawing the boxes on the figure that's displayed to the screen, used in the next callback down
 def draw_tracks(fig, currentFrame, switches_value, slider_min, slider_max, game_id):
     global df_detections
     global new_section
@@ -1055,7 +1058,7 @@ def draw_tracks(fig, currentFrame, switches_value, slider_min, slider_max, game_
 
     return fig 
 
-
+# also not a callback, also used in the next callback down
 def get_frame(current_frame):
     vidcap = cv2.VideoCapture(filename)
     vidcap.set(cv2.CAP_PROP_POS_FRAMES, current_frame)
@@ -1199,7 +1202,7 @@ def update_frame(previous_DB, next_DB, ff10, ff50, rw10, rw50, interval, slider,
     else: data = slider; return slider, slider
 
 
-
+# callback for the section buttons and section dropdown
 @app.callback(
     Output("slider_DB", 'min'), # slider
     Output("slider_DB", 'max'), # slider
@@ -1262,6 +1265,7 @@ def initialize_section_and_slider(dropdown_value, prev, next, hidden_div, stored
         sliderMarks[f'{i}'] = f'{i}'
 
     return minFrame, maxFrame, sliderMarks, section, section, min_or_max
+    # Not sure if this next comment is needed anymore, but left in just in case
     # need to also return a hidden div of sorts to update multiple things:
         # set the current frame to either sliderMin (for nextSec) or sliderMax (for prevSec)
         # update the track list
@@ -1299,7 +1303,6 @@ def initialize_globals(test, game_id):
         {'label': 'Section {}'.format(i+1), 'value': i}
         for i in range(sections)
         ]
-
 
 
     return sectionOptions, None 

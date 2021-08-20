@@ -8,10 +8,10 @@ from dash.exceptions import PreventUpdate
 import pandasql as ps
 import dash_table
 import dash
-# import boto3
 
 from app import app
 
+from api import api_game
 from api import api_team
 from api import api_player
 
@@ -27,15 +27,12 @@ t_id = None
 p_name = None
 p_id = None
 
-access_key = ''
-secret_key = ''
-
 # Dash components start here ================
 
-main_upload_card = dbc.Card(
-    id = 'main_upload_card',
+player_upload_card = dbc.Card( # this is the dash card for the player interactions
+    id = 'player_upload_card',
     children=[
-        dbc.CardHeader(
+        dbc.CardHeader( # the header includes the player search feature through the modal and the add to team buttons
             [
                 html.H2("Player Info Card"),
                 html.Br(),
@@ -48,7 +45,7 @@ main_upload_card = dbc.Card(
                 dbc.Button("Add to Team B", id="add_player_b", style={'display': 'inline-block', "margin-left": "20px"}),
                 html.Br(),
                 html.Div(id="add_player_output"),
-                dbc.Modal(
+                dbc.Modal( # modal for searching for players
                     [
                         dbc.ModalHeader("Player ID Search"),
                         dbc.ModalBody(
@@ -69,14 +66,15 @@ main_upload_card = dbc.Card(
                                     id="player_button_div",
                                     style={'display': 'none'},
                                 ),
-                                html.Div(
+                                html.Div( # button wrapped in a div so it can be hidden until the correct time
                                     [
                                         dbc.Button("Set Player ID", id="set_player", style={'display': 'inline-block'}),
                                     ],
                                     id="player_add_div",
                                     style={'display': 'none'},
                                 ),
-                                # html.Div( # potential div for having the add to team buttons be within the modal
+                                # potential div for having the add to team buttons be within the modal instead of on the main page
+                                # html.Div( 
                                 #     [
                                 #         dbc.Button("Add to Team A", id="add_player_a_modal", style={'display': 'inline-block', "margin-right": "15px"}),
                                 #         dbc.Button("Add to Team B", id="add_player_b_modal", style={'display': 'inline-block'}),
@@ -86,11 +84,13 @@ main_upload_card = dbc.Card(
                                 # ),
                                 html.Hr(),
                                 html.H5("Player List"),
-                                # dash_table.DataTable(
+                                # potential data table for showing a list of players within the modal
+                                # dash_table.DataTable( 
                                 #     id='player_table',
                                 #     columns=[
-                                #         {'name': 'Team ID', 'id': 'team_id'}, 
-                                #         {'name': 'Team Name', 'id': 'name'}, 
+                                #         {'name': 'Player ID', 'id': 'player_id'}, 
+                                #         {'name': 'Player Name', 'id': 'name'}, 
+                                #         {'name': 'Jersey Number', 'id': 'jersey'}, 
                                 #     ],
                                 #     page_current=0,
                                 #     page_size=20,
@@ -114,18 +114,18 @@ main_upload_card = dbc.Card(
                     size="lg",
                     scrollable=True,
                     is_open=False,
-                ),
-            ]
-        ),
-        dbc.CardBody(
+                ), # end of modal
+            ] # end of header children
+        ), # end of card header
+        dbc.CardBody( # the body includes the 
             [
                 html.H4("Team A Table"),
                 html.Br(),
-                dash_table.DataTable(
+                dash_table.DataTable( # this data table is for showing the players added to team a
                     id='player_table_a',
                     columns=[
                         {'name': 'Player ID', 'id': 'player_id'}, 
-                        {'name': 'Player Name', 'id': 'name'}, # add more later
+                        {'name': 'Player Name', 'id': 'name'},
                         {'name': 'Initials', 'id':'initials'},
                         {'name': 'Jersey', 'id':'jersey'},
                     ],
@@ -146,11 +146,11 @@ main_upload_card = dbc.Card(
                 html.Hr(),
                 html.H4("Team B Table"),
                 html.Br(),
-                dash_table.DataTable(
+                dash_table.DataTable( # this data table is for showing the players added to team b
                     id='player_table_b',
                     columns=[
                         {'name': 'Player ID', 'id': 'player_id'}, 
-                        {'name': 'Player Name', 'id': 'name'}, # add more later
+                        {'name': 'Player Name', 'id': 'name'},
                         {'name': 'Initials', 'id':'initials'},
                         {'name': 'Jersey', 'id':'jersey'},
                     ],
@@ -168,8 +168,8 @@ main_upload_card = dbc.Card(
                 html.Div("Player ID to Remove from Team B:", style={'display': 'inline-block'}),
                 dbc.Input(id="player_input_remove_b", placeholder="Player ID", type="number", min=0, step=1, style={'width': '15%', 'display': 'inline-block', "margin-left": "10px", "margin-right": "15px",}, className= 'add_track_input',),
                 dbc.Button("Remove Player", id="player_button_remove_b", style={'display': 'inline-block'}),
-            ]
-        ),
+            ] # end of body children
+        ), # end of card body
         dbc.CardFooter(
             [
                 html.H2("Submit zone"),
@@ -179,14 +179,14 @@ main_upload_card = dbc.Card(
                 html.Div(id="hidden_div_set_player"), # used to update other parts like: 1. close the modal, 2. clear the modal player name input
                 html.Div(id="hidden_div_add_player"), # used to update other parts like: 1. clear the player id input
                 html.Div(id="hidden_div_remove_player"), # used to update other parts like: 1. regen the table with the removed player
-            ]
-        ),
+            ] # end of footer children
+        ), # end of card footer
     ]
-)
+) # end of player card
 
 
 team_upload_card = dbc.Card(
-    id = 'main_upload_card',
+    id = 'team_upload_card',
     children=[
         dbc.CardHeader(
             [
@@ -203,9 +203,8 @@ team_upload_card = dbc.Card(
                 dbc.Input(id="team_b_id", placeholder="Team B ID", type="number", min=0, step=1, style={'width': '30%', 'display': 'inline-block', "margin-left": "10px", "margin-right": "15px",}, className= 'add_track_input',),
                 html.Div(id="team_b_name", style={'display': 'inline-block'}),
                 html.Br(),
-
                 dbc.Button("Find Team ID", id="team_open_modal", n_clicks=0),
-                dbc.Modal(
+                dbc.Modal( # modal for searching for teams
                     [
                         dbc.ModalHeader("Team ID Search"),
                         dbc.ModalBody(
@@ -218,6 +217,7 @@ team_upload_card = dbc.Card(
                                 html.Div("Search Result:", style={'display': 'inline-block', 'margin-right': "10px"}),
                                 html.Div(id="team_id_output", style={'display': 'inline-block'}),
                                 html.Br(),
+                                # the following two divs will be either hidden or displayed (only one can be displayed at a time, but they both can be hidden at the same time)
                                 html.Div(
                                     [
                                         dbc.Button("Confirm", id="confirm_team", style={'display': 'inline-block', "margin-right": "15px"}),
@@ -236,7 +236,7 @@ team_upload_card = dbc.Card(
                                 ),
                                 html.Hr(),
                                 html.H5("Team List"),
-                                dash_table.DataTable(
+                                dash_table.DataTable( # data table for showing the teams
                                     id='team_table',
                                     columns=[
                                         {'name': 'Team ID', 'id': 'team_id'}, 
@@ -264,16 +264,16 @@ team_upload_card = dbc.Card(
                     size="lg",
                     scrollable=True,
                     is_open=False,
-                ),
+                ), # end of modal
             ]
-        ),
+        ), # end of card body
         dbc.CardFooter(
             [
                 html.Div(id="hidden_div_team"),
             ]
         ),
     ]
-)
+) # end of team card
 
 
 layout = html.Div([
@@ -285,7 +285,7 @@ layout = html.Div([
             dbc.Row(
                 [
                     dbc.Col(team_upload_card, xs=4, sm=4, md=4, lg=4, xl=4),
-                    dbc.Col(main_upload_card, xs=8, sm=8, md=8, lg=8, xl=8),
+                    dbc.Col(player_upload_card, xs=8, sm=8, md=8, lg=8, xl=8),
                 ],
                 justify="center",
             )
@@ -297,7 +297,7 @@ layout = html.Div([
 
 # team callbacks =======================================================================================
 
-# team modal toggle callback
+# team modal toggle open/close callback
 @app.callback(
     Output("team_modal", "is_open"),
     Input("team_open_modal", "n_clicks"), 
@@ -310,7 +310,7 @@ def toggle_team_modal(open, close, is_open):
     return is_open
 
 
-# table creation callback
+# table creation callback (uses pre initialized data for the table)
 @app.callback(
     Output('team_table', 'data'),
     Input('team_table', "page_current"),
@@ -322,7 +322,7 @@ def update_table(page_current, page_size, sort_by):
 
 
 # team search modal callback
-@app.callback(
+@app.callback( # combined multiple callbacks into one to in order to be able to hide/show the dividers
     Output("team_id_output", "children"),
     Output("button_div", "style"),
     Output("set_div", "style"),
@@ -337,6 +337,7 @@ def search_team(search_clicks, add_clicks, confirm, deny, team_name):
     global t_id
     cbcontext = [p["prop_id"] for p in dash.callback_context.triggered][0]
 
+    # part for executing the search and returning the results
     if(cbcontext == "team_search.n_clicks" and search_clicks):
         sql = f'''SELECT * FROM df_team WHERE name like '%{team_name}%' '''
         df_out = ps.sqldf(sql)
@@ -351,26 +352,20 @@ def search_team(search_clicks, add_clicks, confirm, deny, team_name):
                 t_id = int(id)
                 return(f"Team ID: {id} // Team Name: {t_name}", {'display': 'none'}, {'display': 'block'}) # displays the add to team a or team b buttons
 
+    # part one for adding a new team
     elif(cbcontext == "add_team.n_clicks" and add_clicks):
         t_name = team_name
         if(team_name is None): return("Please enter a team name first.", {'display': 'none'}, {'display': 'none'})
         return(f"This will create a new team named \"{t_name}\". Are you sure?", {'display': 'block'}, {'display': 'none'}) # displays the confirm/deny buttons used in the next part of the callback
 
+    # part for confirming the addition of a new team
     elif(cbcontext == "confirm_team.n_clicks" and confirm):
         # here need to commit the team to the database
-        # get max team id + 1
-        # sql = f'''SELECT MAX(team_id) FROM df_team'''
-        # new_team_id = ps.sqldf(sql)
-        # print("\n")
-        # print(new_team_id.loc[0])
-        
-        # do the api query for max team id
-        # add one
-        # commit team to the database
-        # query back the new team table
-
+        new_id = api_team.get_new_team_id()
+        api_team.create_new_team(new_id, team_name)
         return("Team successfully added", {'display': 'none'}, {'display': 'none'})
 
+    # part for denying the new team addition
     elif(cbcontext == "deny_team.n_clicks" and deny):
         return("Team not added.", {'display': 'none'}, {'display': 'none'})
 
@@ -482,6 +477,8 @@ def search_player(search_clicks, hidden_div, player_name):
     
     elif(cbcontext == "hidden_div_set_player.children"):
         return None, {'display': 'none'}, {'display': 'none'}, None
+
+    # will need to add other parts in here for other inputs that might be added to this callback (use team callback as reference)
 
     else:
         return None, {'display': 'none'}, {'display': 'none'}, player_name
