@@ -1,8 +1,13 @@
 import pandas as pd
 import psycopg2 as pg2
 
+database = 'soccer'
+user = 'postgres'
+host = 'database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com'
+password = 'rootroot'
+
 def get_unfinished_games():
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     cur = conn.cursor()
     
     cur.execute('''SELECT * FROM game WHERE process_state < 7''')
@@ -21,7 +26,7 @@ def get_unfinished_games():
 
 
 def get_team_names(game_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     cur = conn.cursor()
     cur.execute(f'''SELECT * FROM game WHERE game_id={game_id}''')
     data = cur.fetchall()
@@ -42,7 +47,7 @@ def get_team_names(game_id):
 
 
 def get_team_ids(game_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     cur = conn.cursor()
     cur.execute(f'''SELECT * FROM game WHERE game_id={game_id}''')
     data = cur.fetchall()
@@ -62,7 +67,7 @@ def get_team_ids(game_id):
     return a_id, b_id
 
 
-# conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+# conn = pg2.connect(database=database, user=user, host=host, password=password)
 # cur = conn.cursor()
 # cur.execute('''UPDATE game SET process_state=%s WHERE game_id=%s''', (str(4), game_id)) # 4 for the start of the algo, 5 for the end of the algo
 # conn.commit()
