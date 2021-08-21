@@ -2,13 +2,10 @@ import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State, ALL
-
-
 import dash_player as player
 from app import app
 
-
-video_card_VE = dbc.Card(
+video_card_IR = dbc.Card(
     children=[
         dbc.CardHeader(
             html.Div(
@@ -111,7 +108,7 @@ layout = html.Div(
             [
                 dbc.Row(
                     [
-                        dbc.Col(video_card_VE, md=8),
+                        dbc.Col(video_card_IR, md=8),
                     ],
                 ),
             ],
