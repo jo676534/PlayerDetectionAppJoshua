@@ -1,13 +1,13 @@
 import pandas as pd
 import psycopg2 as pg2
 
-# database name is soccer
-# password is rootroot
-# username is postgres
-# host is database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com
+database = 'soccer'
+user = 'postgres'
+host = 'database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com'
+password = 'rootroot'
 
 def get_detection_data(game_id, start, end):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot') # ctrl + d
+    conn = pg2.connect(database=database, user=user, host=host, password=password) # ctrl + d
     cur = conn.cursor()
 
     cur.execute(f'''SELECT * FROM detections WHERE game_id={game_id} AND frame>={start} AND frame<={end}''') # fstrings confirmed to work
@@ -23,7 +23,7 @@ def get_detection_data(game_id, start, end):
 # ----------------------------------------------------------------------------
 
 def save_track(game_id, detections_df, frame, track_id, player_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     cur = conn.cursor()
     
     for index, det in detections_df.iterrows():
@@ -37,7 +37,7 @@ def save_track(game_id, detections_df, frame, track_id, player_id):
 # ----------------------------------------------------------------------------
 
 def unique_track_id(game_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     cur = conn.cursor()
     
     cur.execute(f'''SELECT MAX(track_id) FROM detections WHERE game_id={game_id}''') # fstrings confirmed to work
@@ -51,7 +51,7 @@ def unique_track_id(game_id):
 # ----------------------------------------------------------------------------
 
 def delete_detection(game_id, frame, track_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     cur = conn.cursor()
     
     cur.execute(f'''DELETE FROM detections WHERE game_id={game_id} AND frame={frame} AND track_id={track_id}''')
@@ -63,7 +63,7 @@ def delete_detection(game_id, frame, track_id):
 # ----------------------------------------------------------------------------
 
 def delete_detection_section(game_id, start_frame, final_frame, track_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     cur = conn.cursor()
     
     cur.execute(f'''DELETE FROM detections WHERE game_id={game_id} AND track_id={track_id} AND frame >= {start_frame} AND frame <= {final_frame}''')
@@ -75,7 +75,7 @@ def delete_detection_section(game_id, start_frame, final_frame, track_id):
 # ----------------------------------------------------------------------------
 
 def delete_detection_list(game_id, track_id, arr):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     cur = conn.cursor()
 
     st = set(arr)
@@ -88,7 +88,7 @@ def delete_detection_list(game_id, track_id, arr):
 # ----------------------------------------------------------------------------
 
 def add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')  
+    conn = pg2.connect(database=database, user=user, host=host, password=password)  
     cur = conn.cursor()
     
     # fstrings don't work here for some reason # cur.execute(f'''INSERT INTO detections (game_id, frame, x0, y0, x1, y1, track_id, player_id, initials) VALUES ({game_id}, {frame}, {x0}, {y0}, {x1}, {y1}, {track_id}, {player_id}, {initials})''')
@@ -101,7 +101,7 @@ def add_detection(game_id, frame, x0, y0, x1, y1, track_id, player_id, initials)
 # ----------------------------------------------------------------------------
 
 def get_player_initials(player_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     
     cur1 = conn.cursor()
     cur1.execute(f'''SELECT initials FROM player WHERE player_id={player_id}''')
@@ -116,7 +116,7 @@ def get_player_initials(player_id):
 # ----------------------------------------------------------------------------
 
 def get_partial_frame_detections(game_id, start_frame, final_frame):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     cur = conn.cursor()
 
     cur.execute('''SELECT MAX(frame) FROM detections''')
@@ -149,7 +149,7 @@ def get_partial_frame_detections(game_id, start_frame, final_frame):
 # ----------------------------------------------------------------------------
 
 def assign_track(game_id, player_id, track_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
 
     cur1 = conn.cursor()
     cur1.execute(f'''SELECT initials FROM player WHERE player_id={player_id}''')
@@ -165,7 +165,7 @@ def assign_track(game_id, player_id, track_id):
 # ----------------------------------------------------------------------------
 
 def unassign_track(game_id, track_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
 
     cur = conn.cursor()
     cur.execute(f'''UPDATE detections SET player_id=-1 WHERE track_id={track_id} AND game_id={game_id}''')
@@ -179,7 +179,7 @@ def unassign_track(game_id, track_id):
 # ----------------------------------------------------------------------------
 
 def delete_track(game_id, track_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     cur = conn.cursor()
     cur.execute(f'''DELETE FROM detections WHERE track_id={track_id} and game_id={game_id}''')
     conn.commit()
@@ -189,7 +189,7 @@ def delete_track(game_id, track_id):
 # ----------------------------------------------------------------------------
 
 def get_player_frames(game_id, player_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     cur = conn.cursor()
     
     cur.execute('''SELECT frame FROM detections WHERE game_id=%s AND player_id=%s''', (game_id, player_id))
@@ -214,7 +214,7 @@ def get_player_frames(game_id, player_id):
 # ----------------------------------------------------------------------------
 
 def get_track_frames(game_id, track_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     cur = conn.cursor()
     
     cur.execute(f'''SELECT frame FROM detections WHERE game_id={game_id} AND track_id={track_id}''')
@@ -239,7 +239,7 @@ def get_track_frames(game_id, track_id):
 # ----------------------------------------------------------------------------
 
 def example_endpoint_framework(game_id):
-    conn = pg2.connect(database='soccer', user='postgres', host='database-1.cbumbixir8o8.us-east-1.rds.amazonaws.com', password='rootroot')
+    conn = pg2.connect(database=database, user=user, host=host, password=password)
     cur = conn.cursor()
     
     # Query/Commit Here

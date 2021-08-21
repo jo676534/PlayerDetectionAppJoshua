@@ -133,4 +133,4 @@ def display_page(pathname):
 application = app.server 
 if __name__ == '__main__':
     app.run_server(debug=True, port=8080) # Have this line active to debug (Choose one or other)
-    # application.run(debug=True, port=8080) # Have this line active to run actual application
+    # application.run(debug=True, host='0.0.0.0', port=8080) # Have this line active to run actual application
