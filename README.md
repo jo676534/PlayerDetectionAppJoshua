@@ -20,18 +20,18 @@ When ready to run:
 python application.py
 ```
 ## Senior Design Past Group Resources
-[Homography](https://drive.google.com/file/d/1gRlwyqVVX9RW0beowKVINEigz9lavhnp/view?usp=sharing)
-[DeepSort_YOLOv4](https://drive.google.com/file/d/1xi6UmQBrwhmRHK1YJzIjqg8rSe0YuJT0/view?usp=sharing)
+- [Homography](https://drive.google.com/file/d/1gRlwyqVVX9RW0beowKVINEigz9lavhnp/view?usp=sharing)
+- [DeepSort_YOLOv4](https://drive.google.com/file/d/1xi6UmQBrwhmRHK1YJzIjqg8rSe0YuJT0/view?usp=sharing)
 
 ## Stages of an entry.
-0: PAGE - Initial Review (Game freshly uploaded)
-1: PROCESS - Converted to 15 fps
-2: PAGE - Video Editor (Being edited)
-3: PROCESS - Video being recompiled with removed frames (Then usually goes back to stage 2 unless no more editing needs to be done)
-4: PROCESS - Detection algorithm being run    
-5: PAGE - Dashboard (Track matching + Manual annotation + Add track)
-6: PROCESS - Homography being run
-7: PAGE - Final review page
+- 0: PAGE - Initial Review (Game freshly uploaded)
+- 1: PROCESS - Converted to 15 fps
+- 2: PAGE - Video Editor (Being edited)
+- 3: PROCESS - Video being recompiled with removed frames (Then usually goes back to stage 2 unless no more editing needs to be done)
+- 4: PROCESS - Detection algorithm being run    
+- 5: PAGE - Dashboard (Track matching + Manual annotation + Add track)
+- 6: PROCESS - Homography being run
+- 7: PAGE - Final review page
 
 ### Stage 0 - Initial Review [Page]
 Immediately after uploading, the entry enters Stage 0 aka Initial Review. Upon user selection from the home page, the video will be pulled from its corresponding AWS S3 bucket into the video player on the page. Here the user is able to play and go through the video and ultimately be able to deny or accept the video into the system.
@@ -89,7 +89,6 @@ Gonna need two parts to this process:
 #### Why?
 
 #### Incomplete Implementation
-
 
 ### Stage 5 - Dashboard [Page]
 
