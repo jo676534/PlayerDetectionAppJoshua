@@ -134,7 +134,7 @@ def game_collapse(n_clicks, is_open):
 def select_game(n_clicks, game_id, game_id_storage):
     # use the game_id to grab the link to the video + process_state
     # then use the process state to determine which link to generate
-    if n_clicks:
+    if n_clicks: # should also add a cbcontext here, just n clicks is not secure
         process_state = 0
         output = None
         error = 0
