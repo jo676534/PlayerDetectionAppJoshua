@@ -170,7 +170,7 @@ def select_game(n_clicks, game_id, game_id_storage):
     # generate a button based on the game's state
 
 # States:
-# 0: PAGE - Initial Reveiew (Game freshly uploaded)
+# 0: PAGE - Initial Review (Game freshly uploaded)
 # 1: PROCESS - Converted to 15 fps
 # 2: PAGE - Video Editor (Being edited)
 # 3: PROCESS - Video being recompiled with removed frames (Then usually goes back to stage 2 unless no more editing needs to be done)
