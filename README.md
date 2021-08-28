@@ -22,6 +22,7 @@ python application.py
 ## Senior Design Past Group Resources
 - [Homography](https://drive.google.com/file/d/1gRlwyqVVX9RW0beowKVINEigz9lavhnp/view?usp=sharing)
 - [DeepSort_YOLOv4](https://drive.google.com/file/d/1xi6UmQBrwhmRHK1YJzIjqg8rSe0YuJT0/view?usp=sharing)
+- [Sportsfield_release](https://drive.google.com/file/d/1TMHS62qUV6h6dQiZZyqfVd17ZQWxVr3k/view?usp=sharing)
 
 ## Stages of an entry.
 - 0: PAGE - Initial Review (Game freshly uploaded)
