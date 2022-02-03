@@ -9,3 +9,4 @@ api/.ipynb_checkpoints
 apps/old_video_edit.py
 *.mp4
 .vscode/settings.json
+.env

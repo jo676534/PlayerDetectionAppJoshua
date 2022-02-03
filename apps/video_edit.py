@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 import json
 import math
-
+from api_ml_algorithms import scene_segmentation_api
 from app import app
 
 filename = "./Videos/game_0_untrimmed.mp4"
@@ -202,8 +202,14 @@ video_trimmer_card = dbc.Card(
     children=[
         dcc.Store(id='blacklist',
                 storage_type='memory'),
-        dbc.CardHeader(
-            html.H4('Video Trimmer', id='testing',),
+        dbc.CardHeader(children=[
+            html.H4('Video Trimmer', id='testing',style={'text-align':'center','padding-right':'10px'}),
+            html.Br(),
+            html.Div(dcc.Loading(dbc.Button(id='run_scene_segmentation_button',children='Run Scene Segmentation!',color='success')),style={'text-align':'center'})
+          
+        ]
+            
+            
         ),
         dbc.CardBody(
             [
@@ -248,7 +254,7 @@ video_trimmer_card = dbc.Card(
                     style={"margin-top": "20px", "margin-bottom": "10px", }
                 ),
                 dbc.Button('Save to Trim Queue',
-                        id='addToTrim', color="primary", block=True),
+                        id='addToTrim', color="primary",),
             ]
         ),
     ],
@@ -603,3 +609,19 @@ def setFrameToEnd(set, add, value):
         return value
     if cbcontext == "addToTrim.n_clicks":
         return None
+
+
+
+@app.callback(Output('run_scene_segmentation_button','n_clicks'),
+              
+              Input('run_scene_segmentation_button','n_clicks'))
+
+def call_scene_segmentation(n_clicks):
+    if n_clicks is None:
+        raise PreventUpdate
+    
+    else:
+        temp_variables_name = 'video0.mp4'
+        temp_variables_key = 'video0.mp4'
+    
+        scene_segmentation_api.begin_scene_segmentation(temp_variables_name,temp_variables_key)
