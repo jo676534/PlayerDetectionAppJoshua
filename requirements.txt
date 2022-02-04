@@ -9,7 +9,6 @@ Cython==0.29.27
 dash==1.21.0
 dash-bootstrap-components==0.12.2
 dash-core-components==1.17.1
-dash-flask-login==0.0.4
 dash-html-components==1.1.4
 dash-player==0.0.1
 dash-renderer==1.9.1
@@ -17,7 +16,6 @@ dash-table==4.12.0
 decorator==5.1.1
 Flask==2.0.2
 Flask-Compress==1.10.1
-Flask-Login==0.5.0
 Flask-SeaSurf==0.3.1
 fonttools==4.29.1
 future==0.18.2
@@ -69,7 +67,7 @@ torchfile==0.1.0
 torchvision==0.11.3
 tornado==6.1
 tqdm==4.62.3
-triangle==20220202
+triangle==20200424
 typing_extensions==4.0.1
 urllib3==1.26.8
 visdom==0.1.8.9

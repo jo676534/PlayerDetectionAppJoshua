@@ -9,7 +9,7 @@ from aws import aws_email
 
 access_key_environment_var = os.getenv('aws_access_key')
 secret_access_environment_var = os.getenv('aws_secret_access_key')
-aws_region_name_var = os.getenv('aws-region-name')
+aws_region_name_var = os.getenv('aws_region_name')
 
 coach_client_id = os.getenv('aws_coach_user_client_id')
 coach_pool_id = os.getenv('aws_coach_user_pool_id')
@@ -18,9 +18,7 @@ sportscience_client_id = os.getenv('aws_sportscience_client_id')
 sportscience_pool_id = os.getenv('aws_sportscienceai_pool_id')
 
 
-cognito_client_instance = boto3.client('cognito-idp',aws_access_key_id=access_key_environment_var,
-                                                        aws_secret_access_key=secret_access_environment_var,
-                                                        region_name=aws_region_name_var)
+cognito_client_instance = boto3.client('cognito-idp',aws_access_key_id=access_key_environment_var,aws_secret_access_key=secret_access_environment_var,region_name='us-east-1')
 operation_successful = 'success'
 
 

@@ -5,7 +5,6 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 from dash.dependencies import State
 from dash.exceptions import PreventUpdate
-from flask_login import login_user, UserMixin
 from app import app
 from aws import aws_cognito
 
@@ -171,9 +170,9 @@ layout = html.Div(children= [
 
 
 
-class User(UserMixin):
+""" class User(UserMixin):
     def __init__(self,username):
-        self.id = username
+        self.id = username """
    
 
 #checks if user password is correct, signs in as a coach user

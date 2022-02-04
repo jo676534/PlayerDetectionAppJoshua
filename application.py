@@ -9,7 +9,6 @@ from matplotlib import use
 
 # Connect to main app.py file
 from app import app
-from app import flask_server
 # from app import server
 
 # Connect apps here
@@ -25,8 +24,8 @@ from apps import sign_up_sportscience
 from apps import forgot_password
 from apps import coach_home
 
-from flask_login import LoginManager, UserMixin, login_fresh, logout_user, login_user, current_user
-from dash_flask_login import FlaskLoginAuth
+#from flask_login import LoginManager, UserMixin, login_fresh, logout_user, login_user, current_user
+#from dash_flask_login import FlaskLoginAuth
 # ------------------------------------------------------------------
 
 """ login_manager = LoginManager()
@@ -206,6 +205,6 @@ def display_page(pathname):
 
 application = app.server 
 if __name__ == '__main__':
-    app.run_server(debug=True,host='0.0.0.0', port=8080)
+    app.run_server(host='0.0.0.0', port=8080)
     #app.run_server(debug=True, port=8080) # Have this line active to debug (Choose one or other)
     # application.run(debug=True, host='0.0.0.0', port=8080) # Have this line active to run actual application
