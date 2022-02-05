@@ -303,6 +303,14 @@ layout = html.Div(
                         dbc.Col(video_card_VE, md=7.5),
                         dbc.Col(children=[video_trimmer_card,
                                         save_card, ], md=4),
+                    
+                        dbc.Col(children=[
+                                dbc.Card([
+                                    dbc.CardHeader('Result of API:'),
+                                    dbc.CardBody(id='result_of_api',children=None,style={"maxHeight": "375px", "overflow": "auto", "height": "375px"})
+                                ]
+                                )
+                        ],md=4)
                     ],
                 ),
             ],
@@ -311,7 +319,6 @@ layout = html.Div(
         info_storage_VE
     ]
 )
-
 
 @app.callback(
     Output('frame_display_VE', 'children'),
@@ -613,7 +620,7 @@ def setFrameToEnd(set, add, value):
 
 
 @app.callback(Output('run_scene_segmentation_button','n_clicks'),
-              
+              Output('result_of_api','children'),
               Input('run_scene_segmentation_button','n_clicks'))
 
 def call_scene_segmentation(n_clicks):
@@ -624,4 +631,8 @@ def call_scene_segmentation(n_clicks):
         temp_variables_name = 'video0.mp4'
         temp_variables_key = 'video0.mp4'
     
-        scene_segmentation_api.begin_scene_segmentation(temp_variables_name,temp_variables_key)
+        res = scene_segmentation_api.begin_scene_segmentation(temp_variables_name,temp_variables_key)
+        
+        print(res)
+
+        return None,str(res)

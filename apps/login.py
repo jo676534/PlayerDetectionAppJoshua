@@ -52,7 +52,7 @@ forgot_password_button = html.Div(
 
 
 sign_in_button_coach = html.Div(
-    dbc.Button(id='sign_in_button_coach_id',children='Sign In as a Coach User',color='primary'),
+    dbc.Button(id='sign_in_button_coach_id',children='Sign In as a Coach User?',color='primary'),
     style={'padding-bottom':'5px'}
 )
 

@@ -2,6 +2,8 @@ import boto3
 import os
 import botocore
 
+from dotenv import load_dotenv
+load_dotenv()
 
 access_key_environment_var = os.getenv('aws_access_key')
 secret_access_environment_var = os.getenv('aws_secret_access_key')

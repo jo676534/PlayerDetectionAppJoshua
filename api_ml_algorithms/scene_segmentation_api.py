@@ -1,7 +1,6 @@
 import requests
-
 #need to 
-scene_segmentation_endpoint = 'http://127.0.0.1:5000/get' # this is a flask environment running on my local computer for testing
+scene_segmentation_endpoint = 'http://172.18.0.2:5000/get' # this is a flask environment running on my local computer for testing
 
 #need to pass in the video name and video key so scene segmentatio knows what video to use
 def begin_scene_segmentation(video_name,video_key):

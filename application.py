@@ -1,4 +1,5 @@
 # Imports
+from distutils.log import debug
 from http import server
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
@@ -205,6 +206,6 @@ def display_page(pathname):
 
 application = app.server 
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8080)
+    app.run_server(host='0.0.0.0', port=8080,debug=True)
     #app.run_server(debug=True, port=8080) # Have this line active to debug (Choose one or other)
     # application.run(debug=True, host='0.0.0.0', port=8080) # Have this line active to run actual application
