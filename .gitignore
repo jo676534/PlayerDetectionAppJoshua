@@ -1,13 +1,11 @@
 /__pycache__
 /.ipynb_checkpoints
-dash_app/apps/.ipynb_checkpoints
-dash_app/apps/__pycache__
-dash_app/api/__pycache__/
-dash_app/api/.ipynb_checkpoints
+apps/.ipynb_checkpoints
+apps/__pycache__
+api/__pycache__/
+api/.ipynb_checkpoints
 /examples
-flask_backend
 *.pyc
 apps/old_video_edit.py
 *.mp4
 .vscode/settings.json
-.env
