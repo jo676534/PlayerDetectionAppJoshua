@@ -10,6 +10,7 @@ from matplotlib import use
 
 # Connect to main app.py file
 from app import app
+
 # from app import server
 
 # Connect apps here
@@ -25,8 +26,8 @@ from apps import sign_up_sportscience
 from apps import forgot_password
 from apps import coach_home
 
-#from flask_login import LoginManager, UserMixin, login_fresh, logout_user, login_user, current_user
-#from dash_flask_login import FlaskLoginAuth
+# from flask_login import LoginManager, UserMixin, login_fresh, logout_user, login_user, current_user
+# from dash_flask_login import FlaskLoginAuth
 # ------------------------------------------------------------------
 
 """ login_manager = LoginManager()
@@ -56,7 +57,6 @@ def login():
 # ------------------------------------------------------------------
 
 
-
 # make a reuseable dropdown for the different examples
 """ dropdown = dbc.DropdownMenu(
             children=[
@@ -80,7 +80,7 @@ navbar = dbc.Navbar(
                     dbc.Col(
                         html.Img(
                             id="logo",
-                            src='https://github.com/dianabisbe/Images/blob/main/SportScienceLogo.png?raw=true',
+                            src="https://github.com/dianabisbe/Images/blob/main/SportScienceLogo.png?raw=true",
                             height="30px",
                         ),
                         md="auto",
@@ -96,20 +96,46 @@ navbar = dbc.Navbar(
                             dbc.Collapse(
                                 dbc.Nav(
                                     [
-                                       dbc.DropdownMenu(
-                                                children=[
-                                                    dbc.DropdownMenuItem(dcc.Link('Home', href='/apps/home')),
-                                                    dbc.DropdownMenuItem(dcc.Link('Initial Review', href='/apps/initial_review')),
-                                                    dbc.DropdownMenuItem(dcc.Link('Video Editor', href='/apps/video_edit')),
-                                                    dbc.DropdownMenuItem(dcc.Link('Dashboard', href='/apps/dashboard')),
-                                                    dbc.DropdownMenuItem(dcc.Link('Add Track', href='/apps/add_track')),
-                                                    dbc.DropdownMenuItem(dcc.Link('Upload', href='/apps/upload')),
-                                                ],
-                                                nav=True,
-                                                in_navbar=True,
-                                                label="HOME",
-                                                direction="left"
-                                            ),
+                                        dbc.DropdownMenu(
+                                            children=[
+                                                dbc.DropdownMenuItem(
+                                                    dcc.Link("Home", href="/apps/home")
+                                                ),
+                                                dbc.DropdownMenuItem(
+                                                    dcc.Link(
+                                                        "Initial Review",
+                                                        href="/apps/initial_review",
+                                                    )
+                                                ),
+                                                dbc.DropdownMenuItem(
+                                                    dcc.Link(
+                                                        "Video Editor",
+                                                        href="/apps/video_edit",
+                                                    )
+                                                ),
+                                                dbc.DropdownMenuItem(
+                                                    dcc.Link(
+                                                        "Dashboard",
+                                                        href="/apps/dashboard",
+                                                    )
+                                                ),
+                                                dbc.DropdownMenuItem(
+                                                    dcc.Link(
+                                                        "Add Track",
+                                                        href="/apps/add_track",
+                                                    )
+                                                ),
+                                                dbc.DropdownMenuItem(
+                                                    dcc.Link(
+                                                        "Upload", href="/apps/upload"
+                                                    )
+                                                ),
+                                            ],
+                                            nav=True,
+                                            in_navbar=True,
+                                            label="HOME",
+                                            direction="left",
+                                        ),
                                     ],
                                     navbar=True,
                                 ),
@@ -130,73 +156,62 @@ navbar = dbc.Navbar(
     sticky="top",
 )
 
-info_storage = html.Div([
-    dcc.Store(id="game_id", storage_type='session', data=0),
-    dcc.Store(id="video_path", storage_type='session'),
-    dcc.Store(id='start_frame_add', storage_type='session'),
-    dcc.Store(id='final_frame_add', storage_type='session'),
-    dcc.Store(id='player_id_add', storage_type='session'),
-
-    #dcc.Store(id='login-status',storage_type='session')
-])
-
-
-
-
-
+info_storage = html.Div(
+    [
+        dcc.Store(id="game_id", storage_type="session", data=0),
+        dcc.Store(id="video_path", storage_type="session"),
+        dcc.Store(id="start_frame_add", storage_type="session"),
+        dcc.Store(id="final_frame_add", storage_type="session"),
+        dcc.Store(id="player_id_add", storage_type="session"),
+        # dcc.Store(id='login-status',storage_type='session')
+    ]
+)
 
 
 app.layout = html.Div(
-    children = [
-        dcc.Location(id='url', refresh=False),
+    children=[
+        dcc.Location(id="url", refresh=False),
         navbar,
-        html.Div(id='page-content', children=[], style= {'height':'100%'}),
+        html.Div(id="page-content", children=[], style={"height": "100%"}),
         info_storage,
-    ])
+    ]
+)
 
 
-
-
-
-
-@app.callback(Output('page-content', 'children'),
-              [Input('url', 'pathname')])
+@app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def display_page(pathname):
 
+    if pathname == "/apps/home":
+        return home.layout
 
-    if pathname == '/apps/home':
-            return home.layout
+    if pathname == "/apps/initial_review":
+        return initial_review.layout
 
-  
-    if pathname == '/apps/initial_review':
-            return initial_review.layout
-  
-       
-    
-    if pathname == '/apps/video_edit':
-            return video_edit.layout
+    if pathname == "/apps/video_edit":
+        return video_edit.layout
 
-    if pathname == '/apps/coach_home':
+    if pathname == "/apps/coach_home":
         return coach_home.layout
 
-    if pathname == '/apps/dashboard':
+    if pathname == "/apps/dashboard":
         return dashboard.layout
 
-    if pathname == '/apps/add_track':
+    if pathname == "/apps/add_track":
         return add_track.layout
 
-    if pathname == '/apps/upload':
+    if pathname == "/apps/upload":
         return upload.layout
-    
-    if pathname == '/apps/sign_up_coach':
+
+    if pathname == "/apps/sign_up_coach":
         return sign_up_coach.layout
-    if pathname == '/apps/sign_up_sportscience':
+
+    if pathname == "/apps/sign_up_sportscience":
         return sign_up_sportscience.layout
 
-    if pathname == '/':
+    if pathname == "/":
         return login.layout
 
-    if pathname == '/apps/forgot_password':
+    if pathname == "/apps/forgot_password":
         return forgot_password.layout
     else:
         return login.layout
@@ -204,8 +219,8 @@ def display_page(pathname):
 
 """ auth = FlaskLoginAuth(app) """
 
-application = app.server 
-if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8080,debug=True)
-    #app.run_server(debug=True, port=8080) # Have this line active to debug (Choose one or other)
+application = app.server
+if __name__ == "__main__":
+    app.run_server(host="0.0.0.0", port=8080, debug=True)
+    # app.run_server(debug=True, port=8080) # Have this line active to debug (Choose one or other)
     # application.run(debug=True, host='0.0.0.0', port=8080) # Have this line active to run actual application

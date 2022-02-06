@@ -9,7 +9,7 @@ access_key_environment_var = os.getenv('aws_access_key')
 secret_access_environment_var = os.getenv('aws_secret_access_key')
 aws_region_name_var = os.getenv('aws_region_name')
 
-print(aws_region_name_var)
+
 ses_client = boto3.client('ses',aws_access_key_id=access_key_environment_var,aws_secret_access_key=secret_access_environment_var,region_name='us-east-1')
                                                     
 

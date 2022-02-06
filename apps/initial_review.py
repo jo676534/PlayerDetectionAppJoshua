@@ -11,34 +11,39 @@ video_card_IR = dbc.Card(
             html.Div(
                 [
                     dbc.Row(
-                    children=[
-                        html.Div(
-                            [
-                                html.H1('Initial Review')
-                            ],
-                            # style={"width": "20%", 'margin-left': '10px',
-                            #        'font-size': '14px'},
-                        )])
-                 ], style={"margin-bottom": "0px"}
+                        children=[
+                            html.Div(
+                                [html.H1("Initial Review")],
+                                # style={"width": "20%", 'margin-left': '10px',
+                                #        'font-size': '14px'},
+                            )
+                        ]
+                    )
+                ],
+                style={"margin-bottom": "0px"},
             ),
             className="player_card_header",
         ),
         dbc.CardBody(
             [
                 player.DashPlayer(
-                    id='video-player',
-                    url='https://mainbucketsd2.s3.amazonaws.com/Sample+Soccer+Video.mp4',
+                    id="video-player",
+                    url="https://mainbucketsd2.s3.amazonaws.com/Sample+Soccer+Video.mp4",
                     controls=True,
-                    height='100%',
-                    width='100%'
+                    height="100%",
+                    width="100%",
                 )
             ]
         ),
         dbc.CardFooter(
             dbc.ButtonGroup(
                 [
-                    dbc.Button('Deny Video', id='deny-video',
-                            size="md", color="danger",),
+                    dbc.Button(
+                        "Deny Video",
+                        id="deny-video",
+                        size="md",
+                        color="danger",
+                    ),
                     dbc.Modal(
                         [
                             dbc.ModalHeader("Deny Video"),
@@ -59,13 +64,16 @@ video_card_IR = dbc.Card(
                                     ),
                                 ]
                             ),
-                        ], 
+                        ],
                         id="deny-modal",
                         is_open=False,
-                        backdrop='static',
-                    ), 
-                    dbc.Button('Accept Video',
-                            id='accept-video', size="md",),
+                        backdrop="static",
+                    ),
+                    dbc.Button(
+                        "Accept Video",
+                        id="accept-video",
+                        size="md",
+                    ),
                     dbc.Modal(
                         [
                             dbc.ModalHeader("Accept Video"),
@@ -86,19 +94,22 @@ video_card_IR = dbc.Card(
                                     ),
                                 ]
                             ),
-                        ], 
+                        ],
                         id="accept-modal",
                         is_open=False,
-                        backdrop='static',
-                    ), 
-                    
+                        backdrop="static",
+                    ),
                 ],
                 style={"width": "100%"},
             ),
-        )
+        ),
     ],
-    style={"margin-left": "5px", "margin-top": "20px",
-           "margin-bottom": "20px", "margin-right": "10px"}
+    style={
+        "margin-left": "5px",
+        "margin-top": "20px",
+        "margin-bottom": "20px",
+        "margin-right": "10px",
+    },
 )
 
 
@@ -117,9 +128,14 @@ layout = html.Div(
     ]
 )
 
+
 @app.callback(
     Output("deny-modal", "is_open"),
-    [Input("deny-video", "n_clicks"), Input("deny-back-modal", "n_clicks"), Input("deny-continue-modal", "n_clicks")],
+    [
+        Input("deny-video", "n_clicks"),
+        Input("deny-back-modal", "n_clicks"),
+        Input("deny-continue-modal", "n_clicks"),
+    ],
     [State("deny-modal", "is_open")],
 )
 def toggle_deny_modal(n1, n2, n3, is_open):
@@ -127,9 +143,14 @@ def toggle_deny_modal(n1, n2, n3, is_open):
         return not is_open
     return is_open
 
+
 @app.callback(
     Output("accept-modal", "is_open"),
-    [Input("accept-video", "n_clicks"), Input("accept-back-modal", "n_clicks"), Input("accept-continue-modal", "n_clicks")],
+    [
+        Input("accept-video", "n_clicks"),
+        Input("accept-back-modal", "n_clicks"),
+        Input("accept-continue-modal", "n_clicks"),
+    ],
     [State("accept-modal", "is_open")],
 )
 def toggle_accept_modal(n1, n2, n3, is_open):
